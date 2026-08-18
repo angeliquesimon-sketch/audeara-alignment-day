@@ -270,37 +270,40 @@ with tab_results:
             st.cache_data.clear()
             st.rerun()
 
-    if votes.empty or subs.empty:
-        st.info('No votes yet. Share the Vote tab with the group first.')
+    if subs.empty:
+        st.info('No submissions yet. Head to the Submit tab to add ideas.')
     else:
         top = {}
-        for col_key, _ in CATEGORIES:
-            cat_votes = votes[votes['Category'] == col_key].copy()
-            if not cat_votes.empty:
-                best = cat_votes.sort_values('Votes', ascending=False).iloc[0]
-                top[col_key] = (best['Answer'], int(best['Votes']))
+        if not votes.empty:
+            for col_key, _ in CATEGORIES:
+                cat_votes = votes[votes['Category'] == col_key].copy()
+                if not cat_votes.empty:
+                    best = cat_votes.sort_values('Votes', ascending=False).iloc[0]
+                    top[col_key] = (best['Answer'], int(best['Votes']))
 
-        if len(top) == 4:
-            st.markdown('#### Winning mission statement')
-            st.markdown(
-                f'<div class="winning-box">'
-                f'We help <strong>{top["Who"][0]}</strong> '
-                f'do <strong>{top["What"][0]}</strong> '
-                f'by <strong>{top["How"][0]}</strong>, '
-                f'so they can <strong>{top["Makes Possible"][0]}</strong>.'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+        who_str   = f'<strong>{top["Who"][0]}</strong>'           if 'Who'           in top else '<em>[who]</em>'
+        what_str  = f'<strong>{top["What"][0]}</strong>'          if 'What'          in top else '<em>[what]</em>'
+        how_str   = f'<strong>{top["How"][0]}</strong>'           if 'How'           in top else '<em>[how]</em>'
+        makes_str = f'<strong>{top["Makes Possible"][0]}</strong>'if 'Makes Possible' in top else '<em>[what does that make possible?]</em>'
+
+        st.markdown('#### Current leading sentence')
+        st.markdown(
+            f'<div class="winning-box">'
+            f'We help {who_str} do {what_str} by {how_str}, so they can {makes_str}.'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        if top:
+            st.markdown('#### Top answer per category')
+            for col_key, col_label in CATEGORIES:
+                if col_key in top:
+                    answer, count = top[col_key]
+                    c1, c2 = st.columns([5, 1])
+                    with c1:
+                        st.markdown(f'**{col_label}**  \n{answer}')
+                    with c2:
+                        st.metric('Votes', count)
+                    st.markdown('')
         else:
-            st.info('Waiting for votes across all four categories.')
-
-        st.markdown('#### Top answer per category')
-        for col_key, col_label in CATEGORIES:
-            if col_key in top:
-                answer, count = top[col_key]
-                c1, c2 = st.columns([5, 1])
-                with c1:
-                    st.markdown(f'**{col_label}**  \n{answer}')
-                with c2:
-                    st.metric('Votes', count)
-                st.markdown('')
+            st.caption('No votes yet — head to the Vote tab to start voting.')
