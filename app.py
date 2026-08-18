@@ -231,7 +231,9 @@ with tab_vote:
 
         for col_key, col_label in CATEGORIES:
             st.markdown(f'<div class="category-header">{col_label}</div>', unsafe_allow_html=True)
-            unique = list(dict.fromkeys(a.strip() for a in subs[col_key].tolist() if a.strip()))
+            unique = list(dict.fromkeys(
+                a.strip() for a in subs[col_key].fillna('').tolist() if a.strip()
+            ))
             unique = sorted(unique, key=lambda a: _count(col_key, a), reverse=True)
 
             for i, answer in enumerate(unique):
