@@ -177,12 +177,12 @@ with tab_submit:
         submitted = st.form_submit_button('Submit', type='primary', use_container_width=True)
 
     if submitted:
-        if all([who.strip(), what.strip(), how.strip(), makes.strip()]):
+        if any([who.strip(), what.strip(), how.strip(), makes.strip()]):
             append_submission(who.strip(), what.strip(), how.strip(), makes.strip())
             st.cache_data.clear()
             st.toast('Submitted. Head to the Vote tab to upvote your favourites.', icon='✅')
         else:
-            st.warning('Please fill in all four fields before submitting.')
+            st.warning('Please fill in at least one field before submitting.')
 
     st.divider()
     subs = pull_submissions()
