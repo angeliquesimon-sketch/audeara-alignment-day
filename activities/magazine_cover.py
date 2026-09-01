@@ -24,9 +24,11 @@ COVER_YEAR    = '2030'
 PREVIEW_WIDTH = 260   # px — screen preview size; full image is 1024×1536 (portrait A4)
 
 IMAGE_STYLE = (
-    'Bold magazine cover editorial photograph. '
-    'Cinematic, professional lighting, aspirational mood. '
-    'Deep teal and purple colour tones. High contrast, clean, modern. '
+    'Bold editorial magazine cover photograph. '
+    'Warm, aspirational, human — real people in genuine moments of connection. '
+    'Colour palette: warm sand and neutral tones as the foundation, with deep teal as the feature accent colour. '
+    'Bright, inviting light — confident and optimistic, not dark or dramatic. '
+    'Clean, modern composition. Stylish but approachable. '
     'No text, no letters, no words, no numbers. '
 )
 
@@ -150,7 +152,7 @@ def upsert_vote(category, answer):
 # ── Image generation ───────────────────────────────────────────────────────────
 
 def _img_cache_key(description):
-    return f"cover_img_1024x1536_{hashlib.md5(description.encode()).hexdigest()}"
+    return f"cover_img_1024x1536_v2_{hashlib.md5(description.encode()).hexdigest()}"
 
 def generate_cover_image(description):
     """Return PNG bytes for a given image description, cached in session_state."""
