@@ -534,4 +534,4 @@ with tab_results:
                         with c1:
                             st.markdown(f'_{col_label}_')
                         with c2:
-                            st.metric('', count, label_visibility='collapsed')
+                            st.write(f'**{count}**')
