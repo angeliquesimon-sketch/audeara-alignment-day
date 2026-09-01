@@ -243,7 +243,21 @@ with tab_vote:
             return int(match.iloc[0]['Votes']) if not match.empty else 0
 
         for col_key, col_label in CATEGORIES:
-            st.markdown(f'<div class="category-header">{col_label}</div>', unsafe_allow_html=True)
+            if col_key == 'Image':
+                hdr_col, btn_col = st.columns([5, 2])
+                with hdr_col:
+                    st.markdown(f'<div class="category-header">{col_label}</div>', unsafe_allow_html=True)
+                with btn_col:
+                    _imgs_visible = st.session_state.get('_show_vote_images', False)
+                    if st.button(
+                        '🙈 Hide images' if _imgs_visible else '👁 Show all images',
+                        key='toggle_vote_images',
+                    ):
+                        st.session_state['_show_vote_images'] = not _imgs_visible
+                        st.rerun()
+            else:
+                st.markdown(f'<div class="category-header">{col_label}</div>', unsafe_allow_html=True)
+
             unique = list(dict.fromkeys(
                 a.strip() for a in subs[col_key].fillna('').tolist() if a.strip()
             ))
@@ -259,15 +273,10 @@ with tab_vote:
                 already_voted = vote_key in st.session_state['voted_vision']
 
                 if col_key == 'Image':
-                    show_img_key = f'_show_vote_img_{hashlib.md5(answer.encode()).hexdigest()[:10]}'
-                    if st.session_state.get(show_img_key):
+                    if st.session_state.get('_show_vote_images'):
                         img_col, _ = st.columns([2, 1])
                         with img_col:
                             _show_image(answer)
-                    else:
-                        if st.button('👁 Show image', key=f'show_vote_img_btn_{i}', use_container_width=False):
-                            st.session_state[show_img_key] = True
-                            st.rerun()
                     a_col, b_col = st.columns([7, 1])
                 else:
                     a_col, b_col = st.columns([7, 1])
