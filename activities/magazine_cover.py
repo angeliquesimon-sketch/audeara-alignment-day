@@ -272,7 +272,10 @@ st.markdown(f'''
 
 # ── Init ───────────────────────────────────────────────────────────────────────
 
-_ensure_tabs()
+try:
+    _ensure_tabs()
+except Exception as _e:
+    st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
 
 # ── Page header ────────────────────────────────────────────────────────────────
 
