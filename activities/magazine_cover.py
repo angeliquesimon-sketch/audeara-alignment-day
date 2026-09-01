@@ -127,7 +127,7 @@ with tab_submit:
     pub      = st.text_input('Publication',
                              placeholder='e.g. Fast Company, The Australian, Time, Harvard Business Review…',
                              key='vsub_pub')
-    headline = st.text_input('Cover headline ✦',
+    headline = st.text_input('Cover headline',
                              placeholder='e.g. "The company that made the world listen"',
                              key='vsub_headline')
     story    = st.text_area('The story — what did Audeara achieve?',
