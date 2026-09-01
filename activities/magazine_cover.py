@@ -2,6 +2,7 @@ import sys, os, hashlib, base64
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime
 from utils import _sheets, inject_styles, PURPLE, TEAL
@@ -195,6 +196,84 @@ def _show_image(description, caption=None):
         st.caption(f'_(Image generation failed: {img})_')
     else:
         st.caption('_(Image generation failed — unknown error)_')
+
+def build_cover_html(pub, headline, quote, bottom, img_bytes):
+    if img_bytes:
+        img_b64 = base64.b64encode(img_bytes).decode()
+        bg = f'background-image:url(data:image/png;base64,{img_b64});background-size:cover;background-position:center top;'
+    else:
+        bg = 'background:linear-gradient(160deg,#094B4B,#188383);'
+
+    quote_html  = f'<div class="quote">{quote}</div>'   if quote  else ''
+    bottom_html = (
+        f'<div class="bl-tag">The Bottom Line</div>'
+        f'<div class="bl-text">{bottom}</div>'
+    ) if bottom else ''
+
+    return f'''<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box;}}
+body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-size:16px;}}
+.cover{{
+    width:380px;height:570px;position:relative;border-radius:3px;
+    overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.45);
+    {bg}
+}}
+.masthead{{
+    position:absolute;top:0;left:0;right:0;
+    background:#fff;padding:10px 16px 8px;
+    border-bottom:4px solid #188383;z-index:2;
+}}
+.pub-name{{
+    font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;
+    letter-spacing:0.04em;text-transform:uppercase;color:#111;line-height:1;
+}}
+.pub-meta{{
+    font-family:'Lato',sans-serif;font-size:9px;letter-spacing:0.14em;
+    color:#999;margin-top:4px;text-transform:uppercase;
+}}
+.overlay{{
+    position:absolute;bottom:0;left:0;right:0;
+    background:linear-gradient(to top,rgba(0,0,0,0.93) 55%,rgba(0,0,0,0.5) 82%,transparent);
+    padding:44px 18px 20px;z-index:2;
+}}
+.headline{{
+    font-family:'Oswald',sans-serif;font-size:27px;font-weight:700;
+    line-height:1.12;color:#fff;text-transform:uppercase;
+    letter-spacing:0.02em;margin-bottom:12px;
+}}
+.quote{{
+    font-family:'Lato',sans-serif;font-size:12px;font-style:italic;
+    color:rgba(255,255,255,0.85);border-left:3px solid #188383;
+    padding-left:10px;line-height:1.55;margin-bottom:12px;
+}}
+.bl-tag{{
+    font-family:'Lato',sans-serif;font-size:8px;font-weight:700;
+    letter-spacing:0.12em;text-transform:uppercase;color:#188383;margin-bottom:4px;
+}}
+.bl-text{{
+    font-family:'Lato',sans-serif;font-size:11px;
+    color:rgba(255,255,255,0.72);line-height:1.45;
+}}
+</style>
+</head>
+<body>
+<div class="cover">
+    <div class="masthead">
+        <div class="pub-name">{pub or 'Audeara'}</div>
+        <div class="pub-meta">2030 &nbsp;&middot;&nbsp; Special Edition</div>
+    </div>
+    <div class="overlay">
+        <div class="headline">{headline or 'The Future of Hearing'}</div>
+        {quote_html}
+        {bottom_html}
+    </div>
+</div>
+</body>
+</html>'''
 
 # ── Styles ─────────────────────────────────────────────────────────────────────
 
@@ -544,3 +623,33 @@ with tab_results:
                             st.markdown(f'_{col_label}_')
                         with c2:
                             st.write(f'**{count}**')
+
+        # ── Assemble Cover ─────────────────────────────────────────────────────
+        st.divider()
+        st.markdown('#### Assemble the magazine cover')
+        st.caption('Puts all the winning pieces together — publication, headline, quote, bottom line, and image — into a proper magazine cover.')
+
+        if st.button('🎨 Generate Magazine Cover', type='primary'):
+            st.session_state['assembled_cover'] = True
+
+        if st.session_state.get('assembled_cover'):
+            cover_img_bytes = None
+            if cover_img_desc:
+                cached = st.session_state.get(_img_cache_key(cover_img_desc))
+                if isinstance(cached, bytes):
+                    cover_img_bytes = cached
+                else:
+                    with st.spinner('Generating cover image first…'):
+                        result = generate_cover_image(cover_img_desc)
+                        cover_img_bytes = result if isinstance(result, bytes) else None
+
+            html = build_cover_html(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes)
+            components.html(html, height=622)
+
+            if cover_img_bytes:
+                st.download_button(
+                    label='⬇ Download cover image (PNG)',
+                    data=cover_img_bytes,
+                    file_name=f'audeara-cover-{COVER_YEAR}.png',
+                    mime='image/png',
+                )
