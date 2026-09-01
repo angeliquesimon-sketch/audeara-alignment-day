@@ -11,6 +11,7 @@ SHEET_ID       = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 SUB_TAB        = 'Vision Submissions'
 VOTE_TAB       = 'Vision Votes'
 IMG_CACHE_TAB  = 'Image Cache'
+STORY_TAB      = 'Generated Story'
 
 COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
 
@@ -47,6 +48,8 @@ def _ensure_tabs():
         add_reqs.append({'addSheet': {'properties': {'title': VOTE_TAB}}})
     if IMG_CACHE_TAB not in existing:
         add_reqs.append({'addSheet': {'properties': {'title': IMG_CACHE_TAB}}})
+    if STORY_TAB not in existing:
+        add_reqs.append({'addSheet': {'properties': {'title': STORY_TAB}}})
     if add_reqs:
         svc.spreadsheets().batchUpdate(
             spreadsheetId=SHEET_ID, body={'requests': add_reqs},
@@ -90,6 +93,13 @@ def _ensure_tabs():
             range=f"'{IMG_CACHE_TAB}'!A1:C1",
             valueInputOption='RAW',
             body={'values': [['Hash', 'Description', 'DriveFileId']]},
+        ).execute()
+    if STORY_TAB not in existing:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{STORY_TAB}'!A1:B1",
+            valueInputOption='RAW',
+            body={'values': [['Timestamp', 'Content']]},
         ).execute()
 
 # ── Sheet helpers ──────────────────────────────────────────────────────────────
@@ -391,6 +401,53 @@ def _save_composed_to_drive(headline, composed_bytes):
     media = MediaIoBaseUpload(io.BytesIO(composed_bytes), mimetype='image/png')
     return _drive().files().create(body=meta, media_body=media, fields='id').execute().get('id')
 
+@st.cache_data(ttl=20, show_spinner=False)
+def pull_generated_story():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"'{STORY_TAB}'!B2",
+        ).execute().get('values', [])
+        return rows[0][0] if rows and rows[0] else ''
+    except Exception:
+        return ''
+
+def save_generated_story(content):
+    svc = _sheets()
+    svc.spreadsheets().values().update(
+        spreadsheetId=SHEET_ID,
+        range=f"'{STORY_TAB}'!A2:B2",
+        valueInputOption='RAW',
+        body={'values': [[datetime.now().strftime('%Y-%m-%d %H:%M:%S'), content]]},
+    ).execute()
+
+def generate_story(pub, headline, story_seed, quote, bottom):
+    from openai import OpenAI
+    client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+    context_parts = []
+    if story_seed: context_parts.append(f'What happened: {story_seed}')
+    if quote:      context_parts.append(f'Key quote: "{quote}"')
+    if bottom:     context_parts.append(f'Financial headline: {bottom}')
+    context = '\n'.join(context_parts) or 'A major milestone for Audeara in hearing technology and accessibility.'
+    prompt = (
+        f'Write a magazine feature article for {pub or "a major business publication"} dated 2030.\n\n'
+        f'Cover headline: "{headline or "Audeara: The Company That Made the World Listen"}"\n\n'
+        f'Context from the team:\n{context}\n\n'
+        'Write a proper magazine feature — 400 to 500 words. Include:\n'
+        '- A compelling lede that draws the reader in\n'
+        '- 3 to 4 narrative paragraphs expanding on what Audeara achieved\n'
+        '- The pull quote set on its own line, formatted with quotation marks\n'
+        '- A resonant closing line\n\n'
+        'Style: high-quality business magazine. British English. Warm, specific, inspiring. '
+        'No hyphens or em dashes. No bullet points. Prose only.'
+    )
+    resp = client.chat.completions.create(
+        model='gpt-4o',
+        messages=[{'role': 'user', 'content': prompt}],
+        max_tokens=900,
+    )
+    return resp.choices[0].message.content
+
 def build_cover_html(pub, headline, quote, bottom, img_bytes):
     if img_bytes:
         img_b64 = base64.b64encode(img_bytes).decode()
@@ -606,20 +663,22 @@ with tab_submit:
     )
 
     _preview_desc = image_desc.strip()
-    if _preview_desc:
-        c_cap, c_btn = st.columns([4, 1])
-        with c_cap:
-            st.caption('Preview what your cover image will look like before you submit.')
-        with c_btn:
-            _do_preview = st.button('👁 Preview', key='vision_img_preview_btn', use_container_width=True)
-        if _do_preview:
-            st.session_state['_vision_preview_for'] = _preview_desc
-        if st.session_state.get('_vision_preview_for') == _preview_desc:
-            _show_image(
-                _preview_desc,
-                caption='Preview — not yet saved. Click Submit to save.',
-                save_to_drive=False,
-            )
+    c_cap, c_btn = st.columns([4, 1])
+    with c_cap:
+        st.caption('Describe a cover image above, then preview it before submitting.')
+    with c_btn:
+        _do_preview = st.button(
+            '👁 Preview', key='vision_img_preview_btn',
+            use_container_width=True, disabled=not _preview_desc,
+        )
+    if _do_preview:
+        st.session_state['_vision_preview_for'] = _preview_desc
+    if _preview_desc and st.session_state.get('_vision_preview_for') == _preview_desc:
+        _show_image(
+            _preview_desc,
+            caption='Preview — not yet saved. Click Submit to save.',
+            save_to_drive=False,
+        )
 
     submitted = st.button('Submit', type='primary', use_container_width=True, key='vsub_submit')
 
@@ -881,6 +940,34 @@ with tab_results:
                         key='dl_composed_results',
                     )
 
+        # ── Full story pull-out ────────────────────────────────────────────────
+        _story_text = pull_generated_story()
+        if _story_text:
+            st.divider()
+            st.markdown('#### 📰 The full story')
+            st.markdown(
+                f'<div style="'
+                f'background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
+                f'padding:36px 40px;max-width:680px;margin:0 auto;'
+                f'font-family:\'Noto Sans\',sans-serif;font-size:15px;line-height:1.8;'
+                f'color:#1a1a1a;box-shadow:0 4px 20px rgba(0,0,0,0.06);'
+                f'">'
+                f'<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;'
+                f'color:#188383;font-weight:700;margin-bottom:6px;">'
+                f'{pub_val or "AUDEARA"} &nbsp;·&nbsp; {COVER_YEAR} FEATURE</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:22px;font-weight:700;'
+                f'line-height:1.2;margin-bottom:24px;color:#111;">'
+                f'{headline_val or ""}</div>'
+                + ''.join(
+                    f'<p style="margin:0 0 16px 0;'
+                    + ('border-left:3px solid #188383;padding-left:16px;font-style:italic;color:#333;"' if ln.startswith('"') else '"')
+                    + f'>{ln}</p>'
+                    for ln in _story_text.split('\n') if ln.strip()
+                )
+                + '</div>',
+                unsafe_allow_html=True,
+            )
+
 # ── Facilitate ─────────────────────────────────────────────────────────────────
 
 with tab_facilitate:
@@ -1041,3 +1128,66 @@ with tab_facilitate:
                                     mime='image/png',
                                     key=f'fac_dl_{version}',
                                 )
+
+            st.divider()
+
+            # ── Generate the full story ──────────────────────────────────────
+            st.markdown('#### 📰 Generate the full story')
+            st.caption(
+                'Uses the current top-voted content to write a magazine feature article. '
+                'Once generated, it appears in the Results tab for everyone to read.'
+            )
+
+            # Show what will be used as source material
+            _fac_top = {}
+            if not fac_votes.empty:
+                for _ck, _ in CATEGORIES:
+                    _cv = fac_votes[fac_votes['Category'] == _ck].copy()
+                    if not _cv.empty:
+                        _best = _cv.sort_values('Votes', ascending=False).iloc[0]
+                        _fac_top[_ck] = _best['Answer']
+
+            def _fac_top_or_first(col_key, col_name):
+                if col_key in _fac_top:
+                    return _fac_top[col_key]
+                vals = fac_subs[col_name].fillna('').tolist() if col_name in fac_subs.columns else []
+                return next((v.strip() for v in vals if v.strip()), '')
+
+            _st_pub      = fac_subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in fac_subs.columns else ''
+            _st_headline = _fac_top_or_first('Headline',    'Headline')
+            _st_story    = _fac_top_or_first('The Story',   'The Story')
+            _st_quote    = _fac_top_or_first('Quote',       'Quote')
+            _st_bottom   = _fac_top_or_first('Bottom Line', 'Bottom Line')
+
+            with st.expander('Source material for the story', expanded=False):
+                st.markdown(f'**Publication:** {_st_pub or "_none_"}')
+                st.markdown(f'**Headline:** {_st_headline or "_none_"}')
+                st.markdown(f'**Story context:** {_st_story or "_none_"}')
+                st.markdown(f'**Quote:** {_st_quote or "_none_"}')
+                st.markdown(f'**Bottom line:** {_st_bottom or "_none_"}')
+
+            _existing_story = pull_generated_story()
+            if _existing_story:
+                st.caption('A story has already been generated — click below to regenerate with current content.')
+
+            if st.button('📰 Generate the full story', type='primary', key='fac_gen_story'):
+                with st.spinner('Writing the feature article…'):
+                    try:
+                        _new_story = generate_story(_st_pub, _st_headline, _st_story, _st_quote, _st_bottom)
+                        save_generated_story(_new_story)
+                        st.cache_data.clear()
+                        st.session_state['fac_story_preview'] = _new_story
+                        st.toast('Story generated and published to Results tab ✓', icon='✅')
+                    except Exception as _e:
+                        st.error(f'Could not generate story. ({_e})')
+
+            _preview_story = st.session_state.get('fac_story_preview', _existing_story)
+            if _preview_story:
+                st.markdown('**Preview:**')
+                st.markdown(
+                    f'<div style="background:#f9f9f9;border-left:4px solid #188383;'
+                    f'border-radius:0 6px 6px 0;padding:20px 24px;font-size:14px;'
+                    f'line-height:1.75;color:#1a1a1a;white-space:pre-wrap;">'
+                    f'{_preview_story}</div>',
+                    unsafe_allow_html=True,
+                )
