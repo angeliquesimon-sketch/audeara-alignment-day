@@ -1,0 +1,268 @@
+import sys, os, hashlib
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+import streamlit as st
+import streamlit.components.v1 as components
+from utils import inject_styles, PURPLE, TEAL
+from magazine_shared import (
+    CATEGORIES, COVER_YEAR, IMGS_FOLDER_ID,
+    _ensure_tabs, pull_submissions, pull_votes,
+    set_vote_count, _img_cache_key,
+    generate_cover_image, _compose_cover_image, _save_composed_to_drive,
+    pull_generated_story, save_generated_story, generate_story,
+    build_cover_html,
+)
+
+inject_styles()
+
+st.markdown(f'''
+<style>
+.mag-bl-label {{
+    background: {TEAL};
+    color: #fff;
+    font-size: 0.7em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 6px;
+}}
+</style>
+''', unsafe_allow_html=True)
+
+# ── Init (shared with cover page via session_state key) ────────────────────────
+
+if not st.session_state.get('_tabs_ensured'):
+    try:
+        _ensure_tabs()
+        st.session_state['_tabs_ensured'] = True
+    except Exception as _e:
+        st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
+
+# ── Password gate ──────────────────────────────────────────────────────────────
+
+st.markdown('### 🎛️ Facilitate — Magazine Cover Activity')
+
+if 'facilitate_auth' not in st.session_state:
+    st.session_state['facilitate_auth'] = False
+
+if not st.session_state['facilitate_auth']:
+    st.caption('This page is for the session facilitator only.')
+    pwd_input = st.text_input('Password', type='password', key='facilitate_pwd_input')
+    if st.button('Unlock', type='primary', key='facilitate_unlock'):
+        correct = st.secrets.get('FACILITATE_PASSWORD', 'audeara2030')
+        if pwd_input == correct:
+            st.session_state['facilitate_auth'] = True
+            st.rerun()
+        else:
+            st.error('Incorrect password.')
+    st.stop()
+
+# ── Authenticated ──────────────────────────────────────────────────────────────
+
+if st.button('🔒 Lock', key='facilitate_lock'):
+    st.session_state['facilitate_auth'] = False
+    st.rerun()
+
+st.markdown(
+    f'📁 **[View saved cover images on Google Drive]'
+    f'(https://drive.google.com/drive/folders/{IMGS_FOLDER_ID})**'
+)
+st.caption('Composed cover PNGs save automatically when you preview a version below. Raw AI images also land here.')
+
+fac_subs  = pull_submissions()
+fac_votes = pull_votes()
+
+if fac_subs.empty:
+    st.info('No submissions yet.')
+    st.stop()
+
+# ── Vote adjustment ────────────────────────────────────────────────────────────
+
+st.markdown('#### Adjust votes')
+st.caption('Override any vote count directly. Changes update the sheet immediately and are reflected in the Results tab.')
+
+c_ref, _ = st.columns([1, 5])
+with c_ref:
+    if st.button('Refresh', key='fac_refresh'):
+        st.cache_data.clear()
+        st.rerun()
+
+def _current_count(col_key, answer):
+    if fac_votes.empty:
+        return 0
+    m = fac_votes[
+        (fac_votes['Category'] == col_key) &
+        (fac_votes['Answer'].str.strip().str.lower() == answer.lower())
+    ]
+    return int(m.iloc[0]['Votes']) if not m.empty else 0
+
+for col_key, col_label in CATEGORIES:
+    st.markdown(f'<div class="category-header">{col_label}</div>', unsafe_allow_html=True)
+    unique = list(dict.fromkeys(
+        a.strip() for a in fac_subs[col_key].fillna('').tolist() if a.strip()
+    ))
+    if not unique:
+        st.caption('No answers submitted yet.')
+        continue
+
+    for answer in unique:
+        cur      = _current_count(col_key, answer)
+        key_slug = hashlib.md5(f'{col_key}:{answer}'.encode()).hexdigest()[:10]
+        a_col, b_col, c_col = st.columns([5, 1, 1])
+        with a_col:
+            st.markdown(f'<div class="answer-row">{answer}</div>', unsafe_allow_html=True)
+        with b_col:
+            new_val = st.number_input(
+                'Votes', min_value=0, value=cur,
+                key=f'fac_ni_{key_slug}',
+                label_visibility='collapsed',
+            )
+        with c_col:
+            if st.button('Save', key=f'fac_sv_{key_slug}'):
+                try:
+                    set_vote_count(col_key, answer, int(new_val))
+                    st.cache_data.clear()
+                    st.toast(f'Saved — {col_label}: {int(new_val)} votes', icon='✅')
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f'Could not save. ({_e})')
+    st.markdown('')
+
+st.divider()
+
+# ── Build cover versions ───────────────────────────────────────────────────────
+
+st.markdown('#### Build cover versions')
+st.caption('Mix and match any submitted answers to preview different cover combinations. Images are generated once and cached.')
+
+def _col_options(col_name):
+    return ['(none)'] + list(dict.fromkeys(
+        v.strip() for v in fac_subs[col_name].fillna('').tolist() if v.strip()
+    ))
+
+for version in ['A', 'B']:
+    with st.expander(f'Version {version}', expanded=(version == 'A')):
+        v_pub = st.selectbox('Publication', _col_options('Publication'), key=f'fac_pub_{version}')
+        v_hl  = st.selectbox('Headline',    _col_options('Headline'),    key=f'fac_hl_{version}')
+        v_qt  = st.selectbox('Quote',       _col_options('Quote'),       key=f'fac_qt_{version}')
+        v_bl  = st.selectbox('Bottom Line', _col_options('Bottom Line'), key=f'fac_bl_{version}')
+        v_img = st.selectbox('Cover image', _col_options('Image'),       key=f'fac_img_{version}')
+
+        if st.button(f'Preview Version {version}', type='primary', key=f'fac_preview_{version}'):
+            st.session_state[f'fac_cover_{version}'] = {
+                'pub': '' if v_pub == '(none)' else v_pub,
+                'hl':  '' if v_hl  == '(none)' else v_hl,
+                'qt':  '' if v_qt  == '(none)' else v_qt,
+                'bl':  '' if v_bl  == '(none)' else v_bl,
+                'img': '' if v_img == '(none)' else v_img,
+            }
+
+        cover_state = st.session_state.get(f'fac_cover_{version}')
+        if cover_state:
+            v_img_bytes = None
+            if cover_state['img']:
+                cached = st.session_state.get(_img_cache_key(cover_state['img']))
+                if isinstance(cached, bytes):
+                    v_img_bytes = cached
+                else:
+                    with st.spinner('Generating image…'):
+                        result = generate_cover_image(cover_state['img'])
+                        v_img_bytes = result if isinstance(result, bytes) else None
+
+            components.html(
+                build_cover_html(
+                    cover_state['pub'], cover_state['hl'],
+                    cover_state['qt'],  cover_state['bl'], v_img_bytes,
+                ),
+                height=622,
+            )
+
+            if v_img_bytes:
+                vc_key = f'fac_composed_{version}_{hashlib.md5((cover_state["hl"] + cover_state["qt"] + cover_state["bl"]).encode()).hexdigest()}'
+                if vc_key not in st.session_state:
+                    with st.spinner(f'Saving Version {version} to Drive…'):
+                        try:
+                            vc = _compose_cover_image(
+                                cover_state['pub'], cover_state['hl'],
+                                cover_state['qt'],  cover_state['bl'], v_img_bytes,
+                            )
+                            _save_composed_to_drive(f"{cover_state['hl']}-v{version}", vc)
+                            st.session_state[vc_key] = vc
+                            st.toast(f'Version {version} saved to Drive ✓', icon='✅')
+                        except Exception as _e:
+                            st.session_state[vc_key] = None
+                vc = st.session_state.get(vc_key)
+                if isinstance(vc, bytes):
+                    st.download_button(
+                        label=f'⬇ Download Version {version} (PNG)',
+                        data=vc,
+                        file_name=f'audeara-cover-{COVER_YEAR}-v{version.lower()}.png',
+                        mime='image/png',
+                        key=f'fac_dl_{version}',
+                    )
+
+st.divider()
+
+# ── Generate the full story ────────────────────────────────────────────────────
+
+st.markdown('#### 📰 Generate the full story')
+st.caption(
+    'Uses the current top-voted content to write a magazine feature article. '
+    'Once generated, it appears in the Results tab for everyone to read.'
+)
+
+_fac_top = {}
+if not fac_votes.empty:
+    for _ck, _ in CATEGORIES:
+        _cv = fac_votes[fac_votes['Category'] == _ck].copy()
+        if not _cv.empty:
+            _best = _cv.sort_values('Votes', ascending=False).iloc[0]
+            _fac_top[_ck] = _best['Answer']
+
+def _fac_top_or_first(col_key, col_name):
+    if col_key in _fac_top:
+        return _fac_top[col_key]
+    vals = fac_subs[col_name].fillna('').tolist() if col_name in fac_subs.columns else []
+    return next((v.strip() for v in vals if v.strip()), '')
+
+_st_pub      = fac_subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in fac_subs.columns else ''
+_st_headline = _fac_top_or_first('Headline',    'Headline')
+_st_story    = _fac_top_or_first('The Story',   'The Story')
+_st_quote    = _fac_top_or_first('Quote',       'Quote')
+_st_bottom   = _fac_top_or_first('Bottom Line', 'Bottom Line')
+
+with st.expander('Source material for the story', expanded=False):
+    st.markdown(f'**Publication:** {_st_pub or "_none_"}')
+    st.markdown(f'**Headline:** {_st_headline or "_none_"}')
+    st.markdown(f'**Story context:** {_st_story or "_none_"}')
+    st.markdown(f'**Quote:** {_st_quote or "_none_"}')
+    st.markdown(f'**Bottom line:** {_st_bottom or "_none_"}')
+
+_existing_story = pull_generated_story()
+if _existing_story:
+    st.caption('A story has already been generated — click below to regenerate with current content.')
+
+if st.button('📰 Generate the full story', type='primary', key='fac_gen_story'):
+    with st.spinner('Writing the feature article…'):
+        try:
+            _new_story = generate_story(_st_pub, _st_headline, _st_story, _st_quote, _st_bottom)
+            save_generated_story(_new_story)
+            st.cache_data.clear()
+            st.session_state['fac_story_preview'] = _new_story
+            st.toast('Story generated and published to Results tab ✓', icon='✅')
+        except Exception as _e:
+            st.error(f'Could not generate story. ({_e})')
+
+_preview_story = st.session_state.get('fac_story_preview', _existing_story)
+if _preview_story:
+    st.markdown('**Preview:**')
+    st.markdown(
+        f'<div style="background:#f9f9f9;border-left:4px solid #188383;'
+        f'border-radius:0 6px 6px 0;padding:20px 24px;font-size:14px;'
+        f'line-height:1.75;color:#1a1a1a;white-space:pre-wrap;">'
+        f'{_preview_story}</div>',
+        unsafe_allow_html=True,
+    )
