@@ -11,6 +11,7 @@ from magazine_shared import (
     generate_cover_image, _compose_cover_image, _save_composed_to_drive,
     pull_generated_story, save_generated_story, generate_story,
     build_cover_html,
+    pull_vision_data, save_vision_candidates, save_final_vision, generate_vision_candidates,
 )
 
 inject_styles()
@@ -266,3 +267,59 @@ if _preview_story:
         f'{_preview_story}</div>',
         unsafe_allow_html=True,
     )
+
+st.divider()
+
+# ── Vision Statement ───────────────────────────────────────────────────────────
+
+st.markdown('#### 🔭 Vision Statement')
+st.caption(
+    'Generates 3 candidate vision statements from the top-voted content. '
+    'They appear on the Vision Statement tab for the room to discuss. '
+    'Lock in the final agreed version below.'
+)
+
+_v_candidates, _v_final = pull_vision_data()
+
+if st.button('✨ Draft vision statement candidates', type='primary', key='fac_gen_vision'):
+    with st.spinner('Drafting candidates…'):
+        try:
+            _new_candidates = generate_vision_candidates(
+                _st_pub, _st_headline, _st_story, _st_quote, _st_bottom,
+            )
+            save_vision_candidates(_new_candidates)
+            st.cache_data.clear()
+            st.session_state['fac_vision_candidates'] = _new_candidates
+            st.toast('Candidates published to Vision Statement tab ✓', icon='✅')
+        except Exception as _e:
+            st.error(f'Could not generate candidates. ({_e})')
+
+_show_candidates = st.session_state.get('fac_vision_candidates', _v_candidates)
+if _show_candidates:
+    st.markdown('**Candidates now showing on the Vision Statement tab:**')
+    for i, c in enumerate(_show_candidates):
+        st.markdown(f'**{i+1}.** {c}')
+
+st.markdown('')
+st.markdown('**Lock in the final vision statement**')
+st.caption('Type the agreed version here — it will appear at the top of the Vision Statement tab for everyone.')
+
+_final_input = st.text_area(
+    'Final vision statement',
+    value=_v_final,
+    height=80,
+    key='fac_final_vision_input',
+    label_visibility='collapsed',
+    placeholder='Type the agreed vision statement here…',
+)
+if st.button('🔒 Lock in final vision statement', key='fac_lock_vision'):
+    if _final_input.strip():
+        try:
+            save_final_vision(_final_input.strip())
+            st.cache_data.clear()
+            st.toast('Vision statement locked in ✓', icon='✅')
+            st.rerun()
+        except Exception as _e:
+            st.error(f'Could not save. ({_e})')
+    else:
+        st.warning('Type the vision statement before locking in.')

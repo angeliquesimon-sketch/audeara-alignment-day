@@ -13,6 +13,7 @@ SUB_TAB        = 'Vision Submissions'
 VOTE_TAB       = 'Vision Votes'
 IMG_CACHE_TAB  = 'Image Cache'
 STORY_TAB      = 'Generated Story'
+VISION_TAB     = 'Vision Statement'
 IMGS_FOLDER_ID = '19fcjPrNdAxpMrLb8il6pBK8KXGTVI9cA'
 
 COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
@@ -44,7 +45,7 @@ def _ensure_tabs():
     meta = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
     existing = {s['properties']['title'] for s in meta.get('sheets', [])}
     add_reqs = []
-    for tab in [SUB_TAB, VOTE_TAB, IMG_CACHE_TAB, STORY_TAB]:
+    for tab in [SUB_TAB, VOTE_TAB, IMG_CACHE_TAB, STORY_TAB, VISION_TAB]:
         if tab not in existing:
             add_reqs.append({'addSheet': {'properties': {'title': tab}}})
     if add_reqs:
@@ -80,6 +81,11 @@ def _ensure_tabs():
         svc.spreadsheets().values().update(
             spreadsheetId=SHEET_ID, range=f"'{STORY_TAB}'!A1:B1",
             valueInputOption='RAW', body={'values': [['Timestamp', 'Content']]},
+        ).execute()
+    if VISION_TAB not in existing:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A1:B1",
+            valueInputOption='RAW', body={'values': [['Type', 'Content']]},
         ).execute()
 
 # ── Sheet helpers ──────────────────────────────────────────────────────────────
@@ -373,6 +379,89 @@ def generate_story(pub, headline, story_seed, quote, bottom):
         max_tokens=900,
     )
     return resp.choices[0].message.content
+
+# ── Vision Statement helpers ───────────────────────────────────────────────────
+
+@st.cache_data(ttl=10, show_spinner=False)
+def pull_vision_data():
+    """Returns (candidates: list[str], final: str)."""
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A2:B10",
+        ).execute().get('values', [])
+        candidates, final = [], ''
+        for row in rows:
+            if len(row) < 2:
+                continue
+            if row[0] == 'final':
+                final = row[1]
+            elif row[0].startswith('candidate'):
+                candidates.append(row[1])
+        return candidates, final
+    except Exception:
+        return [], ''
+
+def save_vision_candidates(candidates):
+    svc = _sheets()
+    svc.spreadsheets().values().clear(
+        spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A2:B10",
+    ).execute()
+    rows = [[f'candidate_{i+1}', c] for i, c in enumerate(candidates)]
+    svc.spreadsheets().values().update(
+        spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A2",
+        valueInputOption='RAW', body={'values': rows},
+    ).execute()
+
+def save_final_vision(text):
+    svc   = _sheets()
+    rows  = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A2:B10",
+    ).execute().get('values', [])
+    final_row = next(
+        (i + 2 for i, r in enumerate(rows) if r and r[0] == 'final'), None
+    )
+    if final_row:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!B{final_row}",
+            valueInputOption='RAW', body={'values': [[text]]},
+        ).execute()
+    else:
+        next_row = len(rows) + 2
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A{next_row}:B{next_row}",
+            valueInputOption='RAW', body={'values': [['final', text]]},
+        ).execute()
+
+def generate_vision_candidates(pub, headline, story_seed, quote, bottom):
+    from openai import OpenAI
+    client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+    context_parts = []
+    if headline:    context_parts.append(f'Cover headline: {headline}')
+    if story_seed:  context_parts.append(f'What Audeara achieved: {story_seed}')
+    if quote:       context_parts.append(f'Key quote: "{quote}"')
+    if bottom:      context_parts.append(f'Financial headline: {bottom}')
+    context = '\n'.join(context_parts) or 'Audeara is a leader in hearing technology and accessibility.'
+    prompt = (
+        'You are helping a team distil their collective vision into a single company vision statement.\n\n'
+        f'The team imagined Audeara on the cover of a major magazine in 2030. Here is what they said:\n{context}\n\n'
+        'Write exactly 3 candidate vision statements for Audeara. Each should:\n'
+        '- Be one or two sentences, under 30 words\n'
+        '- Start with "Audeara"\n'
+        '- Be ambitious but credible — grounded in the team\'s inputs\n'
+        '- Focus on human outcome, not technology\n'
+        '- Use plain, direct language — no corporate jargon\n'
+        '- Use British English\n'
+        '- No hyphens or em dashes\n\n'
+        'Return only the 3 statements, each on its own line, numbered 1. 2. 3. No other text.'
+    )
+    resp = client.chat.completions.create(
+        model='gpt-4o-mini',
+        messages=[{'role': 'user', 'content': prompt}],
+        max_tokens=300,
+    )
+    raw   = resp.choices[0].message.content.strip()
+    lines = [ln.lstrip('0123456789. ').strip() for ln in raw.split('\n') if ln.strip()]
+    return lines[:3]
 
 # ── HTML cover builder ─────────────────────────────────────────────────────────
 

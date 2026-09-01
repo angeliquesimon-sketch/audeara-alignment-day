@@ -11,6 +11,7 @@ from magazine_shared import (
     generate_cover_image, _show_image,
     _compose_cover_image, _save_composed_to_drive,
     pull_generated_story, build_cover_html,
+    pull_vision_data,
 )
 
 # ── Styles ─────────────────────────────────────────────────────────────────────
@@ -112,7 +113,7 @@ st.markdown(
 )
 st.markdown('')
 
-tab_submit, tab_vote, tab_results = st.tabs(['💡 Submit ideas', '🗳️ Vote', '🏆 Results'])
+tab_submit, tab_vote, tab_results, tab_vision = st.tabs(['💡 Submit ideas', '🗳️ Vote', '🏆 Results', '🔭 Vision Statement'])
 
 # ── Submit ─────────────────────────────────────────────────────────────────────
 
@@ -463,3 +464,47 @@ with tab_results:
                 + '</div>',
                 unsafe_allow_html=True,
             )
+
+# ── Vision Statement ───────────────────────────────────────────────────────────
+
+with tab_vision:
+    _candidates, _final = pull_vision_data()
+
+    c_ref3, _ = st.columns([1, 6])
+    with c_ref3:
+        if st.button('Refresh', key='refresh_vision_statement'):
+            st.cache_data.clear()
+            st.rerun()
+
+    if _final:
+        st.markdown(
+            f'<div style="'
+            f'background:linear-gradient(135deg,#f9f5f9,#f0fafa);'
+            f'border:2px solid {TEAL};border-radius:12px;'
+            f'padding:36px 40px;margin:8px 0 32px 0;text-align:center;">'
+            f'<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;'
+            f'color:{TEAL};font-weight:700;margin-bottom:14px;">Audeara Vision Statement</div>'
+            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.6em;font-weight:700;'
+            f'line-height:1.3;color:#111;">{_final}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    if _candidates:
+        st.markdown('#### Candidates from the room')
+        st.caption('Drafted from your collective cover story. Discuss as a group, then the facilitator will lock in the final version.')
+        for i, c in enumerate(_candidates):
+            st.markdown(
+                f'<div style="'
+                f'background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
+                f'padding:20px 24px;margin:10px 0;'
+                f'border-left:4px solid {PURPLE};">'
+                f'<span style="font-size:0.7em;font-weight:700;letter-spacing:0.1em;'
+                f'text-transform:uppercase;color:{PURPLE};">Option {i+1}</span><br>'
+                f'<span style="font-size:1.05em;line-height:1.5;">{c}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    elif not _final:
+        st.markdown('')
+        st.info('The facilitator will generate vision statement candidates once voting is complete. Check back soon.')
