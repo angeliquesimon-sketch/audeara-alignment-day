@@ -1,4 +1,5 @@
 import json
+import time
 import streamlit as st
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -22,6 +23,17 @@ def _sheets():
 @st.cache_resource
 def _drive():
     return build('drive', 'v3', credentials=_creds())
+
+def with_retry(fn, attempts=3, delay=1.0):
+    last_err = None
+    for i in range(attempts):
+        try:
+            return fn()
+        except Exception as e:
+            last_err = e
+            if i < attempts - 1:
+                time.sleep(delay)
+    raise last_err
 
 def inject_styles():
     st.markdown(f'''

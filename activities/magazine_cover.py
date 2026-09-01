@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 import streamlit.components.v1 as components
-from utils import inject_styles, PURPLE, TEAL
+from utils import inject_styles, PURPLE, TEAL, with_retry
 from magazine_shared import (
     CATEGORIES, COVER_YEAR, PREVIEW_WIDTH,
     _ensure_tabs, pull_submissions, append_submission,
@@ -92,7 +92,7 @@ st.markdown(f'''
 
 if not st.session_state.get('_tabs_ensured_v2'):
     try:
-        _ensure_tabs()
+        with_retry(_ensure_tabs)
         st.session_state['_tabs_ensured_v2'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
