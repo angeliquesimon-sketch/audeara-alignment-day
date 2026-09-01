@@ -35,10 +35,10 @@ st.markdown(f'''
 
 # ── Init (shared with cover page via session_state key) ────────────────────────
 
-if not st.session_state.get('_tabs_ensured'):
+if not st.session_state.get('_tabs_ensured_v2'):
     try:
         _ensure_tabs()
-        st.session_state['_tabs_ensured'] = True
+        st.session_state['_tabs_ensured_v2'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
 
