@@ -213,7 +213,8 @@ def build_cover_html(pub, headline, quote, bottom, img_bytes):
     return f'''<!DOCTYPE html>
 <html>
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.typekit.net/bxp8awr.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;}}
 body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-size:16px;}}
@@ -232,7 +233,7 @@ body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-s
     letter-spacing:0.04em;text-transform:uppercase;color:#111;line-height:1;
 }}
 .pub-meta{{
-    font-family:'Lato',sans-serif;font-size:9px;letter-spacing:0.14em;
+    font-family:'Noto Sans',sans-serif;font-size:9px;letter-spacing:0.14em;
     color:#999;margin-top:4px;text-transform:uppercase;
 }}
 .overlay{{
@@ -241,21 +242,21 @@ body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-s
     padding:44px 18px 20px;z-index:2;
 }}
 .headline{{
-    font-family:'Oswald',sans-serif;font-size:27px;font-weight:700;
+    font-family:'roc-grotesk',sans-serif;font-size:27px;font-weight:700;
     line-height:1.12;color:#fff;text-transform:uppercase;
     letter-spacing:0.02em;margin-bottom:12px;
 }}
 .quote{{
-    font-family:'Lato',sans-serif;font-size:12px;font-style:italic;
+    font-family:'Noto Sans',sans-serif;font-size:12px;font-style:italic;
     color:rgba(255,255,255,0.85);border-left:3px solid #188383;
     padding-left:10px;line-height:1.55;margin-bottom:12px;
 }}
 .bl-tag{{
-    font-family:'Lato',sans-serif;font-size:8px;font-weight:700;
+    font-family:'Noto Sans',sans-serif;font-size:8px;font-weight:700;
     letter-spacing:0.12em;text-transform:uppercase;color:#188383;margin-bottom:4px;
 }}
 .bl-text{{
-    font-family:'Lato',sans-serif;font-size:11px;
+    font-family:'Noto Sans',sans-serif;font-size:11px;
     color:rgba(255,255,255,0.72);line-height:1.45;
 }}
 </style>
