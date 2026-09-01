@@ -445,7 +445,7 @@ def generate_story(pub, headline, story_seed, quote, bottom):
         'No hyphens or em dashes. No bullet points. Prose only.'
     )
     resp = client.chat.completions.create(
-        model='gpt-4o-mini',
+        model='gpt-4o',
         messages=[{'role': 'user', 'content': prompt}],
         max_tokens=900,
     )
