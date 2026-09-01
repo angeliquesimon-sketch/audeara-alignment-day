@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, hashlib, base64
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
@@ -7,9 +7,10 @@ from datetime import datetime
 from utils import _sheets, inject_styles, PURPLE, TEAL
 
 SHEET_ID = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-
 SUB_TAB  = 'Vision Submissions'
 VOTE_TAB = 'Vision Votes'
+
+COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
 
 CATEGORIES = [
     ('Headline',    'The cover headline'),
@@ -18,39 +19,64 @@ CATEGORIES = [
     ('Bottom Line', 'What the finance section says'),
 ]
 
-YEARS = ['2028', '2029', '2030', '2032', '2035']
+COVER_YEAR = '2030'
+
+IMAGE_STYLE = (
+    'Bold magazine cover editorial photograph. '
+    'Cinematic composition, professional studio lighting, aspirational and optimistic mood. '
+    'Audeara is a hearing technology company making people feel more connected through better listening. '
+    'Rich deep teal and purple colour tones. High contrast, clean, modern. '
+    'No text, no letters, no words, no numbers anywhere in the image. '
+)
 
 # ── Sheet setup ────────────────────────────────────────────────────────────────
 
 def _ensure_tabs():
-    svc = _sheets()
+    svc  = _sheets()
     meta = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
     existing = {s['properties']['title'] for s in meta.get('sheets', [])}
-    requests = []
+    add_reqs = []
     if SUB_TAB not in existing:
-        requests.append({'addSheet': {'properties': {'title': SUB_TAB}}})
+        add_reqs.append({'addSheet': {'properties': {'title': SUB_TAB}}})
     if VOTE_TAB not in existing:
-        requests.append({'addSheet': {'properties': {'title': VOTE_TAB}}})
-    if requests:
+        add_reqs.append({'addSheet': {'properties': {'title': VOTE_TAB}}})
+    if add_reqs:
         svc.spreadsheets().batchUpdate(
-            spreadsheetId=SHEET_ID,
-            body={'requests': requests},
+            spreadsheetId=SHEET_ID, body={'requests': add_reqs},
         ).execute()
-        # Write headers
-        if SUB_TAB not in existing:
+
+    # Write / verify headers
+    if SUB_TAB not in existing:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{SUB_TAB}'!A1:H1",
+            valueInputOption='RAW',
+            body={'values': [COLUMNS]},
+        ).execute()
+    else:
+        # Migrate: add Image column header if missing
+        current = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"'{SUB_TAB}'!A1:H1",
+        ).execute().get('values', [[]])
+        headers = current[0] if current else []
+        if 'Image' not in headers:
+            col = len(headers) + 1
+            col_letter = chr(ord('A') + len(headers))
             svc.spreadsheets().values().update(
                 spreadsheetId=SHEET_ID,
-                range=f"'{SUB_TAB}'!A1:G1",
+                range=f"'{SUB_TAB}'!{col_letter}1",
                 valueInputOption='RAW',
-                body={'values': [['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line']]},
+                body={'values': [['Image']]},
             ).execute()
-        if VOTE_TAB not in existing:
-            svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{VOTE_TAB}'!A1:C1",
-                valueInputOption='RAW',
-                body={'values': [['Category', 'Answer', 'Votes']]},
-            ).execute()
+
+    if VOTE_TAB not in existing:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{VOTE_TAB}'!A1:C1",
+            valueInputOption='RAW',
+            body={'values': [['Category', 'Answer', 'Votes']]},
+        ).execute()
 
 # ── Sheet helpers ──────────────────────────────────────────────────────────────
 
@@ -59,23 +85,25 @@ def pull_submissions():
     try:
         rows = _sheets().spreadsheets().values().get(
             spreadsheetId=SHEET_ID,
-            range=f"'{SUB_TAB}'!A:G",
+            range=f"'{SUB_TAB}'!A:H",
         ).execute().get('values', [])
         if len(rows) < 2:
-            return pd.DataFrame(columns=['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line'])
-        return pd.DataFrame(rows[1:], columns=rows[0])
+            return pd.DataFrame(columns=COLUMNS)
+        headers = rows[0]
+        data    = [r + [''] * (len(headers) - len(r)) for r in rows[1:]]
+        return pd.DataFrame(data, columns=headers)
     except Exception:
-        return pd.DataFrame(columns=['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line'])
+        return pd.DataFrame(columns=COLUMNS)
 
-def append_submission(year, pub, headline, story, quote, bottom):
+def append_submission(year, pub, headline, story, quote, bottom, image_desc):
     _sheets().spreadsheets().values().append(
         spreadsheetId=SHEET_ID,
-        range=f"'{SUB_TAB}'!A:G",
+        range=f"'{SUB_TAB}'!A:H",
         valueInputOption='RAW',
         insertDataOption='INSERT_ROWS',
         body={'values': [[
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            year, pub, headline, story, quote, bottom,
+            year, pub, headline, story, quote, bottom, image_desc,
         ]]},
     ).execute()
 
@@ -118,6 +146,53 @@ def upsert_vote(category, answer):
         body={'values': [[category, answer, 1]]},
     ).execute()
 
+# ── Image generation ───────────────────────────────────────────────────────────
+
+def _img_cache_key(description):
+    return f"cover_img_{hashlib.md5(description.encode()).hexdigest()}"
+
+def generate_cover_image(description):
+    """Return PNG bytes for a given image description, cached in session_state."""
+    key = _img_cache_key(description)
+    if key in st.session_state:
+        return st.session_state[key]
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+        prompt = IMAGE_STYLE + description
+        resp   = client.images.generate(
+            model='dall-e-3',
+            prompt=prompt,
+            size='1024x1024',
+            quality='standard',
+            response_format='b64_json',
+            n=1,
+        )
+        img_bytes = base64.b64decode(resp.data[0].b64_json)
+        st.session_state[key] = img_bytes
+        return img_bytes
+    except Exception as e:
+        st.session_state[key] = None
+        return None
+
+def _show_image(description, caption=None):
+    """Generate and display a cover image for the given description."""
+    if not description or not description.strip():
+        return
+    if not st.secrets.get('OPENAI_API_KEY'):
+        st.caption('_(Image generation not configured)_')
+        return
+    key = _img_cache_key(description)
+    if key not in st.session_state:
+        with st.spinner('Generating cover image…'):
+            generate_cover_image(description)
+    img = st.session_state.get(key)
+    if img:
+        st.image(img, caption=caption, use_container_width=True)
+    else:
+        st.caption('_(Image generation failed — check API key)_')
+
 # ── Styles ─────────────────────────────────────────────────────────────────────
 
 inject_styles()
@@ -129,71 +204,70 @@ st.markdown(f'''
     color: #fff;
     border-radius: 10px;
     padding: 32px 36px 28px;
-    margin: 16px 0 24px 0;
-    position: relative;
+    margin: 0 0 16px 0;
 }}
 .mag-pub {{
-    font-size: 0.75em;
+    font-size: 0.72em;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: #aaa;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }}
 .mag-year {{
-    font-size: 0.72em;
+    font-size: 0.7em;
     color: {TEAL};
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }}
 .mag-headline {{
-    font-size: 2em;
+    font-size: 1.9em;
     font-weight: 800;
     line-height: 1.15;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     color: #fff;
 }}
 .mag-story {{
-    font-size: 0.9em;
+    font-size: 0.88em;
     color: #ccc;
     line-height: 1.7;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     border-left: 3px solid {TEAL};
     padding-left: 14px;
 }}
 .mag-quote {{
-    font-size: 1.05em;
+    font-size: 1em;
     font-style: italic;
     color: #fff;
     background: rgba(255,255,255,0.06);
-    border-left: 4px solid {PURPLE.replace("#","#")};
+    border-left: 4px solid {PURPLE};
     border-radius: 0 6px 6px 0;
     padding: 12px 16px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     line-height: 1.6;
 }}
-.mag-bottom-line {{
+.mag-bl-label {{
     background: {TEAL};
     color: #fff;
-    font-size: 0.78em;
+    font-size: 0.7em;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 4px;
     display: inline-block;
     margin-bottom: 6px;
 }}
 .mag-bottom-text {{
     color: #bbb;
-    font-size: 0.88em;
+    font-size: 0.86em;
     line-height: 1.5;
 }}
 </style>
 ''', unsafe_allow_html=True)
 
-# ── Ensure sheet tabs exist ────────────────────────────────────────────────────
+# ── Init ───────────────────────────────────────────────────────────────────────
 
 _ensure_tabs()
 
@@ -201,14 +275,13 @@ _ensure_tabs()
 
 st.markdown('### Vision Activity — Magazine Cover Story')
 st.markdown(
-    'Imagine it\'s the future and Audeara has made the cover of a major publication. '
+    'Imagine it\'s 2030. Audeara has made the cover of a major publication. '
     'What\'s the story? What did we achieve? What does the world say about us?'
 )
-
 st.markdown(
     f'<div class="activity-card">'
     f'<strong>Flag on the hill:</strong> If Audeara were on the cover of a major magazine '
-    f'in 2030 — what would the headline say? What did we build?'
+    f'in 2030 — what would the headline say? What did we build? What does the cover look like?'
     f'</div>',
     unsafe_allow_html=True,
 )
@@ -221,23 +294,22 @@ tab_submit, tab_vote, tab_results = st.tabs(['💡 Submit ideas', '🗳️ Vote'
 with tab_submit:
     st.markdown('#### Your cover story')
     st.caption(
-        'Answer some or all of the fields. Think 5–10 years out — what did Audeara achieve to earn this cover?'
+        'Think about Audeara in 2030. What did we achieve? '
+        'Fill in as many or as few fields as you like — there are no wrong answers.'
     )
     with st.form('vision_submit_form', clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            year = st.selectbox('Year', YEARS, index=2)
-        with c2:
-            pub  = st.text_input('Publication', placeholder='e.g. Fast Company, The Australian, Time...')
-
+        pub = st.text_input(
+            'Publication',
+            placeholder='e.g. Fast Company, The Australian, Time, Harvard Business Review…',
+        )
         headline = st.text_input(
-            'Cover headline',
+            'Cover headline ✦',
             placeholder='e.g. "The company that made the world listen"',
         )
         story = st.text_area(
             'The story — what did Audeara achieve?',
-            placeholder='e.g. "Audeara reached 1 million people in 40 countries by making hearing technology truly accessible..."',
-            height=100,
+            placeholder='e.g. "Audeara reached 1 million people across 40 countries by making hearing technology truly accessible…"',
+            height=90,
         )
         quote = st.text_input(
             'A quote from the story',
@@ -245,15 +317,30 @@ with tab_submit:
         )
         bottom = st.text_input(
             'The bottom line — what does the finance section say?',
-            placeholder='e.g. "Revenue crossed $50M, driven by B2B Auracast partnerships across 3 continents."',
+            placeholder='e.g. "Revenue crossed $50M, driven by Auracast partnerships across 3 continents."',
+        )
+        image_desc = st.text_area(
+            '🎨 Describe the cover image',
+            placeholder=(
+                'Describe a scene, image, or feeling for the cover — '
+                'AI will generate it in Audeara\'s brand style.\n'
+                'e.g. "A person wearing headphones in a packed auditorium, '
+                'surrounded by light and warmth, connected to the crowd."'
+            ),
+            height=90,
         )
         submitted = st.form_submit_button('Submit', type='primary', use_container_width=True)
 
     if submitted:
-        if any([headline.strip(), story.strip(), quote.strip(), bottom.strip()]):
-            append_submission(year, pub.strip(), headline.strip(), story.strip(), quote.strip(), bottom.strip())
+        if any([headline.strip(), story.strip(), quote.strip(), bottom.strip(), image_desc.strip()]):
+            append_submission(
+                COVER_YEAR, pub.strip(), headline.strip(),
+                story.strip(), quote.strip(), bottom.strip(), image_desc.strip(),
+            )
             st.cache_data.clear()
-            st.toast('Submitted. Head to the Vote tab to upvote your favourites.', icon='✅')
+            st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
+            if image_desc.strip():
+                st.toast('Generating your cover image in the background…', icon='🎨')
         else:
             st.warning('Please fill in at least one field before submitting.')
 
@@ -262,18 +349,25 @@ with tab_submit:
     if not subs.empty:
         st.markdown(f'#### {len(subs)} submission{"s" if len(subs) != 1 else ""} so far')
         for _, row in subs.iterrows():
-            pub_str  = f' — {row["Publication"]}' if row.get('Publication', '').strip() else ''
-            year_str = row.get('Year', '')
-            st.markdown(
-                f'<div class="activity-card">'
-                f'<strong>{year_str}{pub_str}</strong><br>'
-                f'<span style="font-size:1.1em;font-weight:700;">{row.get("Headline","")}</span><br>'
-                f'<span style="font-size:0.9em;color:#555;">{row.get("The Story","")}</span><br>'
-                f'<em style="font-size:0.88em;">{row.get("Quote","")}</em><br>'
-                f'<span style="font-size:0.85em;color:#888;">{row.get("Bottom Line","")}</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+            img_desc = row.get('Image', '').strip()
+            pub_str  = f' · {row.get("Publication","").strip()}' if row.get('Publication','').strip() else ''
+            c_text, c_img = st.columns([3, 2]) if img_desc else (st.container(), None)
+            with (c_text if img_desc else c_text):
+                st.markdown(
+                    f'<div class="activity-card">'
+                    f'<span style="font-size:0.75em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
+                    f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
+                    f'<span style="font-size:0.88em;color:#555;">{row.get("The Story","")}</span><br>'
+                    f'<em style="font-size:0.85em;">{row.get("Quote","")}</em><br>'
+                    f'<span style="font-size:0.82em;color:#777;">{row.get("Bottom Line","")}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+            if img_desc and c_img:
+                with c_img:
+                    _show_image(img_desc)
+            st.markdown('')
+
         if st.button('Refresh', key='refresh_vision_submit'):
             st.cache_data.clear()
             st.rerun()
@@ -363,58 +457,71 @@ with tab_results:
                     best = cat_votes.sort_values('Votes', ascending=False).iloc[0]
                     top[col_key] = (best['Answer'], int(best['Votes']))
 
-        has_any = bool(top)
+        has_votes = bool(top)
 
-        # Derive display values — fall back to first submission if no votes yet
-        def _top_or_first(col_key, col_df):
+        def _top_or_first(col_key, col_name):
             if col_key in top:
                 return top[col_key][0]
-            vals = subs[col_df].fillna('').tolist()
+            vals = subs[col_name].fillna('').tolist() if col_name in subs.columns else []
             return next((v.strip() for v in vals if v.strip()), '')
 
-        headline_val = _top_or_first('Headline', 'Headline')
-        story_val    = _top_or_first('The Story', 'The Story')
-        quote_val    = _top_or_first('Quote', 'Quote')
+        headline_val = _top_or_first('Headline',    'Headline')
+        story_val    = _top_or_first('The Story',   'The Story')
+        quote_val    = _top_or_first('Quote',       'Quote')
         bottom_val   = _top_or_first('Bottom Line', 'Bottom Line')
+        pub_val      = subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in subs.columns else ''
+
+        # Find the cover image — prefer image from the submission with the top headline
+        cover_img_desc = ''
+        if headline_val and 'Headline' in subs.columns and 'Image' in subs.columns:
+            match = subs[subs['Headline'].str.strip() == headline_val.strip()]
+            if not match.empty:
+                cover_img_desc = match.iloc[0].get('Image', '').strip()
+        if not cover_img_desc and 'Image' in subs.columns:
+            cover_img_desc = next(
+                (v.strip() for v in subs['Image'].fillna('').tolist() if v.strip()), ''
+            )
 
         st.markdown('#### The cover story so far')
-        if not has_any:
-            st.caption('No votes yet — showing ideas from the first submission. Head to Vote to start shaping the result.')
+        if not has_votes:
+            st.caption('No votes yet — showing the first submission. Head to Vote to start shaping the result.')
 
-        col_cover, col_detail = st.columns([1, 1], gap='large')
+        col_img, col_cover = st.columns([1, 1], gap='large')
+
+        with col_img:
+            if cover_img_desc:
+                _show_image(cover_img_desc, caption=f'Cover image · {COVER_YEAR}')
+            else:
+                st.markdown(
+                    f'<div style="background:#1a1a2e;border-radius:10px;height:340px;'
+                    f'display:flex;align-items:center;justify-content:center;'
+                    f'color:#555;font-size:0.88em;text-align:center;padding:24px;">'
+                    f'Add an image description in your submission<br>and it will appear here.'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
 
         with col_cover:
+            pub_display = pub_val or 'Audeara · Cover Story'
             st.markdown(
                 f'<div class="magazine-cover">'
-                f'<div class="mag-pub">Audeara · Cover Story</div>'
-                f'<div class="mag-year">It\'s 2030.</div>'
-                f'<div class="mag-headline">{headline_val or "<em>Headline TBC</em>"}</div>'
-                f'<div class="mag-story">{story_val or "<em>The story takes shape as submissions come in.</em>"}</div>'
+                f'<div class="mag-pub">{pub_display}</div>'
+                f'<div class="mag-year">It\'s {COVER_YEAR}.</div>'
+                f'<div class="mag-headline">{headline_val or "<em style=color:#555>Headline coming soon</em>"}</div>'
+                f'{"<div class=mag-story>" + story_val + "</div>" if story_val else ""}'
                 f'{"<div class=mag-quote>" + quote_val + "</div>" if quote_val else ""}'
-                f'{"<div class=mag-bottom-line>The Bottom Line</div><div class=mag-bottom-text>" + bottom_val + "</div>" if bottom_val else ""}'
+                f'{"<div class=mag-bl-label>The Bottom Line</div><div class=mag-bottom-text>" + bottom_val + "</div>" if bottom_val else ""}'
                 f'</div>',
                 unsafe_allow_html=True,
             )
 
-        with col_detail:
-            if has_any:
-                st.markdown('#### Top votes per category')
+            if has_votes:
+                st.markdown('**Votes by category**')
                 for col_key, col_label in CATEGORIES:
                     if col_key in top:
-                        answer, count = top[col_key]
+                        _, count = top[col_key]
                         c1, c2 = st.columns([5, 1])
                         with c1:
-                            st.markdown(f'**{col_label}**  \n{answer}')
+                            st.markdown(f'_{col_label}_')
                         with c2:
-                            st.metric('Votes', count)
-                        st.markdown('')
-            else:
-                st.markdown('#### All submitted ideas')
-                for _, row in subs.iterrows():
-                    st.markdown(
-                        f'<div class="activity-card" style="font-size:0.9em;">'
-                        f'<strong>{row.get("Headline","")}</strong><br>'
-                        f'<em>{row.get("Quote","")}</em>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+                            st.metric('', count, label_visibility='collapsed')
