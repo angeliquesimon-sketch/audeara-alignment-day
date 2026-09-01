@@ -174,7 +174,7 @@ def generate_cover_image(description):
         st.session_state[key] = img_bytes
         return img_bytes
     except Exception as e:
-        st.session_state[key] = None
+        st.session_state[key] = str(e)
         return None
 
 def _show_image(description, caption=None):
@@ -189,10 +189,12 @@ def _show_image(description, caption=None):
         with st.spinner('Generating cover image…'):
             generate_cover_image(description)
     img = st.session_state.get(key)
-    if img:
+    if isinstance(img, bytes):
         st.image(img, caption=caption, use_container_width=True)
+    elif isinstance(img, str):
+        st.caption(f'_(Image generation failed: {img})_')
     else:
-        st.caption('_(Image generation failed — check API key)_')
+        st.caption('_(Image generation failed — unknown error)_')
 
 # ── Styles ─────────────────────────────────────────────────────────────────────
 
