@@ -20,7 +20,8 @@ CATEGORIES = [
     ('Image',       'The cover image'),
 ]
 
-COVER_YEAR = '2030'
+COVER_YEAR    = '2030'
+PREVIEW_WIDTH = 260   # px — screen preview size; full image is 1024×1536 (portrait A4)
 
 IMAGE_STYLE = (
     'Bold magazine cover editorial photograph. '
@@ -164,7 +165,7 @@ def generate_cover_image(description):
         resp      = client.images.generate(
             model='gpt-image-1',
             prompt=prompt,
-            size='1024x1024',
+            size='1024x1536',
             n=1,
         )
         img_bytes = base64.b64decode(resp.data[0].b64_json)
@@ -187,7 +188,7 @@ def _show_image(description, caption=None):
             generate_cover_image(description)
     img = st.session_state.get(key)
     if isinstance(img, bytes):
-        st.image(img, caption=caption, use_container_width=True)
+        st.image(img, caption=caption, width=PREVIEW_WIDTH)
     elif isinstance(img, str):
         st.caption(f'_(Image generation failed: {img})_')
     else:
