@@ -577,33 +577,24 @@ with tab_submit:
         'Think about Audeara in 2030. What did we achieve? '
         'Fill in as many or as few fields as you like — there are no wrong answers.'
     )
-    with st.form('vision_submit_form', clear_on_submit=True):
-        pub = st.text_input(
-            'Publication',
-            placeholder='e.g. Fast Company, The Australian, Time, Harvard Business Review…',
-        )
-        headline = st.text_input(
-            'Cover headline ✦',
-            placeholder='e.g. "The company that made the world listen"',
-        )
-        story = st.text_area(
-            'The story — what did Audeara achieve?',
-            placeholder='e.g. "Audeara reached 1 million people across 40 countries by making hearing technology truly accessible…"',
-            height=90,
-        )
-        quote = st.text_input(
-            'A quote from the story',
-            placeholder='e.g. "We didn\'t set out to build a hearing company. We set out to help people feel connected." — James Fielding',
-        )
-        bottom = st.text_input(
-            'The bottom line — what does the finance section say?',
-            placeholder='e.g. "Revenue crossed $50M, driven by Auracast partnerships across 3 continents."',
-        )
-        submitted = st.form_submit_button('Submit', type='primary', use_container_width=True)
 
-    # Image description is outside the form so the preview button can react to what's typed
+    pub      = st.text_input('Publication',
+                             placeholder='e.g. Fast Company, The Australian, Time, Harvard Business Review…',
+                             key='vsub_pub')
+    headline = st.text_input('Cover headline ✦',
+                             placeholder='e.g. "The company that made the world listen"',
+                             key='vsub_headline')
+    story    = st.text_area('The story — what did Audeara achieve?',
+                            placeholder='e.g. "Audeara reached 1 million people across 40 countries by making hearing technology truly accessible…"',
+                            height=90, key='vsub_story')
+    quote    = st.text_input('A quote from the story',
+                             placeholder='e.g. "We didn\'t set out to build a hearing company. We set out to help people feel connected." — James Fielding',
+                             key='vsub_quote')
+    bottom   = st.text_input('The bottom line — what does the finance section say?',
+                             placeholder='e.g. "Revenue crossed $50M, driven by Auracast partnerships across 3 continents."',
+                             key='vsub_bottom')
     image_desc = st.text_area(
-        '🎨 Describe the cover image (optional — preview before submitting)',
+        '🎨 Describe the cover image (optional)',
         placeholder=(
             'Describe a scene, image, or feeling for the cover — '
             'AI will generate it in Audeara\'s brand style.\n'
@@ -615,7 +606,7 @@ with tab_submit:
     )
 
     _preview_desc = image_desc.strip()
-    if _preview_desc and not submitted:
+    if _preview_desc:
         c_cap, c_btn = st.columns([4, 1])
         with c_cap:
             st.caption('Preview what your cover image will look like before you submit.')
@@ -626,19 +617,24 @@ with tab_submit:
         if st.session_state.get('_vision_preview_for') == _preview_desc:
             _show_image(
                 _preview_desc,
-                caption='Preview — not yet saved. Click Submit above to save.',
+                caption='Preview — not yet saved. Click Submit to save.',
                 save_to_drive=False,
             )
 
+    submitted = st.button('Submit', type='primary', use_container_width=True, key='vsub_submit')
+
     if submitted:
+        _pub      = st.session_state.get('vsub_pub', '').strip()
+        _headline = st.session_state.get('vsub_headline', '').strip()
+        _story    = st.session_state.get('vsub_story', '').strip()
+        _quote    = st.session_state.get('vsub_quote', '').strip()
+        _bottom   = st.session_state.get('vsub_bottom', '').strip()
         _img_desc = st.session_state.get('vision_img_desc_outer', '').strip()
-        if any([headline.strip(), story.strip(), quote.strip(), bottom.strip(), _img_desc]):
+        if any([_headline, _story, _quote, _bottom, _img_desc]):
             try:
-                append_submission(
-                    COVER_YEAR, pub.strip(), headline.strip(),
-                    story.strip(), quote.strip(), bottom.strip(), _img_desc,
-                )
-                st.session_state['vision_img_desc_outer'] = ''
+                append_submission(COVER_YEAR, _pub, _headline, _story, _quote, _bottom, _img_desc)
+                for _k in ['vsub_pub', 'vsub_headline', 'vsub_story', 'vsub_quote', 'vsub_bottom', 'vision_img_desc_outer']:
+                    st.session_state[_k] = ''
                 st.session_state.pop('_vision_preview_for', None)
                 st.cache_data.clear()
                 st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
