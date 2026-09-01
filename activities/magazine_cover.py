@@ -12,6 +12,7 @@ SUB_TAB        = 'Vision Submissions'
 VOTE_TAB       = 'Vision Votes'
 IMG_CACHE_TAB  = 'Image Cache'
 STORY_TAB      = 'Generated Story'
+IMGS_FOLDER_ID = '19fcjPrNdAxpMrLb8il6pBK8KXGTVI9cA'
 
 COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
 
@@ -221,10 +222,10 @@ def _drive_upload(desc_hash, description, img_bytes):
     """Upload PNG to Drive and record the file ID in the Image Cache sheet."""
     import io
     from googleapiclient.http import MediaIoBaseUpload
-    meta  = {'name': f'cover-{desc_hash}.png', 'mimeType': 'image/png'}
+    meta  = {'name': f'cover-{desc_hash}.png', 'mimeType': 'image/png', 'parents': [IMGS_FOLDER_ID]}
     media = MediaIoBaseUpload(io.BytesIO(img_bytes), mimetype='image/png')
     file_id = _drive().files().create(
-        body=meta, media_body=media, fields='id',
+        body=meta, media_body=media, fields='id', supportsAllDrives=True,
     ).execute().get('id')
     _sheets().spreadsheets().values().append(
         spreadsheetId=SHEET_ID,
@@ -399,9 +400,9 @@ def _save_composed_to_drive(headline, composed_bytes):
     import io
     from googleapiclient.http import MediaIoBaseUpload
     slug = ''.join(c for c in (headline or 'cover')[:40] if c.isalnum() or c in ' -').strip().replace(' ', '-')
-    meta  = {'name': f'Audeara-Vision-Cover-2030-{slug}.png', 'mimeType': 'image/png'}
+    meta  = {'name': f'Audeara-Vision-Cover-2030-{slug}.png', 'mimeType': 'image/png', 'parents': [IMGS_FOLDER_ID]}
     media = MediaIoBaseUpload(io.BytesIO(composed_bytes), mimetype='image/png')
-    return _drive().files().create(body=meta, media_body=media, fields='id').execute().get('id')
+    return _drive().files().create(body=meta, media_body=media, fields='id', supportsAllDrives=True).execute().get('id')
 
 @st.cache_data(ttl=20, show_spinner=False)
 def pull_generated_story():
@@ -990,10 +991,10 @@ with tab_facilitate:
             st.rerun()
 
         st.markdown(
-            '📁 **[View saved cover images on Google Drive]'
-            '(https://drive.google.com/drive/search?q=Audeara-Vision-Cover-2030)**'
+            f'📁 **[View saved cover images on Google Drive]'
+            f'(https://drive.google.com/drive/folders/{IMGS_FOLDER_ID})**'
         )
-        st.caption('Composed cover PNGs (named Audeara-Vision-Cover-2030-…) save automatically when you preview a version below.')
+        st.caption('Composed cover PNGs save automatically when you preview a version below. Raw AI images also land here.')
 
 
         fac_subs  = pull_submissions()
