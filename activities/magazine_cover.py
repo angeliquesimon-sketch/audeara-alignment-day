@@ -106,8 +106,9 @@ st.markdown(
 )
 st.markdown(
     f'<div class="activity-card">'
-    f'<strong>Flag on the hill:</strong> If Audeara were on the cover of a major magazine '
-    f'in 2030 — what would the headline say? What did we build? What does the cover look like?'
+    f'<strong>Let\'s discover our shared vision by thinking big together.</strong> '
+    f'Shoot for the moon with your cover story. The answers don\'t need to be realistic. '
+    f'They need to be honest about what excites you. That\'s where the real direction lives.'
     f'</div>',
     unsafe_allow_html=True,
 )
