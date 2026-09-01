@@ -201,19 +201,21 @@ def _img_cache_key(description):
 def _desc_hash(description):
     return hashlib.md5(description.encode()).hexdigest()
 
-def _drive_lookup(desc_hash):
-    """Return Drive file ID for a cached image, or None."""
+@st.cache_data(ttl=300, show_spinner=False)
+def _load_img_cache():
+    """Load the full image cache sheet once and keep it in memory for 5 minutes."""
     try:
         rows = _sheets().spreadsheets().values().get(
             spreadsheetId=SHEET_ID,
             range=f"'{IMG_CACHE_TAB}'!A:C",
         ).execute().get('values', [])
-        for row in rows[1:]:
-            if row and row[0] == desc_hash:
-                return row[2] if len(row) > 2 else None
+        return {row[0]: row[2] for row in rows[1:] if len(row) > 2}
     except Exception:
-        pass
-    return None
+        return {}
+
+def _drive_lookup(desc_hash):
+    """Return Drive file ID for a cached image, or None."""
+    return _load_img_cache().get(desc_hash)
 
 def _drive_upload(desc_hash, description, img_bytes):
     """Upload PNG to Drive and record the file ID in the Image Cache sheet."""
@@ -603,10 +605,13 @@ st.markdown(f'''
 
 # ── Init ───────────────────────────────────────────────────────────────────────
 
-try:
-    _ensure_tabs()
-except Exception as _e:
-    st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
+# Only run once per browser session — this is a blocking API call
+if not st.session_state.get('_tabs_ensured'):
+    try:
+        _ensure_tabs()
+        st.session_state['_tabs_ensured'] = True
+    except Exception as _e:
+        st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
 
 # ── Page header ────────────────────────────────────────────────────────────────
 
@@ -708,23 +713,17 @@ with tab_submit:
     if not subs.empty:
         st.markdown(f'#### {len(subs)} submission{"s" if len(subs) != 1 else ""} so far')
         for _, row in subs.iterrows():
-            img_desc = row.get('Image', '').strip()
-            pub_str  = f' · {row.get("Publication","").strip()}' if row.get('Publication','').strip() else ''
-            c_text, c_img = st.columns([3, 2]) if img_desc else (st.container(), None)
-            with (c_text if img_desc else c_text):
-                st.markdown(
-                    f'<div class="activity-card">'
-                    f'<span style="font-size:0.75em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
-                    f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
-                    f'<span style="font-size:0.88em;color:#555;">{row.get("The Story","")}</span><br>'
-                    f'<em style="font-size:0.85em;">{row.get("Quote","")}</em><br>'
-                    f'<span style="font-size:0.82em;color:#777;">{row.get("Bottom Line","")}</span>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-            if img_desc and c_img:
-                with c_img:
-                    _show_image(img_desc)
+            pub_str = f' · {row.get("Publication","").strip()}' if row.get('Publication','').strip() else ''
+            st.markdown(
+                f'<div class="activity-card">'
+                f'<span style="font-size:0.75em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
+                f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
+                f'<span style="font-size:0.88em;color:#555;">{row.get("The Story","")}</span><br>'
+                f'<em style="font-size:0.85em;">{row.get("Quote","")}</em><br>'
+                f'<span style="font-size:0.82em;color:#777;">{row.get("Bottom Line","")}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
             st.markdown('')
 
         if st.button('Refresh', key='refresh_vision_submit'):
