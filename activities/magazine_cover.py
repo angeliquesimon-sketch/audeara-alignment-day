@@ -479,20 +479,39 @@ with tab_vision:
     if _final:
         st.markdown(
             f'<div style="'
-            f'background:linear-gradient(135deg,#f9f5f9,#f0fafa);'
-            f'border:2px solid {TEAL};border-radius:12px;'
-            f'padding:36px 40px;margin:8px 0 32px 0;text-align:center;">'
-            f'<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;'
-            f'color:{TEAL};font-weight:700;margin-bottom:14px;">Audeara Vision Statement</div>'
-            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.6em;font-weight:700;'
+            f'background:linear-gradient(135deg,#f0fafa,#e8f5f5);'
+            f'border:3px solid {TEAL};border-radius:14px;'
+            f'padding:44px 48px;margin:8px 0 36px 0;text-align:center;">'
+            f'<div style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;'
+            f'color:{TEAL};font-weight:700;margin-bottom:16px;">✦ Our Vision</div>'
+            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.9em;font-weight:700;'
             f'line-height:1.3;color:#111;">{_final}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
-    if _candidates:
+        if _candidates:
+            st.markdown(
+                '<div style="font-size:0.8em;color:#aaa;margin:8px 0 4px 0;'
+                'letter-spacing:0.06em;text-transform:uppercase;">Candidates discussed</div>',
+                unsafe_allow_html=True,
+            )
+            for i, c in enumerate(_candidates):
+                st.markdown(
+                    f'<div style="'
+                    f'background:#f7f7f7;border:1px solid #e8e8e8;border-radius:8px;'
+                    f'padding:16px 20px;margin:6px 0;opacity:0.5;'
+                    f'border-left:4px solid #ccc;">'
+                    f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
+                    f'text-transform:uppercase;color:#bbb;">Option {i+1}</span><br>'
+                    f'<span style="font-size:0.95em;line-height:1.5;color:#999;">{c}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+    elif _candidates:
         st.markdown('#### Candidates from the room')
-        st.caption('Drafted from your collective cover story. Discuss as a group, then the facilitator will lock in the final version.')
+        st.caption('Discuss as a group — the facilitator will lock in the final version once you\'ve agreed.')
         for i, c in enumerate(_candidates):
             st.markdown(
                 f'<div style="'
@@ -505,6 +524,6 @@ with tab_vision:
                 f'</div>',
                 unsafe_allow_html=True,
             )
-    elif not _final:
+    else:
         st.markdown('')
         st.info('The facilitator will generate vision statement candidates once voting is complete. Check back soon.')
