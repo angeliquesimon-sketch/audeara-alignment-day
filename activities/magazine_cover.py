@@ -234,7 +234,7 @@ def _drive_download(file_id):
         _, done = dl.next_chunk()
     return buf.getvalue()
 
-def generate_cover_image(description):
+def generate_cover_image(description, save_to_drive=True):
     """Return PNG bytes — checks Drive cache first, generates with OpenAI if not found."""
     key = _img_cache_key(description)
 
@@ -265,11 +265,11 @@ def generate_cover_image(description):
         )
         img_bytes = base64.b64decode(resp.data[0].b64_json)
 
-        # Save to Drive (silently skip if Drive isn't available)
-        try:
-            _drive_upload(dh, description, img_bytes)
-        except Exception:
-            pass
+        if save_to_drive:
+            try:
+                _drive_upload(dh, description, img_bytes)
+            except Exception:
+                pass
 
         st.session_state[key] = img_bytes
         return img_bytes
@@ -277,7 +277,7 @@ def generate_cover_image(description):
         st.session_state[key] = str(e)
         return None
 
-def _show_image(description, caption=None):
+def _show_image(description, caption=None, save_to_drive=True):
     """Generate and display a cover image for the given description."""
     if not description or not description.strip():
         return
@@ -287,7 +287,7 @@ def _show_image(description, caption=None):
     key = _img_cache_key(description)
     if key not in st.session_state:
         with st.spinner('Generating cover image…'):
-            generate_cover_image(description)
+            generate_cover_image(description, save_to_drive=save_to_drive)
     img = st.session_state.get(key)
     if isinstance(img, bytes):
         st.image(img, caption=caption, width=PREVIEW_WIDTH)
@@ -295,6 +295,101 @@ def _show_image(description, caption=None):
         st.caption(f'_(Image generation failed: {img})_')
     else:
         st.caption('_(Image generation failed — unknown error)_')
+
+def _compose_cover_image(pub, headline, quote, bottom, img_bytes):
+    """Compose the full magazine cover as a PNG using Pillow."""
+    from PIL import Image, ImageDraw, ImageFont
+    import io
+
+    img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
+    W, H = img.size
+    MAST_H = int(H * 0.09)
+    TEAL   = (24, 131, 131, 255)
+    PAD    = int(W * 0.045)
+
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([(0, 0), (W, MAST_H)], fill=(255, 255, 255, 240))
+    draw.rectangle([(0, MAST_H - 5), (W, MAST_H)], fill=TEAL)
+
+    def _font(size, bold=False):
+        for p in [
+            f'/usr/share/fonts/truetype/dejavu/DejaVuSans{"-Bold" if bold else ""}.ttf',
+            f'/usr/share/fonts/truetype/noto/NotoSans{"-Bold" if bold else "-Regular"}.ttf',
+            f'/usr/share/fonts/truetype/liberation/LiberationSans{"-Bold" if bold else "-Regular"}.ttf',
+        ]:
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
+        try:
+            return ImageFont.load_default(size=size)
+        except TypeError:
+            return ImageFont.load_default()
+
+    pub_font = _font(int(W * 0.058), bold=True)
+    draw.text((PAD, int(MAST_H * 0.15)), (pub or 'AUDEARA').upper(), font=pub_font, fill=(17, 17, 17, 255))
+
+    grad = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    gd   = ImageDraw.Draw(grad)
+    gs   = int(H * 0.40)
+    for y in range(gs, H):
+        a = int(210 * min(1.0, (y - gs) / (H * 0.42)))
+        gd.line([(0, y), (W, y)], fill=(0, 0, 0, a))
+    img  = Image.alpha_composite(img, grad)
+    draw = ImageDraw.Draw(img)
+
+    def _wrap(text, font, max_w):
+        words, lines, cur = text.split(), [], []
+        for w in words:
+            test  = ' '.join(cur + [w])
+            w_px  = draw.textbbox((0, 0), test, font=font)[2]
+            if w_px > max_w and cur:
+                lines.append(' '.join(cur))
+                cur = [w]
+            else:
+                cur.append(w)
+        if cur:
+            lines.append(' '.join(cur))
+        return lines
+
+    text_w = W - PAD * 2
+    y      = int(H * 0.55)
+
+    hl_font = _font(int(W * 0.072), bold=True)
+    for line in _wrap((headline or 'The Future of Hearing').upper(), hl_font, text_w):
+        draw.text((PAD, y), line, font=hl_font, fill=(255, 255, 255, 255))
+        y += draw.textbbox((0, 0), line, font=hl_font)[3] + int(H * 0.008)
+    y += int(H * 0.018)
+
+    if quote:
+        draw.rectangle([(PAD, y), (PAD + 4, y + int(H * 0.09))], fill=TEAL)
+        qt_font = _font(int(W * 0.036))
+        for line in _wrap(f'"{quote}"', qt_font, text_w - 20):
+            draw.text((PAD + 14, y), line, font=qt_font, fill=(215, 215, 215, 255))
+            y += draw.textbbox((0, 0), line, font=qt_font)[3] + 4
+        y += int(H * 0.018)
+
+    if bottom:
+        bl_label = _font(int(W * 0.028), bold=True)
+        draw.text((PAD, y), 'THE BOTTOM LINE', font=bl_label, fill=TEAL)
+        y += draw.textbbox((0, 0), 'THE BOTTOM LINE', font=bl_label)[3] + 8
+        bl_font = _font(int(W * 0.034))
+        for line in _wrap(bottom, bl_font, text_w):
+            draw.text((PAD, y), line, font=bl_font, fill=(175, 175, 175, 255))
+            y += draw.textbbox((0, 0), line, font=bl_font)[3] + 4
+
+    buf = io.BytesIO()
+    img.convert('RGB').save(buf, format='PNG', optimize=True)
+    return buf.getvalue()
+
+def _save_composed_to_drive(headline, composed_bytes):
+    """Upload a composed cover PNG to Drive and return the file ID."""
+    import io
+    from googleapiclient.http import MediaIoBaseUpload
+    slug = ''.join(c for c in (headline or 'cover')[:40] if c.isalnum() or c in ' -').strip().replace(' ', '-')
+    meta  = {'name': f'Audeara-Vision-Cover-2030-{slug}.png', 'mimeType': 'image/png'}
+    media = MediaIoBaseUpload(io.BytesIO(composed_bytes), mimetype='image/png')
+    return _drive().files().create(body=meta, media_body=media, fields='id').execute().get('id')
 
 def build_cover_html(pub, headline, quote, bottom, img_bytes):
     if img_bytes:
@@ -513,6 +608,7 @@ with tab_submit:
                 'surrounded by light and warmth, connected to the crowd."'
             ),
             height=90,
+            key='vision_form_img_desc',
         )
         submitted = st.form_submit_button('Submit', type='primary', use_container_width=True)
 
@@ -531,6 +627,24 @@ with tab_submit:
                 st.error(f'Could not save — network issue. Please try submitting again. ({_e})')
         else:
             st.warning('Please fill in at least one field before submitting.')
+
+    # Image preview — outside the form so clicking it doesn't submit or block the flow
+    if not submitted:
+        _preview_desc = st.session_state.get('vision_form_img_desc', '').strip()
+        if _preview_desc:
+            c_cap, c_btn = st.columns([4, 1])
+            with c_cap:
+                st.caption('Want to see what your cover image will look like?')
+            with c_btn:
+                _do_preview = st.button('👁 Preview', key='vision_img_preview_btn', use_container_width=True)
+            if _do_preview:
+                st.session_state['_vision_preview_for'] = _preview_desc
+            if st.session_state.get('_vision_preview_for') == _preview_desc:
+                _show_image(
+                    _preview_desc,
+                    caption='Preview — image saves to Drive when you submit.',
+                    save_to_drive=False,
+                )
 
     st.divider()
     subs = pull_submissions()
@@ -743,16 +857,31 @@ with tab_results:
                         result = generate_cover_image(cover_img_desc)
                         cover_img_bytes = result if isinstance(result, bytes) else None
 
-            html = build_cover_html(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes)
-            components.html(html, height=622)
+            components.html(
+                build_cover_html(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes),
+                height=622,
+            )
 
             if cover_img_bytes:
-                st.download_button(
-                    label='⬇ Download cover image (PNG)',
-                    data=cover_img_bytes,
-                    file_name=f'audeara-cover-{COVER_YEAR}.png',
-                    mime='image/png',
-                )
+                composed_key = f'composed_cover_{hashlib.md5((headline_val + quote_val + bottom_val).encode()).hexdigest()}'
+                if composed_key not in st.session_state:
+                    with st.spinner('Saving composed cover to Drive…'):
+                        try:
+                            composed = _compose_cover_image(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes)
+                            _save_composed_to_drive(headline_val, composed)
+                            st.session_state[composed_key] = composed
+                            st.toast('Cover saved to Drive ✓', icon='✅')
+                        except Exception as _e:
+                            st.session_state[composed_key] = None
+                composed = st.session_state.get(composed_key)
+                if isinstance(composed, bytes):
+                    st.download_button(
+                        label='⬇ Download composed cover (PNG)',
+                        data=composed,
+                        file_name=f'audeara-cover-{COVER_YEAR}.png',
+                        mime='image/png',
+                        key='dl_composed_results',
+                    )
 
 # ── Facilitate ─────────────────────────────────────────────────────────────────
 
@@ -885,10 +1014,25 @@ with tab_facilitate:
                         )
 
                         if v_img_bytes:
-                            st.download_button(
-                                label=f'⬇ Download Version {version} image',
-                                data=v_img_bytes,
-                                file_name=f'audeara-cover-{COVER_YEAR}-v{version.lower()}.png',
-                                mime='image/png',
-                                key=f'fac_dl_{version}',
-                            )
+                            vc_key = f'fac_composed_{version}_{hashlib.md5((cover_state["hl"] + cover_state["qt"] + cover_state["bl"]).encode()).hexdigest()}'
+                            if vc_key not in st.session_state:
+                                with st.spinner(f'Saving Version {version} to Drive…'):
+                                    try:
+                                        vc = _compose_cover_image(
+                                            cover_state['pub'], cover_state['hl'],
+                                            cover_state['qt'],  cover_state['bl'], v_img_bytes,
+                                        )
+                                        _save_composed_to_drive(f"{cover_state['hl']}-v{version}", vc)
+                                        st.session_state[vc_key] = vc
+                                        st.toast(f'Version {version} saved to Drive ✓', icon='✅')
+                                    except Exception as _e:
+                                        st.session_state[vc_key] = None
+                            vc = st.session_state.get(vc_key)
+                            if isinstance(vc, bytes):
+                                st.download_button(
+                                    label=f'⬇ Download Version {version} (PNG)',
+                                    data=vc,
+                                    file_name=f'audeara-cover-{COVER_YEAR}-v{version.lower()}.png',
+                                    mime='image/png',
+                                    key=f'fac_dl_{version}',
+                                )
