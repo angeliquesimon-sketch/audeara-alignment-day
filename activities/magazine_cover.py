@@ -1,4 +1,4 @@
-import sys, os, hashlib
+import sys, os, hashlib, base64
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
@@ -158,18 +158,16 @@ def generate_cover_image(description):
         return st.session_state[key]
 
     try:
-        import requests as _requests
         from openai import OpenAI
         client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
         prompt = IMAGE_STYLE + description
-        resp   = client.images.generate(
-            model='dall-e-2',
+        resp      = client.images.generate(
+            model='gpt-image-1',
             prompt=prompt,
             size='1024x1024',
             n=1,
         )
-        img_url   = resp.data[0].url
-        img_bytes = _requests.get(img_url).content
+        img_bytes = base64.b64decode(resp.data[0].b64_json)
         st.session_state[key] = img_bytes
         return img_bytes
     except Exception as e:
