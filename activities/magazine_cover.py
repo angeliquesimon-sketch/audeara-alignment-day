@@ -150,7 +150,7 @@ def upsert_vote(category, answer):
 # ── Image generation ───────────────────────────────────────────────────────────
 
 def _img_cache_key(description):
-    return f"cover_img_{hashlib.md5(description.encode()).hexdigest()}"
+    return f"cover_img_1024x1536_{hashlib.md5(description.encode()).hexdigest()}"
 
 def generate_cover_image(description):
     """Return PNG bytes for a given image description, cached in session_state."""
