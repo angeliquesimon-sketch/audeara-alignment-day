@@ -599,52 +599,54 @@ with tab_submit:
             'The bottom line — what does the finance section say?',
             placeholder='e.g. "Revenue crossed $50M, driven by Auracast partnerships across 3 continents."',
         )
-        image_desc = st.text_area(
-            '🎨 Describe the cover image',
-            placeholder=(
-                'Describe a scene, image, or feeling for the cover — '
-                'AI will generate it in Audeara\'s brand style.\n'
-                'e.g. "A person wearing headphones in a packed auditorium, '
-                'surrounded by light and warmth, connected to the crowd."'
-            ),
-            height=90,
-            key='vision_form_img_desc',
-        )
         submitted = st.form_submit_button('Submit', type='primary', use_container_width=True)
 
+    # Image description is outside the form so the preview button can react to what's typed
+    image_desc = st.text_area(
+        '🎨 Describe the cover image (optional — preview before submitting)',
+        placeholder=(
+            'Describe a scene, image, or feeling for the cover — '
+            'AI will generate it in Audeara\'s brand style.\n'
+            'e.g. "A person wearing headphones in a packed auditorium, '
+            'surrounded by light and warmth, connected to the crowd."'
+        ),
+        height=90,
+        key='vision_img_desc_outer',
+    )
+
+    _preview_desc = image_desc.strip()
+    if _preview_desc and not submitted:
+        c_cap, c_btn = st.columns([4, 1])
+        with c_cap:
+            st.caption('Preview what your cover image will look like before you submit.')
+        with c_btn:
+            _do_preview = st.button('👁 Preview', key='vision_img_preview_btn', use_container_width=True)
+        if _do_preview:
+            st.session_state['_vision_preview_for'] = _preview_desc
+        if st.session_state.get('_vision_preview_for') == _preview_desc:
+            _show_image(
+                _preview_desc,
+                caption='Preview — not yet saved. Click Submit above to save.',
+                save_to_drive=False,
+            )
+
     if submitted:
-        if any([headline.strip(), story.strip(), quote.strip(), bottom.strip(), image_desc.strip()]):
+        _img_desc = st.session_state.get('vision_img_desc_outer', '').strip()
+        if any([headline.strip(), story.strip(), quote.strip(), bottom.strip(), _img_desc]):
             try:
                 append_submission(
                     COVER_YEAR, pub.strip(), headline.strip(),
-                    story.strip(), quote.strip(), bottom.strip(), image_desc.strip(),
+                    story.strip(), quote.strip(), bottom.strip(), _img_desc,
                 )
+                st.session_state['vision_img_desc_outer'] = ''
+                st.session_state.pop('_vision_preview_for', None)
                 st.cache_data.clear()
                 st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
-                if image_desc.strip():
-                    st.toast('Generating your cover image in the background…', icon='🎨')
+                st.rerun()
             except Exception as _e:
                 st.error(f'Could not save — network issue. Please try submitting again. ({_e})')
         else:
             st.warning('Please fill in at least one field before submitting.')
-
-    # Image preview — outside the form so clicking it doesn't submit or block the flow
-    if not submitted:
-        _preview_desc = st.session_state.get('vision_form_img_desc', '').strip()
-        if _preview_desc:
-            c_cap, c_btn = st.columns([4, 1])
-            with c_cap:
-                st.caption('Want to see what your cover image will look like?')
-            with c_btn:
-                _do_preview = st.button('👁 Preview', key='vision_img_preview_btn', use_container_width=True)
-            if _do_preview:
-                st.session_state['_vision_preview_for'] = _preview_desc
-            if st.session_state.get('_vision_preview_for') == _preview_desc:
-                _show_image(
-                    _preview_desc,
-                    caption='Preview — image saves to Drive when you submit.',
-                    save_to_drive=False,
-                )
 
     st.divider()
     subs = pull_submissions()
@@ -904,6 +906,13 @@ with tab_facilitate:
         if st.button('🔒 Lock', key='facilitate_lock'):
             st.session_state['facilitate_auth'] = False
             st.rerun()
+
+        st.markdown(
+            '📁 **[View saved cover images on Google Drive]'
+            '(https://drive.google.com/drive/search?q=Audeara-Vision-Cover-2030)**'
+        )
+        st.caption('Composed cover PNGs (named Audeara-Vision-Cover-2030-…) save automatically when you preview a version below.')
+
 
         fac_subs  = pull_submissions()
         fac_votes = pull_votes()
