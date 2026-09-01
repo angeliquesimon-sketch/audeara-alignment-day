@@ -17,6 +17,7 @@ CATEGORIES = [
     ('The Story',   'What Audeara achieved to make the cover'),
     ('Quote',       'A quote from the story'),
     ('Bottom Line', 'What the finance section says'),
+    ('Image',       'The cover image'),
 ]
 
 COVER_YEAR = '2030'
@@ -416,7 +417,16 @@ with tab_vote:
                 count         = _count(col_key, answer)
                 vote_key      = f'vision::{col_key}::{answer}'
                 already_voted = vote_key in st.session_state['voted_vision']
-                a_col, b_col  = st.columns([7, 1])
+
+                if col_key == 'Image':
+                    # Show the generated image above the vote row
+                    img_col, _ = st.columns([2, 1])
+                    with img_col:
+                        _show_image(answer)
+                    a_col, b_col = st.columns([7, 1])
+                else:
+                    a_col, b_col = st.columns([7, 1])
+
                 with a_col:
                     st.markdown(
                         f'<div class="answer-row">{answer}'
@@ -471,13 +481,11 @@ with tab_results:
         bottom_val   = _top_or_first('Bottom Line', 'Bottom Line')
         pub_val      = subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in subs.columns else ''
 
-        # Find the cover image — prefer image from the submission with the top headline
+        # Cover image: use the top-voted image description, fall back to first submission with one
         cover_img_desc = ''
-        if headline_val and 'Headline' in subs.columns and 'Image' in subs.columns:
-            match = subs[subs['Headline'].str.strip() == headline_val.strip()]
-            if not match.empty:
-                cover_img_desc = match.iloc[0].get('Image', '').strip()
-        if not cover_img_desc and 'Image' in subs.columns:
+        if 'Image' in top:
+            cover_img_desc = top['Image'][0]
+        elif 'Image' in subs.columns:
             cover_img_desc = next(
                 (v.strip() for v in subs['Image'].fillna('').tolist() if v.strip()), ''
             )
