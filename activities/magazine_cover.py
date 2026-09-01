@@ -24,10 +24,9 @@ COVER_YEAR = '2030'
 
 IMAGE_STYLE = (
     'Bold magazine cover editorial photograph. '
-    'Cinematic composition, professional studio lighting, aspirational and optimistic mood. '
-    'Audeara is a hearing technology company making people feel more connected through better listening. '
-    'Rich deep teal and purple colour tones. High contrast, clean, modern. '
-    'No text, no letters, no words, no numbers anywhere in the image. '
+    'Cinematic, professional lighting, aspirational mood. '
+    'Deep teal and purple colour tones. High contrast, clean, modern. '
+    'No text, no letters, no words, no numbers. '
 )
 
 # ── Sheet setup ────────────────────────────────────────────────────────────────
@@ -164,10 +163,9 @@ def generate_cover_image(description):
         client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
         prompt = IMAGE_STYLE + description
         resp   = client.images.generate(
-            model='dall-e-3',
+            model='dall-e-2',
             prompt=prompt,
             size='1024x1024',
-            quality='standard',
             n=1,
         )
         img_url   = resp.data[0].url
