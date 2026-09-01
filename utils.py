@@ -6,7 +6,10 @@ from googleapiclient.discovery import build
 PURPLE = '#781E73'
 TEAL   = '#188383'
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SCOPES = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.file',
+]
 
 def _creds():
     sa_info = json.loads(st.secrets['GOOGLE_SERVICE_ACCOUNT_JSON'])
@@ -15,6 +18,10 @@ def _creds():
 @st.cache_resource
 def _sheets():
     return build('sheets', 'v4', credentials=_creds())
+
+@st.cache_resource
+def _drive():
+    return build('drive', 'v3', credentials=_creds())
 
 def inject_styles():
     st.markdown(f'''

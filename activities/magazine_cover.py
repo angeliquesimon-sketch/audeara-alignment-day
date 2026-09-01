@@ -5,11 +5,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime
-from utils import _sheets, inject_styles, PURPLE, TEAL
+from utils import _sheets, _drive, inject_styles, PURPLE, TEAL
 
-SHEET_ID = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-SUB_TAB  = 'Vision Submissions'
-VOTE_TAB = 'Vision Votes'
+SHEET_ID       = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
+SUB_TAB        = 'Vision Submissions'
+VOTE_TAB       = 'Vision Votes'
+IMG_CACHE_TAB  = 'Image Cache'
 
 COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
 
@@ -44,6 +45,8 @@ def _ensure_tabs():
         add_reqs.append({'addSheet': {'properties': {'title': SUB_TAB}}})
     if VOTE_TAB not in existing:
         add_reqs.append({'addSheet': {'properties': {'title': VOTE_TAB}}})
+    if IMG_CACHE_TAB not in existing:
+        add_reqs.append({'addSheet': {'properties': {'title': IMG_CACHE_TAB}}})
     if add_reqs:
         svc.spreadsheets().batchUpdate(
             spreadsheetId=SHEET_ID, body={'requests': add_reqs},
@@ -80,6 +83,13 @@ def _ensure_tabs():
             range=f"'{VOTE_TAB}'!A1:C1",
             valueInputOption='RAW',
             body={'values': [['Category', 'Answer', 'Votes']]},
+        ).execute()
+    if IMG_CACHE_TAB not in existing:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{IMG_CACHE_TAB}'!A1:C1",
+            valueInputOption='RAW',
+            body={'values': [['Hash', 'Description', 'DriveFileId']]},
         ).execute()
 
 # ── Sheet helpers ──────────────────────────────────────────────────────────────
@@ -178,23 +188,89 @@ def upsert_vote(category, answer):
 def _img_cache_key(description):
     return f"cover_img_1024x1536_v2_{hashlib.md5(description.encode()).hexdigest()}"
 
+def _desc_hash(description):
+    return hashlib.md5(description.encode()).hexdigest()
+
+def _drive_lookup(desc_hash):
+    """Return Drive file ID for a cached image, or None."""
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"'{IMG_CACHE_TAB}'!A:C",
+        ).execute().get('values', [])
+        for row in rows[1:]:
+            if row and row[0] == desc_hash:
+                return row[2] if len(row) > 2 else None
+    except Exception:
+        pass
+    return None
+
+def _drive_upload(desc_hash, description, img_bytes):
+    """Upload PNG to Drive and record the file ID in the Image Cache sheet."""
+    import io
+    from googleapiclient.http import MediaIoBaseUpload
+    meta  = {'name': f'cover-{desc_hash}.png', 'mimeType': 'image/png'}
+    media = MediaIoBaseUpload(io.BytesIO(img_bytes), mimetype='image/png')
+    file_id = _drive().files().create(
+        body=meta, media_body=media, fields='id',
+    ).execute().get('id')
+    _sheets().spreadsheets().values().append(
+        spreadsheetId=SHEET_ID,
+        range=f"'{IMG_CACHE_TAB}'!A:C",
+        valueInputOption='RAW',
+        insertDataOption='INSERT_ROWS',
+        body={'values': [[desc_hash, description, file_id]]},
+    ).execute()
+    return file_id
+
+def _drive_download(file_id):
+    """Download image bytes from Drive by file ID."""
+    import io
+    from googleapiclient.http import MediaIoBaseDownload
+    buf = io.BytesIO()
+    dl  = MediaIoBaseDownload(buf, _drive().files().get_media(fileId=file_id))
+    done = False
+    while not done:
+        _, done = dl.next_chunk()
+    return buf.getvalue()
+
 def generate_cover_image(description):
-    """Return PNG bytes for a given image description, cached in session_state."""
+    """Return PNG bytes — checks Drive cache first, generates with OpenAI if not found."""
     key = _img_cache_key(description)
-    if key in st.session_state:
+
+    # 1. Session cache (fastest)
+    if isinstance(st.session_state.get(key), bytes):
         return st.session_state[key]
 
+    # 2. Drive cache (persistent across sessions)
+    dh      = _desc_hash(description)
+    file_id = _drive_lookup(dh)
+    if file_id:
+        try:
+            img_bytes = _drive_download(file_id)
+            st.session_state[key] = img_bytes
+            return img_bytes
+        except Exception:
+            pass  # fall through to generation
+
+    # 3. Generate with OpenAI
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-        prompt = IMAGE_STYLE + description
+        client    = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
         resp      = client.images.generate(
             model='gpt-image-1',
-            prompt=prompt,
+            prompt=IMAGE_STYLE + description,
             size='1024x1536',
             n=1,
         )
         img_bytes = base64.b64decode(resp.data[0].b64_json)
+
+        # Save to Drive (silently skip if Drive isn't available)
+        try:
+            _drive_upload(dh, description, img_bytes)
+        except Exception:
+            pass
+
         st.session_state[key] = img_bytes
         return img_bytes
     except Exception as e:
