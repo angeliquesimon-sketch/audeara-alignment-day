@@ -119,9 +119,12 @@ with tab_submit:
 
     if submitted:
         if any([who.strip(), what.strip(), how.strip(), makes.strip()]):
-            append_submission(who.strip(), what.strip(), how.strip(), makes.strip())
-            st.cache_data.clear()
-            st.toast('Submitted. Head to the Vote tab to upvote your favourites.', icon='✅')
+            try:
+                append_submission(who.strip(), what.strip(), how.strip(), makes.strip())
+                st.cache_data.clear()
+                st.toast('Submitted. Head to the Vote tab to upvote your favourites.', icon='✅')
+            except Exception as _e:
+                st.error(f'Could not save — network issue. Please try submitting again. ({_e})')
         else:
             st.warning('Please fill in at least one field before submitting.')
 
@@ -194,10 +197,13 @@ with tab_vote:
                                  key=f'vote_mission_{col_key}_{i}',
                                  disabled=already_voted,
                                  use_container_width=True):
-                        upsert_vote(col_key, answer)
-                        st.session_state['voted_mission'].add(vote_key)
-                        st.cache_data.clear()
-                        st.rerun()
+                        try:
+                            upsert_vote(col_key, answer)
+                            st.session_state['voted_mission'].add(vote_key)
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f'Vote not saved — network issue. Please try again. ({_e})')
             st.markdown('')
 
 # ── Results ────────────────────────────────────────────────────────────────────

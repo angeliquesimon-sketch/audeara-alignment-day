@@ -339,14 +339,17 @@ with tab_submit:
 
     if submitted:
         if any([headline.strip(), story.strip(), quote.strip(), bottom.strip(), image_desc.strip()]):
-            append_submission(
-                COVER_YEAR, pub.strip(), headline.strip(),
-                story.strip(), quote.strip(), bottom.strip(), image_desc.strip(),
-            )
-            st.cache_data.clear()
-            st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
-            if image_desc.strip():
-                st.toast('Generating your cover image in the background…', icon='🎨')
+            try:
+                append_submission(
+                    COVER_YEAR, pub.strip(), headline.strip(),
+                    story.strip(), quote.strip(), bottom.strip(), image_desc.strip(),
+                )
+                st.cache_data.clear()
+                st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
+                if image_desc.strip():
+                    st.toast('Generating your cover image in the background…', icon='🎨')
+            except Exception as _e:
+                st.error(f'Could not save — network issue. Please try submitting again. ({_e})')
         else:
             st.warning('Please fill in at least one field before submitting.')
 
@@ -444,10 +447,13 @@ with tab_vote:
                                  key=f'vote_vision_{col_key}_{i}',
                                  disabled=already_voted,
                                  use_container_width=True):
-                        upsert_vote(col_key, answer)
-                        st.session_state['voted_vision'].add(vote_key)
-                        st.cache_data.clear()
-                        st.rerun()
+                        try:
+                            upsert_vote(col_key, answer)
+                            st.session_state['voted_vision'].add(vote_key)
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f'Vote not saved — network issue. Please try again. ({_e})')
             st.markdown('')
 
 # ── Results ────────────────────────────────────────────────────────────────────
