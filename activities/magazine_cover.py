@@ -214,7 +214,7 @@ def build_cover_html(pub, headline, quote, bottom, img_bytes):
 <html>
 <head>
 <link rel="stylesheet" href="https://use.typekit.net/bxp8awr.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;}}
 body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-size:16px;}}
@@ -247,7 +247,7 @@ body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-s
     letter-spacing:0.02em;margin-bottom:12px;
 }}
 .quote{{
-    font-family:'Noto Sans',sans-serif;font-size:12px;font-style:italic;
+    font-family:'Noto Sans',sans-serif;font-size:12px;font-style:italic;font-weight:300;
     color:rgba(255,255,255,0.85);border-left:3px solid #188383;
     padding-left:10px;line-height:1.55;margin-bottom:12px;
 }}
@@ -256,7 +256,7 @@ body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-s
     letter-spacing:0.12em;text-transform:uppercase;color:#188383;margin-bottom:4px;
 }}
 .bl-text{{
-    font-family:'Noto Sans',sans-serif;font-size:11px;
+    font-family:'Noto Sans',sans-serif;font-size:11px;font-weight:300;
     color:rgba(255,255,255,0.72);line-height:1.45;
 }}
 </style>
