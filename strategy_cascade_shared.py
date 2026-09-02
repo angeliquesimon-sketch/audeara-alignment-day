@@ -64,50 +64,53 @@ GOAL_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF'
 # ── Sheet setup ────────────────────────────────────────────────────────────────
 
 def _ensure_cascade_tabs():
-    svc      = _sheets()
-    existing = {s['properties']['title'] for s in
-                svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute().get('sheets', [])}
-    to_add = []
-    for tab in [CASCADE_SESSION_TAB, CASCADE_COMMITMENTS_TAB, CASCADE_CONFIDENCE_TAB]:
-        if tab not in existing:
-            to_add.append({'addSheet': {'properties': {'title': tab}}})
-    if to_add:
-        svc.spreadsheets().batchUpdate(
-            spreadsheetId=SHEET_ID, body={'requests': to_add},
-        ).execute()
+    def _do():
+        svc      = _sheets()
+        existing = {s['properties']['title'] for s in
+                    svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute().get('sheets', [])}
+        to_add = []
+        for tab in [CASCADE_SESSION_TAB, CASCADE_COMMITMENTS_TAB, CASCADE_CONFIDENCE_TAB]:
+            if tab not in existing:
+                to_add.append({'addSheet': {'properties': {'title': tab}}})
+        if to_add:
+            svc.spreadsheets().batchUpdate(
+                spreadsheetId=SHEET_ID, body={'requests': to_add},
+            ).execute()
 
-    # Session tab
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{CASCADE_SESSION_TAB}'!A1:B2",
-    ).execute().get('values', [])
-    if not rows:
-        svc.spreadsheets().values().update(
+        # Session tab
+        rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_SESSION_TAB}'!A1:B2",
-            valueInputOption='RAW',
-            body={'values': [['Key', 'Value'], ['stage', 'hidden']]},
-        ).execute()
+        ).execute().get('values', [])
+        if not rows:
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_SESSION_TAB}'!A1:B2",
+                valueInputOption='RAW',
+                body={'values': [['Key', 'Value'], ['stage', 'hidden']]},
+            ).execute()
 
-    # Commitments tab
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{CASCADE_COMMITMENTS_TAB}'!A1:D1",
-    ).execute().get('values', [])
-    if not rows:
-        svc.spreadsheets().values().update(
+        # Commitments tab
+        rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_COMMITMENTS_TAB}'!A1:D1",
-            valueInputOption='RAW',
-            body={'values': [['Timestamp', 'Name', 'Function', 'Commitment']]},
-        ).execute()
+        ).execute().get('values', [])
+        if not rows:
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_COMMITMENTS_TAB}'!A1:D1",
+                valueInputOption='RAW',
+                body={'values': [['Timestamp', 'Name', 'Function', 'Commitment']]},
+            ).execute()
 
-    # Confidence tab
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:Z1",
-    ).execute().get('values', [])
-    if not rows:
-        header = ['Timestamp', 'Name'] + [f'{g["id"]}_Confidence' for g in GOALS] + ['Risk']
-        svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1",
-            valueInputOption='RAW', body={'values': [header]},
-        ).execute()
+        # Confidence tab
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:Z1",
+        ).execute().get('values', [])
+        if not rows:
+            header = ['Timestamp', 'Name'] + [f'{g["id"]}_Confidence' for g in GOALS] + ['Risk']
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1",
+                valueInputOption='RAW', body={'values': [header]},
+            ).execute()
+
+    with_retry(_do, on_retry=_sheets.clear)
 
 # ── Session ────────────────────────────────────────────────────────────────────
 
