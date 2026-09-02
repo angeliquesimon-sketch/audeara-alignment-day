@@ -324,7 +324,12 @@ with tab_team:
             st.caption("Each person's full colour mix across all six scenarios.")
             for p in sorted(profiles, key=lambda x: (x['primary'], x['secondary'])):
                 bar  = ''.join(
-                    f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;"></div>'
+                    f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;'
+                    f'display:flex;align-items:center;justify-content:center;">'
+                    + (f'<span style="font-size:0.7em;font-weight:700;color:{TEXT[c]};'
+                       f'opacity:0.9;white-space:nowrap;">{p["scores"][c]}%</span>'
+                       if p['scores'][c] >= 10 else '')
+                    + '</div>'
                     for c in ['Red', 'Blue', 'Yellow', 'Green']
                 )
                 pc_b = HEX[p['primary']]
