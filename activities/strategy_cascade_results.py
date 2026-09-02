@@ -35,8 +35,11 @@ def _results():
             unsafe_allow_html=True,
         )
         for g in goals_live:
+            conf_col = f'{g["id"]}_Confidence'
+            if conf_col not in df_conf.columns:
+                continue
             nums = []
-            for v in df_conf[f'{g["id"]}_Confidence'].tolist():
+            for v in df_conf[conf_col].tolist():
                 try: nums.append(int(v))
                 except (TypeError, ValueError): pass
             if not nums:

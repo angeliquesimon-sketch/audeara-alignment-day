@@ -273,7 +273,7 @@ def _cascade_live(name):
     fn_default  = ''
     if has_commitment:
         fn_default = df_comm[df_comm['Name'] == name].iloc[0].get('Function', '')
-    fn_options  = [''] + FUNCTIONS
+    fn_options  = [''] + list(fn_live.keys())
     fn_idx      = fn_options.index(fn_default) if fn_default in fn_options else 0
     function    = st.selectbox('Your function / team', fn_options, index=fn_idx,
                                key=f'cascade_fn_{name}')

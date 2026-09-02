@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL, with_retry, _sheets
 from strategy_cascade_shared import (
-    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS,
+    GOALS,
     STAGES, STAGE_LABELS,
     _ensure_cascade_tabs,
     pull_cascade_session, set_cascade_session,
@@ -114,28 +114,122 @@ with col7:
 
 st.divider()
 
-# ── Content preview ────────────────────────────────────────────────────────────
+# ── Edit cascade content ───────────────────────────────────────────────────────
 
-with st.expander('Edit cascade content', expanded=False):
-    _goals_live, _fn_live = pull_cascade_content()
+st.markdown(
+    f'<div style="font-weight:700;font-size:1em;color:{PURPLE};margin-bottom:16px;">Edit cascade content</div>',
+    unsafe_allow_html=True,
+)
 
-    st.markdown(f'<div style="font-weight:700;color:{PURPLE};margin-bottom:12px;">FY27 Goals</div>', unsafe_allow_html=True)
-    _new_goals = []
-    for i, g in enumerate(_goals_live):
-        t = st.text_input(f'Goal {i + 1} title', value=g['title'], key=f'edit_goal_title_{i}')
-        d = st.text_area(f'Goal {i + 1} description', value=g['description'], key=f'edit_goal_desc_{i}', height=75)
-        _new_goals.append({'id': g['id'], 'title': t, 'description': d})
-        st.markdown('')
+# Initialise working state from sheet on first load (or after a save resets it).
+# Goals use the goal ID as stable key; functions use a slot counter so renames
+# and deletes don't collide with stale session-state widget values.
+if 'edit_goal_ids' not in st.session_state:
+    _init_goals, _init_fns = pull_cascade_content()
+    st.session_state['edit_goal_ids'] = [g['id'] for g in _init_goals]
+    for _g in _init_goals:
+        st.session_state[f'eg_title_{_g["id"]}'] = _g['title']
+        st.session_state[f'eg_desc_{_g["id"]}']  = _g['description']
+    st.session_state['edit_fn_slots'] = []
+    st.session_state['edit_fn_next']  = 0
+    for _fname, _fot in _init_fns.items():
+        _s = st.session_state['edit_fn_next']
+        st.session_state[f'ef_name_{_s}'] = _fname
+        st.session_state[f'ef_ot_{_s}']   = _fot
+        st.session_state['edit_fn_slots'].append(_s)
+        st.session_state['edit_fn_next'] += 1
 
-    st.markdown(f'<div style="font-weight:700;color:{TEAL};margin:8px 0 12px;">Function One Things</div>', unsafe_allow_html=True)
-    _new_fn = {}
-    for fn in FUNCTIONS:
-        _new_fn[fn] = st.text_area(fn, value=_fn_live.get(fn, ''), key=f'edit_fn_{fn}', height=75)
+# ── Goals ──────────────────────────────────────────────────────────────────────
 
-    if st.button('Save content', type='primary', key='save_cascade_content'):
-        save_cascade_content(_new_goals, _new_fn)
+st.markdown(
+    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:{PURPLE};margin-bottom:10px;">GOALS</div>',
+    unsafe_allow_html=True,
+)
+_goal_ids = st.session_state['edit_goal_ids']
+for _i, _gid in enumerate(_goal_ids):
+    _c1, _c2 = st.columns([11, 1])
+    with _c1:
+        st.text_input(f'Goal {_i + 1} — title', key=f'eg_title_{_gid}')
+        st.text_area(f'Goal {_i + 1} — description', key=f'eg_desc_{_gid}', height=68)
+    with _c2:
+        st.markdown('<br><br><br>', unsafe_allow_html=True)
+        if len(_goal_ids) > 1 and st.button('✕', key=f'del_goal_{_gid}', help='Delete this goal'):
+            _goal_ids.remove(_gid)
+            st.session_state.pop(f'eg_title_{_gid}', None)
+            st.session_state.pop(f'eg_desc_{_gid}', None)
+            st.rerun()
+    st.markdown('')
+
+if st.button('+ Add goal', key='add_goal_btn'):
+    _existing_ids = set(_goal_ids)
+    _n = len(_goal_ids) + 1
+    while f'G{_n}' in _existing_ids:
+        _n += 1
+    _new_id = f'G{_n}'
+    _goal_ids.append(_new_id)
+    st.session_state[f'eg_title_{_new_id}'] = ''
+    st.session_state[f'eg_desc_{_new_id}']  = ''
+    st.rerun()
+
+st.markdown('')
+
+# ── Functions ──────────────────────────────────────────────────────────────────
+
+st.markdown(
+    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:{TEAL};margin:4px 0 10px;">FUNCTION ONE THINGS</div>',
+    unsafe_allow_html=True,
+)
+_fn_slots = st.session_state['edit_fn_slots']
+for _i, _slot in enumerate(_fn_slots):
+    _c1, _c2 = st.columns([11, 1])
+    with _c1:
+        st.text_input(f'Function {_i + 1}', key=f'ef_name_{_slot}')
+        st.text_area('One Thing', key=f'ef_ot_{_slot}', height=68)
+    with _c2:
+        st.markdown('<br><br><br>', unsafe_allow_html=True)
+        if len(_fn_slots) > 1 and st.button('✕', key=f'del_fn_{_slot}', help='Delete this function'):
+            _fn_slots.remove(_slot)
+            st.session_state.pop(f'ef_name_{_slot}', None)
+            st.session_state.pop(f'ef_ot_{_slot}', None)
+            st.rerun()
+    st.markdown('')
+
+if st.button('+ Add function', key='add_fn_btn'):
+    _new_slot = st.session_state['edit_fn_next']
+    st.session_state[f'ef_name_{_new_slot}'] = ''
+    st.session_state[f'ef_ot_{_new_slot}']   = ''
+    _fn_slots.append(_new_slot)
+    st.session_state['edit_fn_next'] += 1
+    st.rerun()
+
+st.markdown('')
+
+if st.button('Save content', type='primary', key='save_cascade_content'):
+    _saved_goals = [
+        {
+            'id':          _gid,
+            'title':       st.session_state.get(f'eg_title_{_gid}', ''),
+            'description': st.session_state.get(f'eg_desc_{_gid}', ''),
+        }
+        for _gid in _goal_ids
+        if st.session_state.get(f'eg_title_{_gid}', '').strip()
+    ]
+    _saved_fns = {
+        st.session_state.get(f'ef_name_{_s}', '').strip(): st.session_state.get(f'ef_ot_{_s}', '')
+        for _s in _fn_slots
+        if st.session_state.get(f'ef_name_{_s}', '').strip()
+    }
+    if _saved_goals and _saved_fns:
+        save_cascade_content(_saved_goals, _saved_fns)
+        _keys_to_clear = [k for k in list(st.session_state.keys())
+                          if k.startswith(('eg_', 'ef_'))
+                          or k in ('edit_goal_ids', 'edit_fn_slots', 'edit_fn_next')]
+        for _k in _keys_to_clear:
+            del st.session_state[_k]
         st.success('Saved.')
         st.rerun()
+    else:
+        st.warning('Add at least one goal and one function before saving.')
 
 # ── Live tracker ───────────────────────────────────────────────────────────────
 
@@ -250,13 +344,14 @@ def _live_tracker():
     # ── Personal One Things ────────────────────────────────────────────────────
 
     if not df_comm.empty:
+        _, _fn_live_lt = pull_cascade_content()
         st.divider()
         st.markdown(
             f'<div style="font-weight:700;font-size:0.92em;color:{TEAL};margin-bottom:10px;">'
             f'Personal One Things</div>',
             unsafe_allow_html=True,
         )
-        for fn in FUNCTIONS:
+        for fn in _fn_live_lt:
             fn_rows = df_comm[df_comm['Function'] == fn]
             if fn_rows.empty:
                 continue
@@ -291,6 +386,7 @@ if st.button('↺ Refresh debrief', key='debrief_refresh'):
 
 _df_comm = pull_commitments()
 _df_conf = pull_confidence()
+_, _fn_live_db = pull_cascade_content()
 
 def _score_cell(val):
     try:
@@ -401,7 +497,7 @@ else:
             f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin:16px 0 10px;">PERSONAL ONE THINGS</div>',
             unsafe_allow_html=True,
         )
-        for fn in FUNCTIONS:
+        for fn in _fn_live_db:
             fn_rows = _df_comm[_df_comm['Function'] == fn]
             if fn_rows.empty:
                 continue

@@ -116,26 +116,25 @@ def _ensure_cascade_tabs():
                 body={'values': [['Timestamp', 'Name', 'Function', 'Commitment']]},
             ).execute()
 
-        # Content tab — seed with hardcoded defaults if empty
-        existing_content = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A1",
+        # Content tab — migrate to section-marker format if needed
+        all_content = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A:C",
         ).execute().get('values', [])
-        if not existing_content:
-            goal_rows = [['id', 'title', 'description']] + [
-                [g['id'], g['title'], g['description']] for g in GOALS
-            ]
-            svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{CASCADE_CONTENT_TAB}'!A1:C{len(goal_rows)}",
-                valueInputOption='RAW', body={'values': goal_rows},
+        has_new_fmt = any(row and row[0] == 'GOALS' for row in all_content)
+        if not has_new_fmt:
+            seed = (
+                [['GOALS'], ['id', 'title', 'description']]
+                + [[g['id'], g['title'], g['description']] for g in GOALS]
+                + [[]]
+                + [['FUNCTIONS'], ['function', 'one_thing']]
+                + [[fn, FUNCTION_ONE_THINGS[fn]] for fn in FUNCTIONS]
+            )
+            svc.spreadsheets().values().clear(
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A:C",
             ).execute()
-            fn_rows = [['function', 'one_thing']] + [
-                [fn, FUNCTION_ONE_THINGS[fn]] for fn in FUNCTIONS
-            ]
             svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{CASCADE_CONTENT_TAB}'!A{len(goal_rows) + 2}:B{len(goal_rows) + 1 + len(fn_rows)}",
-                valueInputOption='RAW', body={'values': fn_rows},
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A1",
+                valueInputOption='RAW', body={'values': seed},
             ).execute()
 
         # Confidence tab — check header matches current structure, reset if not
@@ -157,29 +156,34 @@ def _ensure_cascade_tabs():
 
 # ── Cascade content (editable goals + function one things) ─────────────────────
 
-# Goals are stored in rows 2–4, functions in rows 6–11 (1-indexed, after a blank)
-_GOALS_RANGE   = f"'{CASCADE_CONTENT_TAB}'!A2:C4"
-_FN_START_ROW  = len(GOALS) + 3   # row after header + goals + blank
-
 @st.cache_data(ttl=30, show_spinner=False)
 def pull_cascade_content():
-    """Returns (goals, fn_one_things) from sheet; falls back to hardcoded defaults."""
+    """Returns (goals, fn_one_things) from the sheet; falls back to hardcoded defaults.
+
+    Sheet uses a section-marker format: a cell containing 'GOALS' opens the goals
+    section; 'FUNCTIONS' opens the functions section. Headers (id/function) are skipped.
+    """
     try:
-        svc       = _sheets()
-        goal_data = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=_GOALS_RANGE,
+        svc      = _sheets()
+        all_data = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A:C",
         ).execute().get('values', [])
-        goals = [
-            {'id': r[0], 'title': r[1], 'description': r[2]}
-            for r in goal_data if len(r) >= 3 and r[0]
-        ]
-        fn_start  = _FN_START_ROW
-        fn_end    = fn_start + len(FUNCTIONS)
-        fn_data   = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID,
-            range=f"'{CASCADE_CONTENT_TAB}'!A{fn_start}:B{fn_end}",
-        ).execute().get('values', [])
-        fn_map = {r[0]: r[1] for r in fn_data if len(r) >= 2 and r[0]}
+        section = None
+        goals   = []
+        fn_map  = {}
+        for row in all_data:
+            if not row or not row[0]:
+                continue
+            if row[0] == 'GOALS':
+                section = 'goals'
+            elif row[0] == 'FUNCTIONS':
+                section = 'functions'
+            elif section == 'goals' and row[0] != 'id':
+                if len(row) >= 3:
+                    goals.append({'id': row[0], 'title': row[1], 'description': row[2]})
+            elif section == 'functions' and row[0] != 'function':
+                if len(row) >= 2:
+                    fn_map[row[0]] = row[1]
         if goals and fn_map:
             return goals, fn_map
     except Exception:
@@ -188,18 +192,20 @@ def pull_cascade_content():
 
 def save_cascade_content(goals, fn_one_things):
     def _do():
-        svc = _sheets()
-        goal_vals = [[g['id'], g['title'], g['description']] for g in goals]
-        svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID, range=_GOALS_RANGE,
-            valueInputOption='RAW', body={'values': goal_vals},
+        svc  = _sheets()
+        rows = (
+            [['GOALS'], ['id', 'title', 'description']]
+            + [[g['id'], g['title'], g['description']] for g in goals]
+            + [[]]
+            + [['FUNCTIONS'], ['function', 'one_thing']]
+            + [[fn, ot] for fn, ot in fn_one_things.items()]
+        )
+        svc.spreadsheets().values().clear(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A:C",
         ).execute()
-        fn_start = _FN_START_ROW
-        fn_vals  = [[fn, fn_one_things.get(fn, '')] for fn in FUNCTIONS]
         svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID,
-            range=f"'{CASCADE_CONTENT_TAB}'!A{fn_start}:B{fn_start + len(fn_vals) - 1}",
-            valueInputOption='RAW', body={'values': fn_vals},
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTENT_TAB}'!A1",
+            valueInputOption='RAW', body={'values': rows},
         ).execute()
     with_retry(_do, on_retry=_clear_sheets)
     pull_cascade_content.clear()
