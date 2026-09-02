@@ -20,8 +20,18 @@ inject_styles()
 
 # ── Auth ───────────────────────────────────────────────────────────────────────
 
-pw = st.text_input('Facilitator password', type='password', key='cas_pw')
-if pw != st.secrets.get('FACILITATE_PASSWORD', ''):
+if 'cas_fac_auth' not in st.session_state:
+    st.session_state['cas_fac_auth'] = False
+
+if not st.session_state['cas_fac_auth']:
+    st.caption('This page is for the session facilitator only.')
+    pwd_input = st.text_input('Password', type='password', key='cas_fac_pwd')
+    if st.button('Unlock', type='primary', key='cas_fac_unlock'):
+        if pwd_input == st.secrets.get('FACILITATE_PASSWORD', ''):
+            st.session_state['cas_fac_auth'] = True
+            st.rerun()
+        else:
+            st.error('Incorrect password.')
     st.stop()
 
 if not st.session_state.get('cascade_tabs_ready'):
@@ -29,6 +39,10 @@ if not st.session_state.get('cascade_tabs_ready'):
     st.session_state['cascade_tabs_ready'] = True
 
 st.markdown('### Facilitate — Strategy Cascade')
+
+if st.button('🔒 Lock', key='cas_fac_lock'):
+    st.session_state['cas_fac_auth'] = False
+    st.rerun()
 
 # ── Stage controls ─────────────────────────────────────────────────────────────
 
