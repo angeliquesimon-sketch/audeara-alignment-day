@@ -80,9 +80,9 @@ if st.button('🔒 Lock', key='styles_fac_lock'):
 
 if not st.session_state.get('_styles_fac_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab,    on_retry=_sheets.clear)
-        with_retry(_ensure_session_tab,   on_retry=_sheets.clear)
-        with_retry(_ensure_summaries_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_styles_tab,    on_retry=_clear_sheets)
+        with_retry(_ensure_session_tab,   on_retry=_clear_sheets)
+        with_retry(_ensure_summaries_tab, on_retry=_clear_sheets)
         st.session_state['_styles_fac_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue. ({_e})')

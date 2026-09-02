@@ -16,13 +16,18 @@ def _creds():
     sa_info = json.loads(st.secrets['GOOGLE_SERVICE_ACCOUNT_JSON'])
     return service_account.Credentials.from_service_account_info(sa_info, scopes=SCOPES)
 
-@st.cache_resource
 def _sheets():
-    return build('sheets', 'v4', credentials=_creds())
+    if 'sheets_service' not in st.session_state:
+        st.session_state['sheets_service'] = build('sheets', 'v4', credentials=_creds())
+    return st.session_state['sheets_service']
 
-@st.cache_resource
 def _drive():
-    return build('drive', 'v3', credentials=_creds())
+    if 'drive_service' not in st.session_state:
+        st.session_state['drive_service'] = build('drive', 'v3', credentials=_creds())
+    return st.session_state['drive_service']
+
+def _clear_sheets():
+    st.session_state.pop('sheets_service', None)
 
 def with_retry(fn, attempts=3, delay=1.0, on_retry=None):
     last_err = None

@@ -92,7 +92,7 @@ st.markdown(f'''
 
 if not st.session_state.get('_tabs_ensured_v2'):
     try:
-        with_retry(_ensure_tabs, on_retry=_sheets.clear)
+        with_retry(_ensure_tabs, on_retry=_clear_sheets)
         st.session_state['_tabs_ensured_v2'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')

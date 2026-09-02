@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from utils import _sheets, with_retry
+from utils import _sheets, _clear_sheets, with_retry
 
 SHEET_ID = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 
@@ -128,7 +128,7 @@ def _ensure_cascade_tabs():
                 valueInputOption='RAW', body={'values': [header]},
             ).execute()
 
-    with_retry(_do, on_retry=_sheets.clear)
+    with_retry(_do, on_retry=_clear_sheets)
 
 # ── Session ────────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ def set_cascade_session(key, value):
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [[key, value]]},
         ).execute()
-    with_retry(_do, on_retry=_sheets.clear)
+    with_retry(_do, on_retry=_clear_sheets)
 
 # ── Mission + Vision context ───────────────────────────────────────────────────
 
@@ -232,7 +232,7 @@ def save_commitment(name, function, commitment):
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [new]},
         ).execute()
-    with_retry(_do, on_retry=_sheets.clear)
+    with_retry(_do, on_retry=_clear_sheets)
 
 # ── Confidence + per-goal risk ─────────────────────────────────────────────────
 
@@ -275,4 +275,4 @@ def save_confidence(name, confidence_dict, risks_dict):
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [row_data]},
         ).execute()
-    with_retry(_do, on_retry=_sheets.clear)
+    with_retry(_do, on_retry=_clear_sheets)

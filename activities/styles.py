@@ -108,9 +108,9 @@ def _team_map_svg(profiles, width=600, height=430):
 
 if not st.session_state.get('_styles_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab,    on_retry=_sheets.clear)
-        with_retry(_ensure_session_tab,   on_retry=_sheets.clear)
-        with_retry(_ensure_summaries_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_styles_tab,    on_retry=_clear_sheets)
+        with_retry(_ensure_session_tab,   on_retry=_clear_sheets)
+        with_retry(_ensure_summaries_tab, on_retry=_clear_sheets)
         st.session_state['_styles_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
