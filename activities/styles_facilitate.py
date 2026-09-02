@@ -79,7 +79,7 @@ st.markdown(
 
 # ── Controls ──────────────────────────────────────────────────────────────────────
 
-col_a, col_b, col_c, col_d = st.columns(4)
+col_a, col_b, col_c, col_d, col_e = st.columns(5)
 
 with col_a:
     if current == -1:
@@ -99,13 +99,24 @@ with col_a:
             st.rerun()
 
 with col_b:
+    if current > 0:
+        back_label = (
+            f'←  Scenario {current}' if current <= n_scen else f'←  Scenario {n_scen}'
+        )
+        if st.button(back_label, use_container_width=True):
+            set_session('current_scenario', str(current - 1))
+            set_session('reveal_active', '0')
+            set_session('scenario_started_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            st.rerun()
+
+with col_c:
     if 0 <= current < n_scen:
         reveal_label = '🙈  Hide colours' if reveal else '🎨  Reveal colours'
         if st.button(reveal_label, use_container_width=True):
             set_session('reveal_active', '0' if reveal else '1')
             st.rerun()
 
-with col_c:
+with col_d:
     if current != -1:
         if st.button('↩  Reset activity', use_container_width=True):
             set_session('current_scenario', '-1')
@@ -113,7 +124,7 @@ with col_c:
             set_session('scenario_started_at', '')
             st.rerun()
 
-with col_d:
+with col_e:
     if st.button('↺  Refresh', use_container_width=True):
         st.cache_data.clear()
         st.rerun()
