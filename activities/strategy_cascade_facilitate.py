@@ -24,7 +24,9 @@ pw = st.text_input('Facilitator password', type='password', key='cas_pw')
 if pw != st.secrets.get('FACILITATE_PASSWORD', ''):
     st.stop()
 
-_ensure_cascade_tabs()
+if not st.session_state.get('cascade_tabs_ready'):
+    _ensure_cascade_tabs()
+    st.session_state['cascade_tabs_ready'] = True
 
 st.markdown('### Facilitate — Strategy Cascade')
 

@@ -19,7 +19,6 @@ from strategy_cascade_shared import (
 from styles_shared import TEAM
 
 inject_styles()
-_ensure_cascade_tabs()
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -99,6 +98,9 @@ if not name:
 
 @st.fragment(run_every=5)
 def _cascade_live(name):
+    if not st.session_state.get('cascade_tabs_ready'):
+        _ensure_cascade_tabs()
+        st.session_state['cascade_tabs_ready'] = True
     pull_cascade_session.clear()
     session = pull_cascade_session()
     stage   = session.get('stage', 'hidden')
