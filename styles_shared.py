@@ -34,6 +34,13 @@ TEAM = sorted([
     'Louise Heller', 'Misaki Kawashima', 'Rebekah Davidson', 'Robert Poulsen',
 ])
 
+COLOUR_DESCRIPTORS = {
+    'Red':    'Acts fast and drives for results. Values momentum, directness, and decisive action.',
+    'Blue':   'Thinks it through. Values rigour, process, and getting it right before moving.',
+    'Yellow': "Sees what's possible. Values creativity, opportunity, and thinking beyond the current frame.",
+    'Green':  'Protects people. Values relationships, harmony, and bringing everyone along.',
+}
+
 SCENARIOS = [
     dict(
         title='Speed versus certainty',
@@ -42,6 +49,7 @@ SCENARIOS = [
         left_colour='Blue',
         right_label="Let's start and figure it out as we go",
         right_colour='Red',
+        discussion='What does the opposite instinct protect a team from, and when would you want it in the room?',
     ),
     dict(
         title='Possibility versus stability',
@@ -50,6 +58,7 @@ SCENARIOS = [
         left_colour='Green',
         right_label='I notice the upside and what this could become',
         right_colour='Yellow',
+        discussion='How could someone with the opposite instinct make your response to change stronger?',
     ),
     dict(
         title='Directness versus diplomacy',
@@ -58,6 +67,7 @@ SCENARIOS = [
         left_colour='Green',
         right_label="Say what you think, even if it's uncomfortable",
         right_colour='Red',
+        discussion='What becomes possible when both instincts are in the conversation at the same time?',
     ),
     dict(
         title='Structure versus flexibility',
@@ -66,6 +76,7 @@ SCENARIOS = [
         left_colour='Blue',
         right_label='Stay adaptive — lock the goal, not the route',
         right_colour='Yellow',
+        discussion='Where does the opposite instinct create space for you to do your best work?',
     ),
     dict(
         title='Definition versus discovery',
@@ -74,6 +85,7 @@ SCENARIOS = [
         left_colour='Yellow',
         right_label='Name the problem, agree the next step, and move',
         right_colour='Red',
+        discussion='How could the opposite instinct help you get to a better answer faster?',
     ),
     dict(
         title='Logic versus consensus',
@@ -82,6 +94,7 @@ SCENARIOS = [
         left_colour='Blue',
         right_label='Everyone should feel heard before we decide',
         right_colour='Green',
+        discussion='What does it look like when a team gets the reasoning right and brings everyone with them?',
     ),
 ]
 

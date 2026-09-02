@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import io
 from utils import inject_styles, with_retry
 from styles_shared import (
-    HEX, TEXT, TEAM, SCENARIOS,
+    HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
     _ensure_styles_tab, _ensure_session_tab,
     pull_styles, pull_session, save_scenario,
     compute_scores, top_two, colour_bar, card_html_large, card_html_small,
@@ -126,15 +126,24 @@ def _scenario_view():
 
     if submitted:
         if reveal:
-            lhex = HEX[sc['left_colour']]
-            rhex = HEX[sc['right_colour']]
+            col_l, col_r = st.columns(2)
+            for col, colour in [(col_l, sc['left_colour']), (col_r, sc['right_colour'])]:
+                ch   = HEX[colour]
+                desc = COLOUR_DESCRIPTORS[colour]
+                with col:
+                    st.markdown(
+                        f'<div style="border-left:3px solid {ch};background:{ch}18;'
+                        f'border-radius:0 6px 6px 0;padding:12px 14px;">'
+                        f'<div style="font-weight:700;color:{ch};margin-bottom:5px;">{colour}</div>'
+                        f'<div style="font-size:0.82em;color:#555;line-height:1.5;">{desc}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
             st.markdown(
-                f'<div style="text-align:center;padding:14px 18px;background:#f5f5f5;'
-                f'border-radius:8px;font-size:0.88em;color:#444;">'
-                f'Colours revealed — '
-                f'<strong style="color:{lhex};">{sc["left_colour"]} ({sc["left_label"]})</strong>'
-                f' vs '
-                f'<strong style="color:{rhex};">{sc["right_colour"]} ({sc["right_label"]})</strong>'
+                f'<div style="background:#F5F5F5;border-radius:6px;padding:14px 16px;margin-top:12px;">'
+                f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:6px;">Discuss</div>'
+                f'<div style="font-size:0.88em;color:#444;line-height:1.6;">{sc["discussion"]}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
