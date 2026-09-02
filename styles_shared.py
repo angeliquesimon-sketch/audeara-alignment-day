@@ -172,7 +172,7 @@ def set_session(key, value):
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [[key, str(value)]]},
         ).execute()
-    with_retry(_do)
+    with_retry(_do, on_retry=_sheets.clear)
     st.cache_data.clear()
 
 # ── Submission data ─────────────────────────────────────────────────────────────
@@ -229,7 +229,7 @@ def save_scenario(name, scenario_idx, value):
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [new_row]},
         ).execute()
-    with_retry(_do)
+    with_retry(_do, on_retry=_sheets.clear)
 
 # ── Scoring ─────────────────────────────────────────────────────────────────────
 

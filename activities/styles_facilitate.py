@@ -9,7 +9,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from datetime import datetime
-from utils import inject_styles, with_retry, PURPLE, TEAL
+from utils import inject_styles, with_retry, _sheets, PURPLE, TEAL
 from styles_shared import (
     TEAM, SCENARIOS, HEX, TEXT,
     _ensure_styles_tab, _ensure_session_tab,
@@ -37,8 +37,8 @@ if not st.session_state.get('_styles_fac_auth'):
 
 if not st.session_state.get('_styles_fac_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab)
-        with_retry(_ensure_session_tab)
+        with_retry(_ensure_styles_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_session_tab, on_retry=_sheets.clear)
         st.session_state['_styles_fac_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue. ({_e})')

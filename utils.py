@@ -24,7 +24,7 @@ def _sheets():
 def _drive():
     return build('drive', 'v3', credentials=_creds())
 
-def with_retry(fn, attempts=3, delay=1.0):
+def with_retry(fn, attempts=3, delay=1.0, on_retry=None):
     last_err = None
     for i in range(attempts):
         try:
@@ -32,6 +32,8 @@ def with_retry(fn, attempts=3, delay=1.0):
         except Exception as e:
             last_err = e
             if i < attempts - 1:
+                if on_retry:
+                    on_retry()
                 time.sleep(delay)
     raise last_err
 

@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
-from utils import inject_styles, with_retry
+from utils import inject_styles, with_retry, _sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
     _ensure_styles_tab, _ensure_session_tab,
@@ -81,8 +81,8 @@ def _render_spectrum(current, sc, df, started_at):
 
 if not st.session_state.get('_styles_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab)
-        with_retry(_ensure_session_tab)
+        with_retry(_ensure_styles_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_session_tab, on_retry=_sheets.clear)
         st.session_state['_styles_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
