@@ -300,6 +300,13 @@ with tab_team:
 
     df = pull_styles()
 
+    profiles = []
+    if not df.empty:
+        for _, row in df.iterrows():
+            sc_score = compute_scores(row)
+            pri, sec = top_two(sc_score)
+            profiles.append({'name': row['Name'], 'scores': sc_score, 'primary': pri, 'secondary': sec})
+
     _team_cards()
 
     if not df.empty:
