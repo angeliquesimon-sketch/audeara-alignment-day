@@ -16,7 +16,8 @@ pg = st.navigation({
         st.Page('activities/styles.py',              title='Different Styles'),
     ],
     'Facilitator': [
-        st.Page('activities/magazine_facilitate.py', title='🎛️ Facilitate'),
+        st.Page('activities/magazine_facilitate.py',  title='🎛️ Facilitate — Vision'),
+        st.Page('activities/styles_facilitate.py',    title='🎛️ Facilitate — Styles'),
     ],
 })
 pg.run()
