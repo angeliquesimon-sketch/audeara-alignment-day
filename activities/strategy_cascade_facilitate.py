@@ -59,47 +59,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+_stage_btns = [
+    ('Functions', 'functions'),
+    ('Goals',     'goals'),
+    ('Goal Form', 'confidence'),
+    ('One Thing', 'commitment'),
+    ('Complete',  'complete'),
+]
+
 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+_btn_cols = [col1, col2, col3, col4, col5, col6, col7]
 
-with col1:
-    active = stage_idx == 0
-    if st.button('▶ Functions', use_container_width=True,
-                 type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'functions')
-        pull_cascade_session.clear()
-        st.rerun()
-
-with col2:
-    active = stage_idx == 1
-    if st.button('→ Goals', use_container_width=True,
-                 type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'goals')
-        pull_cascade_session.clear()
-        st.rerun()
-
-with col3:
-    active = stage_idx == 2
-    if st.button('→ Goal Form', use_container_width=True,
-                 type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'confidence')
-        pull_cascade_session.clear()
-        st.rerun()
-
-with col4:
-    active = stage_idx == 3
-    if st.button('→ One Thing', use_container_width=True,
-                 type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'commitment')
-        pull_cascade_session.clear()
-        st.rerun()
-
-with col5:
-    active = stage_idx == 4
-    if st.button('✔ Complete', use_container_width=True,
-                 type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'complete')
-        pull_cascade_session.clear()
-        st.rerun()
+for _i, (_label, _target) in enumerate(_stage_btns):
+    with _btn_cols[_i]:
+        if st.button(_label, use_container_width=True,
+                     type='primary' if stage == _target else 'secondary',
+                     key=f'stage_btn_{_target}'):
+            set_cascade_session('stage', _target)
+            pull_cascade_session.clear()
+            st.rerun()
 
 with col6:
     if st.button('↩ Reset', use_container_width=True):
