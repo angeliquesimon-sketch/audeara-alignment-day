@@ -289,7 +289,7 @@ def _cascade_live(name):
         comm_default = df_comm[df_comm['Name'] == name].iloc[0].get('Commitment', '')
 
     commitment = st.text_area(
-        'Given your function\'s One Thing, what\'s the one thing you personally need to do differently?',
+        'What one action, if you committed to it, would have the most impact on your function\'s goal?',
         value=comm_default,
         height=90,
         placeholder='Be specific — what will you start, stop, or do more of?',
