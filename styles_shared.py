@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from utils import _sheets
+from utils import _sheets, with_retry
 
 SHEET_ID    = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 STYLES_TAB  = 'Styles Submissions'
@@ -153,25 +153,26 @@ def pull_session():
 
 
 def set_session(key, value):
-    svc  = _sheets()
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{SESSION_TAB}'!A:B",
-    ).execute().get('values', [])
-    for i, row in enumerate(rows[1:], start=2):
-        if len(row) >= 1 and row[0] == key:
-            svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{SESSION_TAB}'!B{i}",
-                valueInputOption='RAW',
-                body={'values': [[str(value)]]},
-            ).execute()
-            st.cache_data.clear()
-            return
-    svc.spreadsheets().values().append(
-        spreadsheetId=SHEET_ID, range=f"'{SESSION_TAB}'!A:B",
-        valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-        body={'values': [[key, str(value)]]},
-    ).execute()
+    def _do():
+        svc  = _sheets()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{SESSION_TAB}'!A:B",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 1 and row[0] == key:
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{SESSION_TAB}'!B{i}",
+                    valueInputOption='RAW',
+                    body={'values': [[str(value)]]},
+                ).execute()
+                return
+        svc.spreadsheets().values().append(
+            spreadsheetId=SHEET_ID, range=f"'{SESSION_TAB}'!A:B",
+            valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+            body={'values': [[key, str(value)]]},
+        ).execute()
+    with_retry(_do)
     st.cache_data.clear()
 
 # ── Submission data ─────────────────────────────────────────────────────────────
@@ -197,36 +198,38 @@ def pull_styles():
 
 def save_scenario(name, scenario_idx, value):
     """Save or update one scenario response for a participant (incremental)."""
-    svc        = _sheets()
-    rows       = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{STYLES_TAB}'!A:H",
-    ).execute().get('values', [])
-    now        = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    col_letter = chr(ord('C') + scenario_idx)  # S1→C, S2→D, ... S6→H
+    def _do():
+        svc        = _sheets()
+        rows       = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{STYLES_TAB}'!A:H",
+        ).execute().get('values', [])
+        now        = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        col_letter = chr(ord('C') + scenario_idx)  # S1→C, S2→D, ... S6→H
 
-    for i, row in enumerate(rows[1:], start=2):
-        if len(row) >= 2 and row[1] == name:
-            svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{STYLES_TAB}'!A{i}",
-                valueInputOption='RAW',
-                body={'values': [[now]]},
-            ).execute()
-            svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID,
-                range=f"'{STYLES_TAB}'!{col_letter}{i}",
-                valueInputOption='RAW',
-                body={'values': [[str(value)]]},
-            ).execute()
-            return
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 2 and row[1] == name:
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{STYLES_TAB}'!A{i}",
+                    valueInputOption='RAW',
+                    body={'values': [[now]]},
+                ).execute()
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{STYLES_TAB}'!{col_letter}{i}",
+                    valueInputOption='RAW',
+                    body={'values': [[str(value)]]},
+                ).execute()
+                return
 
-    new_row = [now, name, '50', '50', '50', '50', '50', '50']
-    new_row[2 + scenario_idx] = str(value)
-    svc.spreadsheets().values().append(
-        spreadsheetId=SHEET_ID, range=f"'{STYLES_TAB}'!A:H",
-        valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-        body={'values': [new_row]},
-    ).execute()
+        new_row = [now, name, '50', '50', '50', '50', '50', '50']
+        new_row[2 + scenario_idx] = str(value)
+        svc.spreadsheets().values().append(
+            spreadsheetId=SHEET_ID, range=f"'{STYLES_TAB}'!A:H",
+            valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+            body={'values': [new_row]},
+        ).execute()
+    with_retry(_do)
 
 # ── Scoring ─────────────────────────────────────────────────────────────────────
 
