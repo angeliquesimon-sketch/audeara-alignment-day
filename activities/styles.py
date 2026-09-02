@@ -18,6 +18,65 @@ from styles_shared import (
 
 inject_styles()
 
+# ── Spectrum chart ────────────────────────────────────────────────────────────────
+
+def _render_spectrum(current, sc, df, started_at):
+    """Horizontal spectrum showing where each participant landed for this scenario."""
+    col = f'S{current + 1}'
+    lc  = HEX[sc['left_colour']]
+    rc  = HEX[sc['right_colour']]
+
+    if df.empty:
+        return None
+
+    df_shown = df[df['Timestamp'] >= started_at] if started_at else df
+    if df_shown.empty:
+        return None
+
+    people = [(row['Name'].split()[0], int(row[col])) for _, row in df_shown.iterrows()]
+
+    fig, ax = plt.subplots(figsize=(9, 2.4))
+    fig.patch.set_facecolor('#FAFAFA')
+    ax.set_facecolor('#FAFAFA')
+
+    ax.axvspan(0,   50,  alpha=0.06, color=lc, zorder=0)
+    ax.axvspan(50, 100,  alpha=0.06, color=rc, zorder=0)
+    ax.axvline(50, color='#E0E0E0', linewidth=1, zorder=1)
+    ax.axhline(0.28, color='#CCCCCC', linewidth=2, zorder=1, solid_capstyle='round')
+
+    # Stack labels for clustered positions (bucket to nearest 5)
+    bucket_rank = {}
+    for name, val in sorted(people, key=lambda x: x[1]):
+        bucket = round(val / 5) * 5
+        bucket_rank[bucket] = bucket_rank.get(bucket, 0) + 1
+        rank = bucket_rank[bucket]
+
+        dot_colour = lc if val < 50 else (rc if val > 50 else '#999999')
+        ax.scatter(val, 0.28, s=90, color=dot_colour, zorder=3,
+                   edgecolors='white', linewidths=1.5, alpha=0.92)
+        ax.annotate(
+            name, (val, 0.28),
+            textcoords='offset points', xytext=(0, 9 + (rank - 1) * 16),
+            ha='center', va='bottom', fontsize=8.5, color='#333333',
+        )
+
+    ax.text(1,  -0.05, sc['left_colour'],  ha='left',  va='top', fontsize=9, color=lc, fontweight='bold')
+    ax.text(99, -0.05, sc['right_colour'], ha='right', va='top', fontsize=9, color=rc, fontweight='bold')
+
+    ax.set_xlim(-1, 101)
+    ax.set_ylim(-0.2, 1.5)
+    ax.set_xticks([]); ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    buf = io.BytesIO()
+    fig.tight_layout(pad=0.8)
+    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight',
+                facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
 # ── Init ─────────────────────────────────────────────────────────────────────────
 
 if not st.session_state.get('_styles_tab_ensured'):
@@ -139,8 +198,11 @@ def _scenario_view():
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+            buf = _render_spectrum(current, sc, pull_styles(), started_at)
+            if buf:
+                st.image(buf, use_container_width=True)
             st.markdown(
-                f'<div style="background:#F5F5F5;border-radius:6px;padding:14px 16px;margin-top:12px;">'
+                f'<div style="background:#F5F5F5;border-radius:6px;padding:14px 16px;margin-top:4px;">'
                 f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
                 f'text-transform:uppercase;color:#bbb;margin-bottom:6px;">Discuss</div>'
                 f'<div style="font-size:0.88em;color:#444;line-height:1.6;">{sc["discussion"]}</div>'
