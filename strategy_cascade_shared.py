@@ -11,12 +11,14 @@ CASCADE_SESSION_TAB     = 'Cascade Session'
 CASCADE_COMMITMENTS_TAB = 'Cascade Commitments'
 CASCADE_CONFIDENCE_TAB  = 'Cascade Confidence'
 
-STAGES = ['hidden', 'cascade', 'open', 'complete']
+STAGES = ['hidden', 'functions', 'goals', 'confidence', 'commitment', 'complete']
 STAGE_LABELS = {
-    'hidden':   'Not started',
-    'cascade':  'Cascade shown — James walking through',
-    'open':     'Submissions open',
-    'complete': 'Session complete',
+    'hidden':     'Not started',
+    'functions':  'Function One Things visible',
+    'goals':      'FY27 Goals visible',
+    'confidence': 'Goal confidence form open',
+    'commitment': 'Personal One Thing form open',
+    'complete':   'Session complete',
 }
 
 # ── Edit these before the day with James's confirmed goals ────────────────────

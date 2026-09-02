@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL, with_retry, _sheets
 from strategy_cascade_shared import (
-    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS, GOAL_COLOURS, FUNC_COLOURS,
+    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS,
     STAGES, STAGE_LABELS,
     _ensure_cascade_tabs,
     pull_cascade_session, set_cascade_session,
@@ -58,36 +58,57 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
 with col1:
     active = stage_idx == 0
-    if st.button('▶  Show Cascade', use_container_width=True,
+    if st.button('▶ Functions', use_container_width=True,
                  type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'cascade')
+        set_cascade_session('stage', 'functions')
         pull_cascade_session.clear()
         st.rerun()
 
 with col2:
     active = stage_idx == 1
-    if st.button('📝  Open Submissions', use_container_width=True,
+    if st.button('→ Goals', use_container_width=True,
                  type='primary' if active else 'secondary', disabled=not active):
-        set_cascade_session('stage', 'open')
+        set_cascade_session('stage', 'goals')
         pull_cascade_session.clear()
         st.rerun()
 
 with col3:
     active = stage_idx == 2
-    if st.button('✔  Mark Complete', use_container_width=True,
+    if st.button('→ Goal Form', use_container_width=True,
+                 type='primary' if active else 'secondary', disabled=not active):
+        set_cascade_session('stage', 'confidence')
+        pull_cascade_session.clear()
+        st.rerun()
+
+with col4:
+    active = stage_idx == 3
+    if st.button('→ One Thing', use_container_width=True,
+                 type='primary' if active else 'secondary', disabled=not active):
+        set_cascade_session('stage', 'commitment')
+        pull_cascade_session.clear()
+        st.rerun()
+
+with col5:
+    active = stage_idx == 4
+    if st.button('✔ Complete', use_container_width=True,
                  type='primary' if active else 'secondary', disabled=not active):
         set_cascade_session('stage', 'complete')
         pull_cascade_session.clear()
         st.rerun()
 
-with col4:
-    if st.button('↩  Reset', use_container_width=True):
+with col6:
+    if st.button('↩ Reset', use_container_width=True):
         set_cascade_session('stage', 'hidden')
         pull_cascade_session.clear()
+        st.rerun()
+
+with col7:
+    if st.button('↺ Refresh', use_container_width=True):
+        st.cache_data.clear()
         st.rerun()
 
 st.divider()
@@ -96,23 +117,21 @@ st.divider()
 
 with st.expander('Review cascade content', expanded=False):
     st.markdown('**Function One Things**')
-    for i, fn in enumerate(FUNCTIONS):
-        colour = FUNC_COLOURS[i % len(FUNC_COLOURS)]
+    for fn in FUNCTIONS:
         st.markdown(
-            f'<div style="border-left:4px solid {colour};background:#F8F8F8;'
+            f'<div style="border-left:4px solid {TEAL};background:#F8F8F8;'
             f'border-radius:0 6px 6px 0;padding:8px 14px;margin-bottom:8px;">'
-            f'<div style="font-weight:700;font-size:0.84em;color:{colour};">{fn}</div>'
+            f'<div style="font-weight:700;font-size:0.84em;color:{TEAL};">{fn}</div>'
             f'<div style="font-size:0.8em;color:#666;margin-top:2px;">{FUNCTION_ONE_THINGS[fn]}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
     st.markdown('**FY27 Goals**')
-    for i, g in enumerate(GOALS):
-        colour = GOAL_COLOURS[i % len(GOAL_COLOURS)]
+    for g in GOALS:
         st.markdown(
-            f'<div style="border-left:4px solid {colour};background:#F8F8F8;'
+            f'<div style="border-left:4px solid {PURPLE};background:#F8F8F8;'
             f'border-radius:0 6px 6px 0;padding:8px 14px;margin-bottom:8px;">'
-            f'<div style="font-weight:700;font-size:0.88em;color:{colour};">{g["title"]}</div>'
+            f'<div style="font-weight:700;font-size:0.88em;color:{PURPLE};">{g["title"]}</div>'
             f'<div style="font-size:0.8em;color:#666;margin-top:2px;">{g["description"]}</div>'
             f'</div>',
             unsafe_allow_html=True,

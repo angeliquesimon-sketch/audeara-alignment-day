@@ -137,12 +137,18 @@ def _cascade_live(name):
     # ── Pull context (Mission + Vision) ────────────────────────────────────────
     mission_top, vision = pull_cascade_context()
 
-    # ── Cascade read-only view ─────────────────────────────────────────────────
+    # ── Mission + Vision (shown from 'functions' stage onwards) ────────────────
     st.markdown(_mission_vision_html(mission_top, vision), unsafe_allow_html=True)
-    st.markdown(_function_one_things_html(), unsafe_allow_html=True)
-    st.markdown(_goals_html(), unsafe_allow_html=True)
 
-    if stage == 'cascade':
+    # ── Function One Things ────────────────────────────────────────────────────
+    st.markdown(_function_one_things_html(), unsafe_allow_html=True)
+
+    # ── FY27 Goals (shown from 'goals' stage onwards) ─────────────────────────
+    if stage in ('goals', 'confidence', 'commitment', 'complete'):
+        st.markdown(_goals_html(), unsafe_allow_html=True)
+
+    # ── Still walking through ──────────────────────────────────────────────────
+    if stage in ('functions', 'goals'):
         st.markdown(
             f'<div style="background:#F7F0F7;border-radius:8px;padding:14px 16px;'
             f'font-size:0.84em;color:#444;">'
@@ -153,6 +159,7 @@ def _cascade_live(name):
         )
         return
 
+    # ── Complete ───────────────────────────────────────────────────────────────
     if stage == 'complete':
         st.markdown(
             f'<div style="background:#E8F5EE;border-radius:8px;padding:14px 16px;'
@@ -163,7 +170,7 @@ def _cascade_live(name):
         )
         return
 
-    # ── Submission form (stage == 'open') ─────────────────────────────────────
+    # ── Form (stage == 'confidence' or 'commitment') ───────────────────────────
     pull_commitments.clear()
     pull_confidence.clear()
     df_comm = pull_commitments()
@@ -173,7 +180,7 @@ def _cascade_live(name):
     has_confidence = name in df_conf['Name'].values if not df_conf.empty else False
     already_done   = has_commitment and has_confidence
 
-    if already_done and not st.session_state.get(f'cascade_edit_{name}'):
+    if already_done and stage == 'commitment' and not st.session_state.get(f'cascade_edit_{name}'):
         comm_row = df_comm[df_comm['Name'] == name].iloc[0]
         conf_row = df_conf[df_conf['Name'] == name].iloc[0]
 
@@ -208,7 +215,7 @@ def _cascade_live(name):
         unsafe_allow_html=True,
     )
 
-    # Per-goal confidence + risk
+    # ── Per-goal confidence + risk ─────────────────────────────────────────────
     confidence = {}
     risks      = {}
 
@@ -246,7 +253,17 @@ def _cascade_live(name):
         )
         st.markdown('')
 
-    # Personal One Thing
+    # ── Personal One Thing (commitment stage only) ─────────────────────────────
+    if stage == 'confidence':
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 16px;'
+            f'font-size:0.82em;color:#888;">'
+            f'Your personal One Thing will open next.'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
     st.markdown(
         f'<div style="font-weight:700;color:{TEAL};font-size:0.92em;margin-bottom:6px;">'
         f'Your personal One Thing</div>',
