@@ -4,7 +4,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
-from utils import inject_styles, with_retry, _sheets
+from utils import inject_styles, with_retry, _sheets, _clear_sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
     _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,

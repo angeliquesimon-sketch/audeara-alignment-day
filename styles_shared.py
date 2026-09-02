@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from utils import _sheets, with_retry
+from utils import _sheets, _clear_sheets, with_retry
 
 SHEET_ID      = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 STYLES_TAB    = 'Styles Submissions'

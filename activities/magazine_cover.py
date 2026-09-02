@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 import streamlit.components.v1 as components
-from utils import inject_styles, PURPLE, TEAL, with_retry, _sheets
+from utils import inject_styles, PURPLE, TEAL, with_retry, _sheets, _clear_sheets
 from magazine_shared import (
     CATEGORIES, COVER_YEAR, PREVIEW_WIDTH,
     _ensure_tabs, pull_submissions, append_submission,
