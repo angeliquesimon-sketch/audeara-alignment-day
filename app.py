@@ -30,7 +30,6 @@ pg = st.navigation({
         st.Page('activities/magazine_cover.py',                 title='Vision Statement'),
         st.Page('activities/styles.py',                         title='Different Styles'),
         st.Page('activities/strategy_cascade.py',               title='Strategy Cascade'),
-        st.Page('activities/strategy_cascade_results.py',       title='Cascade Results'),
     ],
     'Facilitator': [
         st.Page('activities/magazine_facilitate.py',            title='🎛️ Facilitate — Vision'),

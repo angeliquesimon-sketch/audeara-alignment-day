@@ -1,4 +1,4 @@
-"""Strategy Cascade — participant page."""
+"""Strategy Cascade — participant page (Cascade + Results tabs)."""
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL
 from strategy_cascade_shared import (
-    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS,
+    GOALS,
     _ensure_cascade_tabs,
     pull_cascade_session, pull_cascade_context, pull_cascade_content,
     pull_commitments, pull_confidence,
@@ -16,26 +16,11 @@ from styles_shared import TEAM
 
 inject_styles()
 
-# ── Page header ───────────────────────────────────────────────────────────────
-
 st.markdown('### Strategy Cascade')
-st.markdown(
-    f'<div class="activity-card">'
-    f'James will walk through the FY27 strategy cascade. This page updates live '
-    f'as each level is revealed. Stay on this page — the form will open once he\'s '
-    f'finished walking through.'
-    f'</div>',
-    unsafe_allow_html=True,
-)
 
-name = st.selectbox('Your name', [''] + TEAM, key='cascade_name')
-if not name:
-    st.stop()
-
-# ── Cascade visual helpers ─────────────────────────────────────────────────────
+# ── Visual helpers ────────────────────────────────────────────────────────────
 
 def _mission_vision_html(mission_top, vision):
-    """Mission and Vision side by side."""
     if mission_top:
         m_body = (
             f'We help <strong>{mission_top.get("Who", "…")}</strong> '
@@ -53,24 +38,19 @@ def _mission_vision_html(mission_top, vision):
 
     return (
         f'<div style="display:flex;gap:12px;margin-bottom:16px;">'
-
         f'<div style="flex:1;background:#781E73;border-radius:10px;padding:16px 18px;">'
         f'<div style="font-size:0.65em;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:6px;">MISSION</div>'
         f'<div style="font-size:0.84em;color:white;line-height:1.6;">{m_body}</div>'
         f'</div>'
-
         f'<div style="flex:1;background:#188383;border-radius:10px;padding:16px 18px;">'
         f'<div style="font-size:0.65em;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:6px;">VISION</div>'
         f'<div style="font-size:0.84em;color:white;line-height:1.6;">{v_body}</div>'
         f'</div>'
-
         f'</div>'
     )
 
 def _function_one_things_html(fn_one_things):
-    """Function One Things in a 2-column grid."""
-    fns = list(fn_one_things.items())
-
+    fns      = list(fn_one_things.items())
     rows_html = ''
     for i in range(0, len(fns), 2):
         pair = fns[i:i + 2]
@@ -87,7 +67,6 @@ def _function_one_things_html(fn_one_things):
             row += '<div></div>'
         row += '</div>'
         rows_html += row
-
     return (
         f'<div style="margin-bottom:16px;">'
         f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">FUNCTION ONE THINGS</div>'
@@ -96,10 +75,7 @@ def _function_one_things_html(fn_one_things):
     )
 
 def _goals_html(goals):
-    """Goals list as compact reference cards."""
-    html = (
-        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">FY27 GOALS</div>'
-    )
+    html = '<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">FY27 GOALS</div>'
     for g in goals:
         html += (
             f'<div style="border-left:4px solid {PURPLE};background:#F8F8F8;'
@@ -110,7 +86,7 @@ def _goals_html(goals):
         )
     return f'<div style="margin-bottom:8px;">{html}</div>'
 
-# ── Live fragment ─────────────────────────────────────────────────────────────
+# ── Cascade fragment ──────────────────────────────────────────────────────────
 
 @st.fragment(run_every=5)
 def _cascade_live(name):
@@ -122,7 +98,6 @@ def _cascade_live(name):
     session = pull_cascade_session()
     stage   = session.get('stage', 'hidden')
 
-    # ── Waiting ────────────────────────────────────────────────────────────────
     if stage == 'hidden':
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
@@ -133,21 +108,15 @@ def _cascade_live(name):
         )
         return
 
-    # ── Pull context (Mission + Vision) and live content ──────────────────────
     mission_top, vision = pull_cascade_context()
     goals_live, fn_live = pull_cascade_content()
 
-    # ── Mission + Vision (shown from 'functions' stage onwards) ────────────────
     st.markdown(_mission_vision_html(mission_top, vision), unsafe_allow_html=True)
-
-    # ── Function One Things ────────────────────────────────────────────────────
     st.markdown(_function_one_things_html(fn_live), unsafe_allow_html=True)
 
-    # ── FY27 Goals (shown from 'goals' stage onwards) ─────────────────────────
     if stage in ('goals', 'confidence', 'commitment', 'complete'):
         st.markdown(_goals_html(goals_live), unsafe_allow_html=True)
 
-    # ── Still walking through ──────────────────────────────────────────────────
     if stage in ('functions', 'goals'):
         st.markdown(
             f'<div style="background:#F7F0F7;border-radius:8px;padding:14px 16px;'
@@ -159,7 +128,6 @@ def _cascade_live(name):
         )
         return
 
-    # ── Complete ───────────────────────────────────────────────────────────────
     if stage == 'complete':
         st.markdown(
             f'<div style="background:#E8F5EE;border-radius:8px;padding:14px 16px;'
@@ -170,7 +138,6 @@ def _cascade_live(name):
         )
         return
 
-    # ── Form (stage == 'confidence' or 'commitment') ───────────────────────────
     pull_commitments.clear()
     pull_confidence.clear()
     df_comm = pull_commitments()
@@ -183,7 +150,6 @@ def _cascade_live(name):
     if already_done and stage == 'commitment' and not st.session_state.get(f'cascade_edit_{name}'):
         comm_row = df_comm[df_comm['Name'] == name].iloc[0]
         conf_row = df_conf[df_conf['Name'] == name].iloc[0]
-
         st.markdown(
             f'<div style="border-left:4px solid #3EAA6D;background:#E8F5EE;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-top:4px;">'
@@ -200,7 +166,7 @@ def _cascade_live(name):
                 + '</div>'
                 for g in goals_live
             )
-            + f'</div>',
+            + '</div>',
             unsafe_allow_html=True,
         )
         if st.button('Edit my response', key=f'cascade_edit_btn_{name}'):
@@ -215,13 +181,12 @@ def _cascade_live(name):
         unsafe_allow_html=True,
     )
 
-    # ── Per-goal confidence + risk ─────────────────────────────────────────────
     confidence = {}
     risks      = {}
 
     for g in goals_live:
-        conf_key = f'{g["id"]}_Confidence'
-        risk_key = f'{g["id"]}_Risk'
+        conf_key     = f'{g["id"]}_Confidence'
+        risk_key     = f'{g["id"]}_Risk'
         default_conf = 3
         default_risk = ''
         if has_confidence:
@@ -253,7 +218,6 @@ def _cascade_live(name):
         )
         st.markdown('')
 
-    # ── Personal One Thing (commitment stage only) ─────────────────────────────
     if stage == 'confidence':
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 16px;'
@@ -316,4 +280,108 @@ def _cascade_live(name):
         st.success('Saved. Thank you.')
         st.rerun()
 
-_cascade_live(name)
+# ── Results fragment ──────────────────────────────────────────────────────────
+
+@st.fragment(run_every=30)
+def _results_tab():
+    df_comm            = pull_commitments()
+    df_conf            = pull_confidence()
+    goals_live, fn_live = pull_cascade_content()
+
+    if df_comm.empty and df_conf.empty:
+        st.markdown(
+            '<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+            'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+            'Results will appear here once the team has submitted.</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    if not df_conf.empty:
+        st.markdown(
+            '<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+            'color:#888;margin-bottom:12px;">GOAL CONFIDENCE</div>',
+            unsafe_allow_html=True,
+        )
+        for g in goals_live:
+            conf_col = f'{g["id"]}_Confidence'
+            if conf_col not in df_conf.columns:
+                continue
+            nums = []
+            for v in df_conf[conf_col].tolist():
+                try: nums.append(int(v))
+                except (TypeError, ValueError): pass
+            if not nums:
+                continue
+
+            avg = sum(nums) / len(nums)
+            if avg >= 4:
+                bc, bg, label = '#3EAA6D', '#E8F5EE', f'{avg:.1f} — High'
+            elif avg >= 3:
+                bc, bg, label = '#B7770D', '#FEF5E7', f'{avg:.1f} — Moderate'
+            else:
+                bc, bg, label = '#C0392B', '#FDECEA', f'{avg:.1f} — Low'
+
+            st.markdown(
+                f'<div style="border-left:4px solid {PURPLE};padding:12px 16px;'
+                f'background:#F8F8F8;border-radius:0 8px 8px 0;margin-bottom:10px;">'
+                f'<div style="font-weight:700;font-size:0.9em;color:{PURPLE};margin-bottom:8px;">{g["title"]}</div>'
+                f'<div style="display:flex;align-items:center;gap:12px;">'
+                f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:10px;">'
+                f'<div style="width:{avg / 5 * 100:.0f}%;background:{bc};border-radius:4px;height:10px;"></div>'
+                f'</div>'
+                f'<span style="background:{bg};color:{bc};font-weight:700;font-size:0.78em;'
+                f'padding:3px 12px;border-radius:20px;white-space:nowrap;">{label}</span>'
+                f'</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+    if not df_comm.empty:
+        st.markdown(
+            '<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+            'color:#888;margin:20px 0 12px;">PERSONAL ONE THINGS</div>',
+            unsafe_allow_html=True,
+        )
+        for fn in fn_live:
+            fn_rows = df_comm[df_comm['Function'] == fn]
+            if fn_rows.empty:
+                continue
+            items = ''.join(
+                f'<div style="padding:7px 0;border-bottom:1px solid #EEF5F5;font-size:0.84em;line-height:1.5;">'
+                f'<strong style="color:#444;display:inline-block;min-width:72px;">{row["Name"].split()[0]}</strong>'
+                f'<span style="color:#555;">{row["Commitment"]}</span>'
+                f'</div>'
+                for _, row in fn_rows.iterrows()
+            )
+            st.markdown(
+                f'<div style="border-left:4px solid {TEAL};background:#F8F8F8;'
+                f'border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:10px;">'
+                f'<div style="font-size:0.72em;font-weight:700;color:{TEAL};'
+                f'letter-spacing:1px;margin-bottom:8px;">{fn.upper()}</div>'
+                f'{items}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+# ── Tabs ──────────────────────────────────────────────────────────────────────
+
+tab_cascade, tab_results = st.tabs(['Cascade', 'Results'])
+
+with tab_cascade:
+    st.markdown(
+        f'<div class="activity-card">'
+        f'James will walk through the FY27 strategy cascade. This page updates live '
+        f'as each level is revealed. Stay on this page — the form will open once he\'s '
+        f'finished walking through.'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    name = st.selectbox('Your name', [''] + TEAM, key='cascade_name')
+    if name:
+        _cascade_live(name)
+    else:
+        st.caption('Select your name above to participate.')
+
+with tab_results:
+    _results_tab()
