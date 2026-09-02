@@ -13,6 +13,7 @@ pg = st.navigation({
     'Activities': [
         st.Page('activities/mission_statement.py',   title='Mission Statement'),
         st.Page('activities/magazine_cover.py',      title='Vision Statement'),
+        st.Page('activities/styles.py',              title='Different Styles'),
     ],
     'Facilitator': [
         st.Page('activities/magazine_facilitate.py', title='🎛️ Facilitate'),
