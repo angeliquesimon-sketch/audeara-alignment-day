@@ -11,8 +11,8 @@ import io
 from utils import inject_styles, with_retry, _sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
-    _ensure_styles_tab, _ensure_session_tab,
-    pull_styles, pull_session, save_scenario,
+    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,
+    pull_styles, pull_session, pull_summaries, save_scenario,
     compute_scores, top_two, colour_bar, card_html_large, card_html_small,
 )
 
@@ -81,8 +81,9 @@ def _render_spectrum(current, sc, df, started_at):
 
 if not st.session_state.get('_styles_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab, on_retry=_sheets.clear)
-        with_retry(_ensure_session_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_styles_tab,    on_retry=_sheets.clear)
+        with_retry(_ensure_session_tab,   on_retry=_sheets.clear)
+        with_retry(_ensure_summaries_tab, on_retry=_sheets.clear)
         st.session_state['_styles_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
@@ -222,6 +223,49 @@ def _scenario_view():
                 st.error(f'Could not save — please try again. ({_e})')
 
 
+# ── Team cards fragment (auto-refreshes to pick up AI summaries) ─────────────────
+
+@st.fragment(run_every=10)
+def _team_cards():
+    df_c      = pull_styles()
+    summaries = pull_summaries()
+    session_c = pull_session()
+    activity_complete = int(session_c.get('current_scenario', -1)) >= len(SCENARIOS)
+
+    if df_c.empty:
+        st.info('No results yet. The team map will appear here as responses come in.')
+        return
+
+    profiles = []
+    for _, row in df_c.iterrows():
+        sc_score = compute_scores(row)
+        pri, sec = top_two(sc_score)
+        profiles.append({'name': row['Name'], 'scores': sc_score, 'primary': pri, 'secondary': sec})
+
+    st.markdown(
+        f'<div style="margin-bottom:16px;">'
+        f'<span style="font-size:1.1em;font-weight:700;">The team</span>'
+        f'&nbsp;&nbsp;<span style="font-size:0.8em;color:#999;font-weight:400;">'
+        f'{len(profiles)} of {len(TEAM)} submitted</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    n_cols = 4
+    for i in range(0, len(profiles), n_cols):
+        batch = profiles[i:i + n_cols]
+        cols  = st.columns(n_cols)
+        for col, p in zip(cols, batch):
+            with col:
+                st.markdown(card_html_small(p['name'], p['scores']), unsafe_allow_html=True)
+                if activity_complete and p['name'] in summaries:
+                    st.markdown(
+                        f'<div style="font-size:0.75em;color:#444;line-height:1.55;'
+                        f'margin:4px 2px 14px;padding:8px 10px;background:#F7F7F7;'
+                        f'border-radius:6px;">{summaries[p["name"]]}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+
 with tab_submit:
     st.selectbox('Your name', ['Select your name...'] + TEAM, key='styles_guided_name')
     name = st.session_state.get('styles_guided_name', 'Select your name...')
@@ -238,35 +282,27 @@ with tab_team:
             st.cache_data.clear()
             st.rerun()
 
+    # ── Colour reference ──────────────────────────────────────────────────────────
+
+    cols_def = st.columns(4)
+    for col, colour in zip(cols_def, ['Red', 'Blue', 'Yellow', 'Green']):
+        ch   = HEX[colour]
+        desc = COLOUR_DESCRIPTORS[colour]
+        with col:
+            st.markdown(
+                f'<div style="border-left:4px solid {ch};background:{ch}12;'
+                f'border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:16px;">'
+                f'<div style="font-weight:700;color:{ch};margin-bottom:4px;">{colour}</div>'
+                f'<div style="font-size:0.78em;color:#444;line-height:1.5;">{desc}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
     df = pull_styles()
 
-    if df.empty:
-        st.info('No results yet. The team map will appear here as responses come in.')
-    else:
-        profiles = []
-        for _, row in df.iterrows():
-            sc_score = compute_scores(row)
-            pri, sec = top_two(sc_score)
-            profiles.append({'name': row['Name'], 'scores': sc_score, 'primary': pri, 'secondary': sec})
+    _team_cards()
 
-        submitted_count = len(profiles)
-        total_count     = len(TEAM)
-        st.markdown(
-            f'<div style="margin-bottom:16px;">'
-            f'<span style="font-size:1.1em;font-weight:700;">The team</span>'
-            f'&nbsp;&nbsp;<span style="font-size:0.8em;color:#999;font-weight:400;">'
-            f'{submitted_count} of {total_count} submitted</span></div>',
-            unsafe_allow_html=True,
-        )
-
-        n_cols = 4
-        for i in range(0, len(profiles), n_cols):
-            batch = profiles[i:i + n_cols]
-            cols  = st.columns(n_cols)
-            for col, p in zip(cols, batch):
-                with col:
-                    st.markdown(card_html_small(p['name'], p['scores']), unsafe_allow_html=True)
-
+    if not df.empty:
         st.divider()
 
         st.markdown('#### Team map')

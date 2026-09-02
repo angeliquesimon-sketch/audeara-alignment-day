@@ -12,8 +12,9 @@ from datetime import datetime
 from utils import inject_styles, with_retry, _sheets, PURPLE, TEAL
 from styles_shared import (
     TEAM, SCENARIOS, HEX, TEXT,
-    _ensure_styles_tab, _ensure_session_tab,
-    pull_styles, pull_session, set_session,
+    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,
+    pull_styles, pull_session, pull_summaries, set_session,
+    save_summary, generate_summary,
     compute_scores, top_two, colour_bar, card_html_small,
 )
 
@@ -37,8 +38,9 @@ if not st.session_state.get('_styles_fac_auth'):
 
 if not st.session_state.get('_styles_fac_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab, on_retry=_sheets.clear)
-        with_retry(_ensure_session_tab, on_retry=_sheets.clear)
+        with_retry(_ensure_styles_tab,    on_retry=_sheets.clear)
+        with_retry(_ensure_session_tab,   on_retry=_sheets.clear)
+        with_retry(_ensure_summaries_tab, on_retry=_sheets.clear)
         st.session_state['_styles_fac_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue. ({_e})')
@@ -259,3 +261,64 @@ if current >= 0:
                 plt.close(fig)
                 buf.seek(0)
                 st.image(buf, use_container_width=True)
+
+# ── AI summaries ──────────────────────────────────────────────────────────────────
+
+if current >= n_scen:
+    st.divider()
+    st.markdown('### AI summaries')
+    st.markdown(
+        'Generate a short personalised summary for each team member based on their colour profile. '
+        'Once generated, summaries appear live under each card on the participant Team map tab.'
+    )
+
+    df_sum  = pull_styles()
+    summaries = pull_summaries()
+
+    if df_sum.empty:
+        st.info('No submissions yet — nothing to summarise.')
+    else:
+        profiles = []
+        for _, row in df_sum.iterrows():
+            sc_scores = compute_scores(row)
+            pri, sec  = top_two(sc_scores)
+            profiles.append({'name': row['Name'], 'scores': sc_scores, 'primary': pri, 'secondary': sec})
+
+        already_done = [p for p in profiles if p['name'] in summaries]
+        pending      = [p for p in profiles if p['name'] not in summaries]
+
+        if pending:
+            btn_label = (
+                'Generate summaries' if not already_done
+                else f'Generate remaining {len(pending)} summaries'
+            )
+            if st.button(btn_label, type='primary'):
+                progress = st.progress(0)
+                status   = st.empty()
+                for i, p in enumerate(pending):
+                    status.markdown(f'Generating summary for **{p["name"]}**...')
+                    try:
+                        text = generate_summary(p['name'], p['scores'], p['primary'], p['secondary'])
+                        save_summary(p['name'], text)
+                    except Exception as _e:
+                        st.warning(f'Failed for {p["name"]}: {_e}')
+                    progress.progress((i + 1) / len(pending))
+                status.markdown('Done.')
+                st.cache_data.clear()
+                st.rerun()
+        else:
+            st.success(f'All {len(profiles)} summaries generated.')
+
+        if summaries:
+            st.markdown('---')
+            for p in profiles:
+                if p['name'] in summaries:
+                    pri_hex = HEX[p['primary']]
+                    st.markdown(
+                        f'<div style="border-left:4px solid {pri_hex};padding:10px 16px;'
+                        f'margin-bottom:10px;background:{pri_hex}0D;border-radius:4px;">'
+                        f'<strong style="color:{pri_hex};">{p["name"]}</strong><br>'
+                        f'<span style="font-size:0.9em;color:#333;">{summaries[p["name"]]}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )

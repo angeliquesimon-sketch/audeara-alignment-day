@@ -8,9 +8,10 @@ import pandas as pd
 from datetime import datetime
 from utils import _sheets, with_retry
 
-SHEET_ID    = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-STYLES_TAB  = 'Styles Submissions'
-SESSION_TAB = 'Styles Session'
+SHEET_ID      = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
+STYLES_TAB    = 'Styles Submissions'
+SESSION_TAB   = 'Styles Session'
+SUMMARIES_TAB = 'Styles Summaries'
 
 HEX = {
     'Red':    '#E84040',
@@ -137,6 +138,93 @@ def _ensure_session_tab():
                 ['scenario_started_at', ''],
             ]},
         ).execute()
+
+def _ensure_summaries_tab():
+    svc      = _sheets()
+    meta     = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+    existing = {s['properties']['title'] for s in meta.get('sheets', [])}
+    if SUMMARIES_TAB not in existing:
+        svc.spreadsheets().batchUpdate(
+            spreadsheetId=SHEET_ID,
+            body={'requests': [{'addSheet': {'properties': {'title': SUMMARIES_TAB}}}]},
+        ).execute()
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{SUMMARIES_TAB}'!A1:B1",
+            valueInputOption='RAW',
+            body={'values': [['Name', 'Summary']]},
+        ).execute()
+
+
+@st.cache_data(ttl=15, show_spinner=False)
+def pull_summaries():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"'{SUMMARIES_TAB}'!A:B",
+        ).execute().get('values', [])
+        return {r[0]: r[1] for r in rows[1:] if len(r) >= 2}
+    except Exception:
+        return {}
+
+
+def save_summary(name, summary):
+    def _do():
+        svc  = _sheets()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{SUMMARIES_TAB}'!A:B",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 1 and row[0] == name:
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{SUMMARIES_TAB}'!B{i}",
+                    valueInputOption='RAW',
+                    body={'values': [[summary]]},
+                ).execute()
+                return
+        svc.spreadsheets().values().append(
+            spreadsheetId=SHEET_ID, range=f"'{SUMMARIES_TAB}'!A:B",
+            valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+            body={'values': [[name, summary]]},
+        ).execute()
+    with_retry(_do, on_retry=_sheets.clear)
+    st.cache_data.clear()
+
+
+def generate_summary(name, scores, primary, secondary):
+    from openai import OpenAI
+    client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+    descriptors = {
+        'Red':    'action-oriented and decisive, moves fast and values directness',
+        'Blue':   'analytical and thorough, wants to understand fully before acting',
+        'Yellow': 'possibility-focused and creative, drawn to opportunity and big ideas',
+        'Green':  'people-focused and relationship-driven, attentive to how things land for others',
+    }
+    first       = name.split()[0]
+    scores_text = ', '.join(f'{c} {v}%' for c, v in scores.items())
+    resp = client.chat.completions.create(
+        model='gpt-4o-mini',
+        max_tokens=200,
+        messages=[{
+            'role': 'user',
+            'content': (
+                f'Write a 2-3 sentence summary of how {first} naturally shows up in a team, '
+                f'based on their results from a workplace styles activity.\n\n'
+                f'Primary style: {primary} — {descriptors[primary]}\n'
+                f'Secondary style: {secondary} — {descriptors[secondary]}\n'
+                f'Full colour mix: {scores_text}\n\n'
+                f'Guidelines:\n'
+                f'- Write in third person using their first name ({first})\n'
+                f'- Warm, specific, and affirming — focus on what they bring to the team\n'
+                f'- No corporate jargon. No hyphens or em dashes.\n'
+                f'- Reference their primary instinct clearly, touch on their secondary where it adds nuance\n'
+                f'- 2-3 sentences only. No bullet points.'
+            ),
+        }],
+    )
+    return resp.choices[0].message.content.strip()
+
 
 # ── Session state ───────────────────────────────────────────────────────────────
 
