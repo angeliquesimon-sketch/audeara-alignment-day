@@ -189,19 +189,17 @@ def _live_tracker():
             return '#FEF5E7', '#B7770D'
         return '#FDECEA', '#C0392B'
 
-    for i, g in enumerate(GOALS):
-        colour     = GOAL_COLOURS[i % len(GOAL_COLOURS)]
-        conf_key   = f'{g["id"]}_Confidence'
-        risk_key   = f'{g["id"]}_Risk'
+    for g in GOALS:
+        conf_key = f'{g["id"]}_Confidence'
+        risk_key = f'{g["id"]}_Risk'
 
         st.markdown(
-            f'<div style="font-weight:700;font-size:0.88em;color:{colour};margin:14px 0 6px;">'
+            f'<div style="font-weight:700;font-size:0.88em;color:{PURPLE};margin:14px 0 6px;">'
             f'{g["title"]}</div>',
             unsafe_allow_html=True,
         )
 
         if not df_conf.empty:
-            # Confidence row
             conf_vals = [(r['Name'], r.get(conf_key, '')) for _, r in df_conf.iterrows() if r.get('Name')]
             if conf_vals:
                 cells = ''
@@ -232,7 +230,6 @@ def _live_tracker():
                     unsafe_allow_html=True,
                 )
 
-            # Risks
             risks = [(r['Name'], r.get(risk_key, '')) for _, r in df_conf.iterrows()
                      if r.get(risk_key, '').strip()]
             if risks:
@@ -263,15 +260,14 @@ def _live_tracker():
             fn_rows = df_comm[df_comm['Function'] == fn]
             if fn_rows.empty:
                 continue
-            colour = FUNC_COLOURS[FUNCTIONS.index(fn) % len(FUNC_COLOURS)]
             st.markdown(
-                f'<div style="font-size:0.72em;font-weight:700;color:{colour};'
+                f'<div style="font-size:0.72em;font-weight:700;color:{TEAL};'
                 f'letter-spacing:1px;margin:10px 0 4px;">{fn.upper()}</div>',
                 unsafe_allow_html=True,
             )
             for _, row in fn_rows.iterrows():
                 st.markdown(
-                    f'<div style="border-left:3px solid {colour};background:#F8F8F8;'
+                    f'<div style="border-left:3px solid {TEAL};background:#F8F8F8;'
                     f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:6px;font-size:0.82em;">'
                     f'<strong style="color:#444;">{row["Name"].split()[0]}</strong>  '
                     f'<span style="color:#666;">{row["Commitment"]}</span></div>',
@@ -279,3 +275,147 @@ def _live_tracker():
                 )
 
 _live_tracker()
+
+# ── Debrief ────────────────────────────────────────────────────────────────────
+
+st.divider()
+st.markdown(
+    f'<div style="font-weight:700;font-size:1em;color:{PURPLE};margin-bottom:14px;">Debrief</div>',
+    unsafe_allow_html=True,
+)
+
+if st.button('↺ Refresh debrief', key='debrief_refresh'):
+    pull_commitments.clear()
+    pull_confidence.clear()
+    st.rerun()
+
+_df_comm = pull_commitments()
+_df_conf = pull_confidence()
+
+def _score_cell(val):
+    try:
+        s = int(val)
+    except (TypeError, ValueError):
+        return '#F5F5F5', '#AAAAAA'
+    if s >= 4: return '#E8F5EE', '#2D7D4F'
+    if s == 3: return '#FEF5E7', '#B7770D'
+    return '#FDECEA', '#C0392B'
+
+if _df_conf.empty and _df_comm.empty:
+    st.caption('No submissions yet.')
+else:
+    # ── Confidence grid ──────────────────────────────────────────────────────
+
+    if not _df_conf.empty:
+        goal_ths = ''.join(
+            f'<th style="padding:8px 12px;font-size:0.78em;color:{PURPLE};font-weight:700;'
+            f'text-align:center;border-bottom:2px solid #E8E0E8;min-width:130px;">{g["title"]}</th>'
+            for g in GOALS
+        )
+        rows_html = ''
+        for _, row in _df_conf.iterrows():
+            name = row.get('Name', '')
+            tds = f'<td style="padding:8px 12px;font-size:0.84em;font-weight:600;color:#444;border-bottom:1px solid #F0F0F0;">{name.split()[0]}</td>'
+            for g in GOALS:
+                val = row.get(f'{g["id"]}_Confidence', '')
+                bg, tc = _score_cell(val)
+                tds += (
+                    f'<td style="padding:6px 12px;text-align:center;border-bottom:1px solid #F0F0F0;">'
+                    f'<span style="background:{bg};color:{tc};font-weight:700;font-size:0.82em;'
+                    f'padding:3px 12px;border-radius:20px;">{val if val else "—"}</span></td>'
+                )
+            rows_html += f'<tr>{tds}</tr>'
+
+        # Team average row
+        avg_tds = '<td style="padding:8px 12px;font-size:0.78em;font-weight:700;color:#888;background:#F8F8F8;">Team avg</td>'
+        for g in GOALS:
+            nums = []
+            for v in _df_conf[f'{g["id"]}_Confidence'].tolist():
+                try: nums.append(int(v))
+                except (TypeError, ValueError): pass
+            if nums:
+                avg = sum(nums) / len(nums)
+                bg, tc = _score_cell(round(avg))
+                avg_tds += (
+                    f'<td style="padding:6px 12px;text-align:center;background:#F8F8F8;">'
+                    f'<span style="background:{bg};color:{tc};font-weight:700;font-size:0.82em;'
+                    f'padding:3px 12px;border-radius:20px;">{avg:.1f}</span></td>'
+                )
+            else:
+                avg_tds += '<td style="text-align:center;background:#F8F8F8;color:#AAA;">—</td>'
+        rows_html += f'<tr>{avg_tds}</tr>'
+
+        st.markdown(
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">CONFIDENCE GRID</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div style="overflow-x:auto;margin-bottom:24px;">'
+            f'<table style="width:100%;border-collapse:collapse;">'
+            f'<thead><tr>'
+            f'<th style="padding:8px 12px;border-bottom:2px solid #E8E0E8;"></th>'
+            f'{goal_ths}'
+            f'</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            f'</table></div>',
+            unsafe_allow_html=True,
+        )
+
+    # ── Risks by goal ────────────────────────────────────────────────────────
+
+    if not _df_conf.empty:
+        has_any_risk = any(
+            _df_conf[f'{g["id"]}_Risk'].astype(str).str.strip().ne('').any()
+            for g in GOALS
+        )
+        if has_any_risk:
+            st.markdown(
+                f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">RISKS BY GOAL</div>',
+                unsafe_allow_html=True,
+            )
+            for g in GOALS:
+                risks = [
+                    (r['Name'], r[f'{g["id"]}_Risk'])
+                    for _, r in _df_conf.iterrows()
+                    if str(r.get(f'{g["id"]}_Risk', '')).strip()
+                ]
+                if not risks:
+                    continue
+                st.markdown(
+                    f'<div style="font-weight:700;font-size:0.86em;color:{PURPLE};margin:10px 0 6px;">{g["title"]}</div>',
+                    unsafe_allow_html=True,
+                )
+                for name, risk in risks:
+                    st.markdown(
+                        f'<div style="border-left:3px solid #E74C3C;background:#FEF5F5;'
+                        f'border-radius:0 6px 6px 0;padding:7px 12px;margin-bottom:5px;font-size:0.84em;">'
+                        f'<strong style="color:#C0392B;">{name.split()[0]}</strong>'
+                        f'<span style="color:#444;margin-left:8px;">{risk}</span></div>',
+                        unsafe_allow_html=True,
+                    )
+
+    # ── One Things by function ───────────────────────────────────────────────
+
+    if not _df_comm.empty:
+        st.markdown(
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin:16px 0 10px;">PERSONAL ONE THINGS</div>',
+            unsafe_allow_html=True,
+        )
+        for fn in FUNCTIONS:
+            fn_rows = _df_comm[_df_comm['Function'] == fn]
+            if fn_rows.empty:
+                continue
+            items = ''.join(
+                f'<div style="padding:7px 0;border-bottom:1px solid #F0F0F0;font-size:0.84em;">'
+                f'<strong style="color:#444;min-width:80px;display:inline-block;">{row["Name"].split()[0]}</strong>'
+                f'<span style="color:#666;">{row["Commitment"]}</span></div>'
+                for _, row in fn_rows.iterrows()
+            )
+            st.markdown(
+                f'<div style="border-left:4px solid {TEAL};background:#F8F8F8;'
+                f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px;">'
+                f'<div style="font-size:0.72em;font-weight:700;color:{TEAL};letter-spacing:1px;margin-bottom:8px;">{fn.upper()}</div>'
+                f'{items}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
