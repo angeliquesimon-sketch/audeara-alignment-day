@@ -22,19 +22,25 @@ inject_styles()
 
 # ── Password ─────────────────────────────────────────────────────────────────────
 
-if not st.session_state.get('_styles_fac_auth'):
-    st.markdown('### 🎛️ Facilitate — Different Styles')
-    pw = st.text_input('Facilitator password', type='password', key='styles_fac_pw')
-    if pw:
-        correct = st.secrets.get('FACILITATE_PASSWORD', '')
-        if pw == correct:
-            st.session_state['_styles_fac_auth'] = True
+if 'styles_fac_auth' not in st.session_state:
+    st.session_state['styles_fac_auth'] = False
+
+if not st.session_state['styles_fac_auth']:
+    st.caption('This page is for the session facilitator only.')
+    pwd_input = st.text_input('Password', type='password', key='styles_fac_pw')
+    if st.button('Unlock', type='primary', key='styles_fac_unlock'):
+        if pwd_input == st.secrets.get('FACILITATE_PASSWORD', ''):
+            st.session_state['styles_fac_auth'] = True
             st.rerun()
         else:
             st.error('Incorrect password.')
     st.stop()
 
 # ── Setup ─────────────────────────────────────────────────────────────────────────
+
+if st.button('🔒 Lock', key='styles_fac_lock'):
+    st.session_state['styles_fac_auth'] = False
+    st.rerun()
 
 if not st.session_state.get('_styles_fac_tab_ensured'):
     try:

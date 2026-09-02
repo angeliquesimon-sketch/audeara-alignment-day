@@ -207,7 +207,7 @@ def _overview():
              else 'Map how the team approaches decisions, change, and collaboration.'),
     )
     casc_done  = casc_stage == 'complete'
-    casc_alive = casc_stage in ('goals', 'functions')
+    casc_alive = casc_stage in ('cascade', 'open')
     _step(
         'Strategy Cascade',
         'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),

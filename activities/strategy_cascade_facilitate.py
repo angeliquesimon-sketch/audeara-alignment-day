@@ -33,8 +33,11 @@ if not st.session_state['cas_fac_auth']:
     st.stop()
 
 if not st.session_state.get('cascade_tabs_ready'):
-    _ensure_cascade_tabs()
-    st.session_state['cascade_tabs_ready'] = True
+    try:
+        _ensure_cascade_tabs()
+        st.session_state['cascade_tabs_ready'] = True
+    except Exception as _e:
+        st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
 
 st.markdown('### Facilitate — Strategy Cascade')
 
