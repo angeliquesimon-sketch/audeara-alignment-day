@@ -340,3 +340,23 @@ with tab_team:
                     f'</div>',
                     unsafe_allow_html=True,
                 )
+
+        st.divider()
+
+        # ── Per-scenario spectrums ─────────────────────────────────────────────────
+
+        st.markdown('#### Scenario breakdown')
+        st.caption('Where the team landed on each of the six spectrums.')
+
+        for i, sc_item in enumerate(SCENARIOS):
+            st.markdown(
+                f'<div style="margin:20px 0 4px;">'
+                f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:2px;">Scenario {i + 1}</div>'
+                f'<div style="font-size:0.95em;font-weight:700;color:#111;">{sc_item["title"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            buf = _render_spectrum(i, sc_item, df, started_at='')
+            if buf:
+                st.image(buf, use_container_width=True)
