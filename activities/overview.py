@@ -65,6 +65,43 @@ st.markdown('### Audeara Alignment Day')
 st.markdown('FY27 strategy and alignment. One team, one direction.')
 st.markdown('')
 
+# ── Why we're here ────────────────────────────────────────────────────────────
+
+col_why, col_leave = st.columns(2)
+
+with col_why:
+    st.markdown(
+        f'<div style="border-left:4px solid {PURPLE};background:#F7F0F7;'
+        f'border-radius:0 8px 8px 0;padding:14px 18px;height:100%;">'
+        f'<div style="font-weight:700;color:{PURPLE};margin-bottom:10px;">Why we\'re here</div>'
+        f'<ul style="margin:0;padding-left:16px;font-size:0.85em;color:#444;line-height:1.8;">'
+        f'<li>Reflect on where Audeara has come from</li>'
+        f'<li>Clarify why we exist and where we are going</li>'
+        f'<li>Agree on how we make strategic choices</li>'
+        f'<li>Strengthen how we work together</li>'
+        f'<li>Build a clearer link between company strategy and everyday decisions</li>'
+        f'</ul></div>',
+        unsafe_allow_html=True,
+    )
+
+with col_leave:
+    st.markdown(
+        f'<div style="border-left:4px solid {TEAL};background:#F0F8F8;'
+        f'border-radius:0 8px 8px 0;padding:14px 18px;height:100%;">'
+        f'<div style="font-weight:700;color:{TEAL};margin-bottom:10px;">What we want to leave with</div>'
+        f'<ul style="margin:0;padding-left:16px;font-size:0.85em;color:#444;line-height:1.8;">'
+        f'<li>Shared mission and vision themes</li>'
+        f'<li>A clearer picture of Audeara\'s future</li>'
+        f'<li>Greater understanding of our strategic choices</li>'
+        f'<li>A common approach to prioritisation</li>'
+        f'<li>Better understanding of how different working styles affect communication</li>'
+        f'<li>Clear inputs for the FY27 strategy and beyond</li>'
+        f'</ul></div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown('')
+
 @st.fragment(run_every=20)
 def _overview():
     mission_top  = _mission_top()
@@ -257,3 +294,31 @@ def _overview():
     )
 
 _overview()
+
+# ── Ground rules ──────────────────────────────────────────────────────────────
+
+st.divider()
+st.markdown(
+    f'<div style="font-weight:700;font-size:1.05em;color:{TEAL};margin-bottom:14px;">'
+    f'Good times. Good vibes.</div>',
+    unsafe_allow_html=True,
+)
+
+RULES = [
+    'Be open and constructive',
+    'Challenge ideas, not people',
+    'Make space for different perspectives',
+    'Focus on the company, not individual agendas',
+    'Seek clarity rather than perfect wording',
+    'Stay curious when someone sees things differently',
+]
+
+cols = st.columns(3)
+for i, rule in enumerate(RULES):
+    with cols[i % 3]:
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
+            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{rule}</div>',
+            unsafe_allow_html=True,
+        )
