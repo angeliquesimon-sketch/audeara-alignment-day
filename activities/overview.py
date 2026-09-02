@@ -96,38 +96,50 @@ st.divider()
 
 # ── Why we're here ────────────────────────────────────────────────────────────
 
+WHY_HERE = [
+    'Reflect on where Audeara has come from',
+    'Clarify why we exist and where we are going',
+    'Agree on how we make strategic choices',
+    'Strengthen how we work together',
+    'Build a clearer link between company strategy and everyday decisions',
+]
+
+LEAVE_WITH = [
+    'Shared mission and vision themes',
+    'A clearer picture of Audeara\'s future',
+    'Greater understanding of our strategic choices',
+    'A common approach to prioritisation',
+    'Better understanding of how different working styles affect communication',
+    'Clear inputs for the FY27 strategy and beyond',
+]
+
 col_why, col_leave = st.columns(2)
 
 with col_why:
     st.markdown(
-        f'<div style="border-left:4px solid {PURPLE};background:#F7F0F7;'
-        f'border-radius:0 8px 8px 0;padding:14px 18px;height:100%;">'
-        f'<div style="font-weight:700;color:{PURPLE};margin-bottom:10px;">Why we\'re here</div>'
-        f'<ul style="margin:0;padding-left:16px;font-size:0.85em;color:#444;line-height:1.8;">'
-        f'<li>Reflect on where Audeara has come from</li>'
-        f'<li>Clarify why we exist and where we are going</li>'
-        f'<li>Agree on how we make strategic choices</li>'
-        f'<li>Strengthen how we work together</li>'
-        f'<li>Build a clearer link between company strategy and everyday decisions</li>'
-        f'</ul></div>',
+        f'<div style="font-weight:700;color:{PURPLE};margin-bottom:10px;">Why we\'re here</div>',
         unsafe_allow_html=True,
     )
+    for item in WHY_HERE:
+        st.markdown(
+            f'<div style="background:#F7F0F7;border-radius:8px;padding:12px 14px;'
+            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'<span style="color:{PURPLE};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
+            unsafe_allow_html=True,
+        )
 
 with col_leave:
     st.markdown(
-        f'<div style="border-left:4px solid {TEAL};background:#F0F8F8;'
-        f'border-radius:0 8px 8px 0;padding:14px 18px;height:100%;">'
-        f'<div style="font-weight:700;color:{TEAL};margin-bottom:10px;">What we want to leave with</div>'
-        f'<ul style="margin:0;padding-left:16px;font-size:0.85em;color:#444;line-height:1.8;">'
-        f'<li>Shared mission and vision themes</li>'
-        f'<li>A clearer picture of Audeara\'s future</li>'
-        f'<li>Greater understanding of our strategic choices</li>'
-        f'<li>A common approach to prioritisation</li>'
-        f'<li>Better understanding of how different working styles affect communication</li>'
-        f'<li>Clear inputs for the FY27 strategy and beyond</li>'
-        f'</ul></div>',
+        f'<div style="font-weight:700;color:{TEAL};margin-bottom:10px;">What we want to leave with</div>',
         unsafe_allow_html=True,
     )
+    for item in LEAVE_WITH:
+        st.markdown(
+            f'<div style="background:#F0F8F8;border-radius:8px;padding:12px 14px;'
+            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
+            unsafe_allow_html=True,
+        )
 
 st.markdown('')
 
