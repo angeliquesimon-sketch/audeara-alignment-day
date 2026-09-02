@@ -1,5 +1,11 @@
 import streamlit as st
 
+# Pre-load shared modules so they're fully in sys.modules before any page
+# triggers a concurrent import, which can cause KeyError in Python's import lock.
+import utils  # noqa: F401
+import styles_shared  # noqa: F401
+import strategy_cascade_shared  # noqa: F401
+
 st.set_page_config(
     page_title='Audeara Alignment Day',
     page_icon='🎯',

@@ -18,12 +18,12 @@ def _creds():
 
 def _sheets():
     if 'sheets_service' not in st.session_state:
-        st.session_state['sheets_service'] = build('sheets', 'v4', credentials=_creds())
+        st.session_state['sheets_service'] = build('sheets', 'v4', credentials=_creds(), cache_discovery=False)
     return st.session_state['sheets_service']
 
 def _drive():
     if 'drive_service' not in st.session_state:
-        st.session_state['drive_service'] = build('drive', 'v3', credentials=_creds())
+        st.session_state['drive_service'] = build('drive', 'v3', credentials=_creds(), cache_discovery=False)
     return st.session_state['drive_service']
 
 def _clear_sheets():
