@@ -183,7 +183,7 @@ with tab_submit:
             try:
                 append_submission(COVER_YEAR, _pub, _headline, _story, _quote, _bottom, _img_desc)
                 for _k in ['vsub_pub', 'vsub_headline', 'vsub_story', 'vsub_quote', 'vsub_bottom', 'vision_img_desc_outer']:
-                    st.session_state[_k] = ''
+                    st.session_state.pop(_k, None)
                 st.session_state.pop('_vision_preview_for', None)
                 st.cache_data.clear()
                 st.toast('Submitted! Head to the Vote tab to upvote your favourites.', icon='✅')
