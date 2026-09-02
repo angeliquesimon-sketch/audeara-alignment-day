@@ -38,20 +38,21 @@ def _cascade_levels_html(stage):
     """Vertical cascade visual showing revealed levels."""
 
     def _tier(label, sublabel, colour, active, items=None):
-        opacity = '1' if active else '0.28'
-        bg      = colour if active else '#E0E0E0'
-        tc      = 'white' if active else '#AAAAAA'
+        if active:
+            bg, tc, border = colour, 'white', 'none'
+        else:
+            bg, tc, border = '#F2F2F2', '#AAAAAA', '1px solid #DDDDDD'
         items_html = ''
         if active and items:
             items_html = ''.join(
-                f'<div style="font-size:0.75em;line-height:1.5;padding:3px 0;'
-                f'border-top:1px solid rgba(255,255,255,0.25);margin-top:4px;">{it}</div>'
+                f'<div style="font-size:0.78em;line-height:1.6;padding:4px 0;'
+                f'border-top:1px solid rgba(255,255,255,0.3);margin-top:5px;color:rgba(255,255,255,0.92);">{it}</div>'
                 for it in items
             )
         return (
-            f'<div style="background:{bg};border-radius:10px;padding:14px 18px;'
-            f'margin-bottom:6px;opacity:{opacity};">'
-            f'<div style="font-size:0.68em;font-weight:700;letter-spacing:2px;color:{tc};opacity:0.8;">{label}</div>'
+            f'<div style="background:{bg};border:{border};border-radius:10px;padding:14px 18px;'
+            f'margin-bottom:6px;">'
+            f'<div style="font-size:0.68em;font-weight:700;letter-spacing:2px;color:{tc};">{label}</div>'
             f'<div style="font-size:0.9em;font-weight:600;color:{tc};margin-top:3px;">{sublabel}</div>'
             f'{items_html}</div>'
         )
