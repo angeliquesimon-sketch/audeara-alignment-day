@@ -34,11 +34,11 @@ TEXT = {
 }
 
 TEAM = sorted([
-    'Alex Afflick', 'Alex Bartlett', 'Alex Dalgleish', 'Andrew Morton',
-    'Angelique Simon', 'Bill Peng', 'Charli Every', 'Christine Bassett',
-    'David Trimboli', 'Dylan Whitehouse', 'Ellissa Waters', 'Iben Lund',
+    'Alex Bartlett', 'Andrew Morton',
+    'Angelique Simon', 'Bill Peng', 'Charli Every', 'Sayaka Smith',
+    'Dylan Whitehouse', 'Ellissa Waters',
     "Ian O'Brien", 'James Fielding', 'John Krajewski',
-    'Louise Heller', 'Rebekah Davidson', 'Robert Poulsen', 'Stephen Buckley',
+    'Louise Heller', 'Misaki Kawashima', 'Rebekah Davidson', 'Robert Poulsen',
 ])
 
 SCENARIOS = [
