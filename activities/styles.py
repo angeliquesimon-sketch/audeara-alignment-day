@@ -33,7 +33,9 @@ if not st.session_state.get('_styles_tab_ensured'):
 st.markdown('### Team Activity — Different Styles, Shared Direction')
 st.markdown(
     'We all approach decisions, change and collaboration differently. '
-    'This activity makes those differences visible and explores how they shape the way we work together.'
+    'This activity makes those differences visible and explores how they shape the way we work together. '
+    'One thing to know before you start: your results are visible to the whole team, not anonymous. '
+    'This is intentional. The goal is to understand each other better, not to judge where anyone lands.'
 )
 
 tab_submit, tab_team = st.tabs(['🧭 Submit your results', '🎨 Team map'])
