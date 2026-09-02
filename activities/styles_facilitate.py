@@ -106,7 +106,8 @@ with col_b:
         if st.button(back_label, use_container_width=True):
             set_session('current_scenario', str(current - 1))
             set_session('reveal_active', '0')
-            set_session('scenario_started_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            # Clear started_at so tracker counts all existing submissions (no timestamp filter)
+            set_session('scenario_started_at', '')
             st.rerun()
 
 with col_c:
