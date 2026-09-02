@@ -44,11 +44,11 @@ def _mission_vision_html(mission_top, vision):
             f'so they can <strong>{mission_top.get("Makes Possible", "…")}</strong>.'
         )
     else:
-        m_body = '<em style="color:#AAA;">Mission coming from the morning session.</em>'
+        m_body = '<em style="color:white;">Mission coming from the morning session.</em>'
 
     v_body = (
         f'<em>"{vision}"</em>' if vision
-        else '<em style="color:#AAA;">Vision coming from the morning session.</em>'
+        else '<em style="color:white;">Vision coming from the morning session.</em>'
     )
 
     return (
