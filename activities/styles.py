@@ -97,6 +97,16 @@ st.markdown(
     'One thing to know before you start: your results are visible to the whole team, not anonymous. '
     'This is intentional. The goal is to understand each other better, not to judge where anyone lands.'
 )
+st.markdown(
+    f'<div class="activity-card">'
+    f'<strong>Borrowed from <em>Surrounded by Idiots</em> by Thomas Erikson</strong> — a book with a title that sounds '
+    f'like a complaint and turns out to be an invitation. The premise: the people who frustrate you most '
+    f'aren\'t doing it on purpose. They just have a completely different set of instincts to you. '
+    f'We\'re mapping those today.'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+st.markdown('')
 
 tab_submit, tab_team = st.tabs(['🧭 Submit your results', '🎨 Team map'])
 
