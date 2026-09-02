@@ -1,10 +1,16 @@
 import streamlit as st
+import threading
+import importlib
+import sys
 
-# Pre-load shared modules so they're fully in sys.modules before any page
-# triggers a concurrent import, which can cause KeyError in Python's import lock.
-import utils  # noqa: F401
-import styles_shared  # noqa: F401
-import strategy_cascade_shared  # noqa: F401
+# Ensure shared modules are fully imported before any page can race on them.
+# Uses a process-level lock so only one thread does the import; others wait
+# and then find the module already in sys.modules.
+_import_lock = threading.Lock()
+with _import_lock:
+    for _mod in ('utils', 'styles_shared', 'strategy_cascade_shared'):
+        if _mod not in sys.modules:
+            importlib.import_module(_mod)
 
 st.set_page_config(
     page_title='Audeara Alignment Day',
