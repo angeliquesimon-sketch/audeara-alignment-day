@@ -65,6 +65,35 @@ st.markdown('### Audeara Alignment Day')
 st.markdown('FY27 strategy and alignment. One team, one direction.')
 st.markdown('')
 
+# ── Ground rules ──────────────────────────────────────────────────────────────
+
+st.markdown(
+    f'<div style="font-weight:700;font-size:1.05em;color:{TEAL};margin-bottom:14px;">'
+    f'Good times. Good vibes.</div>',
+    unsafe_allow_html=True,
+)
+
+RULES = [
+    'Be open and constructive',
+    'Challenge ideas, not people',
+    'Make space for different perspectives',
+    'Focus on the company, not individual agendas',
+    'Seek clarity rather than perfect wording',
+    'Stay curious when someone sees things differently',
+]
+
+cols = st.columns(3)
+for i, rule in enumerate(RULES):
+    with cols[i % 3]:
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
+            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{rule}</div>',
+            unsafe_allow_html=True,
+        )
+
+st.divider()
+
 # ── Why we're here ────────────────────────────────────────────────────────────
 
 col_why, col_leave = st.columns(2)
@@ -294,31 +323,3 @@ def _overview():
     )
 
 _overview()
-
-# ── Ground rules ──────────────────────────────────────────────────────────────
-
-st.divider()
-st.markdown(
-    f'<div style="font-weight:700;font-size:1.05em;color:{TEAL};margin-bottom:14px;">'
-    f'Good times. Good vibes.</div>',
-    unsafe_allow_html=True,
-)
-
-RULES = [
-    'Be open and constructive',
-    'Challenge ideas, not people',
-    'Make space for different perspectives',
-    'Focus on the company, not individual agendas',
-    'Seek clarity rather than perfect wording',
-    'Stay curious when someone sees things differently',
-]
-
-cols = st.columns(3)
-for i, rule in enumerate(RULES):
-    with cols[i % 3]:
-        st.markdown(
-            f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
-            f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{rule}</div>',
-            unsafe_allow_html=True,
-        )
