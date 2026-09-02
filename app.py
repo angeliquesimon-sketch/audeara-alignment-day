@@ -10,6 +10,9 @@ st.title('Audeara Alignment Day')
 st.caption('FY27 · Strategy and alignment activities')
 
 pg = st.navigation({
+    'Overview': [
+        st.Page('activities/overview.py',            title='🏠 Overview'),
+    ],
     'Activities': [
         st.Page('activities/mission_statement.py',   title='Mission Statement'),
         st.Page('activities/magazine_cover.py',      title='Vision Statement'),
