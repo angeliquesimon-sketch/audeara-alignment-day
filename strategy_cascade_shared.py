@@ -59,8 +59,8 @@ FUNCTION_ONE_THINGS = {
     'Leadership & Strategy':  'Focus on what most directly drives durable, profitable growth and strategic attractiveness.',
 }
 
-GOAL_COLOURS  = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
-FUNC_COLOURS  = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
+GOAL_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
+FUNC_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
 
 # ── Confidence column layout (interleaved per goal) ───────────────────────────
 
