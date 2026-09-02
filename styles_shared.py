@@ -81,9 +81,9 @@ SCENARIOS = [
     dict(
         title='Definition versus discovery',
         prompt='A project has stalled and needs a reset. What feels most natural?',
-        left_label="Step back and question whether we're solving the right problem",
+        left_label='I want to zoom out and rethink the brief',
         left_colour='Yellow',
-        right_label='Name the problem, agree the next step, and move',
+        right_label="Let's agree on a next step and go",
         right_colour='Red',
         discussion='How could the opposite instinct help you get to a better answer faster?',
     ),
