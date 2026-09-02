@@ -8,7 +8,7 @@ from utils import inject_styles, PURPLE, TEAL
 from strategy_cascade_shared import (
     GOALS, FUNCTIONS, FUNCTION_ONE_THINGS,
     _ensure_cascade_tabs,
-    pull_cascade_session, pull_cascade_context,
+    pull_cascade_session, pull_cascade_context, pull_cascade_content,
     pull_commitments, pull_confidence,
     save_commitment, save_confidence,
 )
@@ -67,11 +67,10 @@ def _mission_vision_html(mission_top, vision):
         f'</div>'
     )
 
-def _function_one_things_html():
+def _function_one_things_html(fn_one_things):
     """Function One Things in a 2-column grid."""
-    fns = list(FUNCTION_ONE_THINGS.items())
+    fns = list(fn_one_things.items())
 
-    # Pair into rows of 2
     rows_html = ''
     for i in range(0, len(fns), 2):
         pair = fns[i:i + 2]
@@ -96,12 +95,12 @@ def _function_one_things_html():
         f'</div>'
     )
 
-def _goals_html():
+def _goals_html(goals):
     """Goals list as compact reference cards."""
     html = (
         f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">FY27 GOALS</div>'
     )
-    for g in GOALS:
+    for g in goals:
         html += (
             f'<div style="border-left:4px solid {PURPLE};background:#F8F8F8;'
             f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;">'
@@ -134,18 +133,19 @@ def _cascade_live(name):
         )
         return
 
-    # ── Pull context (Mission + Vision) ────────────────────────────────────────
+    # ── Pull context (Mission + Vision) and live content ──────────────────────
     mission_top, vision = pull_cascade_context()
+    goals_live, fn_live = pull_cascade_content()
 
     # ── Mission + Vision (shown from 'functions' stage onwards) ────────────────
     st.markdown(_mission_vision_html(mission_top, vision), unsafe_allow_html=True)
 
     # ── Function One Things ────────────────────────────────────────────────────
-    st.markdown(_function_one_things_html(), unsafe_allow_html=True)
+    st.markdown(_function_one_things_html(fn_live), unsafe_allow_html=True)
 
     # ── FY27 Goals (shown from 'goals' stage onwards) ─────────────────────────
     if stage in ('goals', 'confidence', 'commitment', 'complete'):
-        st.markdown(_goals_html(), unsafe_allow_html=True)
+        st.markdown(_goals_html(goals_live), unsafe_allow_html=True)
 
     # ── Still walking through ──────────────────────────────────────────────────
     if stage in ('functions', 'goals'):
@@ -198,7 +198,7 @@ def _cascade_live(name):
                 + str(conf_row.get(g['id'] + '_Confidence', '—')) + '/5'
                 + (f' — {conf_row.get(g["id"] + "_Risk", "")}' if conf_row.get(g['id'] + '_Risk', '') else '')
                 + '</div>'
-                for g in GOALS
+                for g in goals_live
             )
             + f'</div>',
             unsafe_allow_html=True,
@@ -219,7 +219,7 @@ def _cascade_live(name):
     confidence = {}
     risks      = {}
 
-    for g in GOALS:
+    for g in goals_live:
         conf_key = f'{g["id"]}_Confidence'
         risk_key = f'{g["id"]}_Risk'
         default_conf = 3
@@ -279,7 +279,7 @@ def _cascade_live(name):
                                key=f'cascade_fn_{name}')
 
     if function:
-        one_thing = FUNCTION_ONE_THINGS.get(function, '')
+        one_thing = fn_live.get(function, '')
         st.markdown(
             f'<div style="background:#F0F8F8;border-left:3px solid {TEAL};'
             f'border-radius:0 8px 8px 0;padding:10px 14px;margin:6px 0 10px;'

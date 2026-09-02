@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL
-from strategy_cascade_shared import GOALS, FUNCTIONS, pull_commitments, pull_confidence
+from strategy_cascade_shared import GOALS, FUNCTIONS, pull_commitments, pull_confidence, pull_cascade_content
 
 inject_styles()
 
@@ -15,6 +15,8 @@ st.markdown('### Strategy Cascade — Results')
 def _results():
     df_comm = pull_commitments()
     df_conf = pull_confidence()
+
+    goals_live, fn_live = pull_cascade_content()
 
     if df_comm.empty and df_conf.empty:
         st.markdown(
@@ -32,7 +34,7 @@ def _results():
             'color:#888;margin-bottom:12px;">GOAL CONFIDENCE</div>',
             unsafe_allow_html=True,
         )
-        for g in GOALS:
+        for g in goals_live:
             nums = []
             for v in df_conf[f'{g["id"]}_Confidence'].tolist():
                 try: nums.append(int(v))
@@ -73,7 +75,7 @@ def _results():
             'color:#888;margin:20px 0 12px;">PERSONAL ONE THINGS</div>',
             unsafe_allow_html=True,
         )
-        for fn in FUNCTIONS:
+        for fn in fn_live:
             fn_rows = df_comm[df_comm['Function'] == fn]
             if fn_rows.empty:
                 continue

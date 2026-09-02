@@ -11,6 +11,7 @@ from strategy_cascade_shared import (
     _ensure_cascade_tabs,
     pull_cascade_session, set_cascade_session,
     pull_commitments, pull_confidence,
+    pull_cascade_content, save_cascade_content,
 )
 from styles_shared import TEAM
 
@@ -115,27 +116,26 @@ st.divider()
 
 # ── Content preview ────────────────────────────────────────────────────────────
 
-with st.expander('Review cascade content', expanded=False):
-    st.markdown('**Function One Things**')
+with st.expander('Edit cascade content', expanded=False):
+    _goals_live, _fn_live = pull_cascade_content()
+
+    st.markdown(f'<div style="font-weight:700;color:{PURPLE};margin-bottom:12px;">FY27 Goals</div>', unsafe_allow_html=True)
+    _new_goals = []
+    for i, g in enumerate(_goals_live):
+        t = st.text_input(f'Goal {i + 1} title', value=g['title'], key=f'edit_goal_title_{i}')
+        d = st.text_area(f'Goal {i + 1} description', value=g['description'], key=f'edit_goal_desc_{i}', height=75)
+        _new_goals.append({'id': g['id'], 'title': t, 'description': d})
+        st.markdown('')
+
+    st.markdown(f'<div style="font-weight:700;color:{TEAL};margin:8px 0 12px;">Function One Things</div>', unsafe_allow_html=True)
+    _new_fn = {}
     for fn in FUNCTIONS:
-        st.markdown(
-            f'<div style="border-left:4px solid {TEAL};background:#F8F8F8;'
-            f'border-radius:0 6px 6px 0;padding:8px 14px;margin-bottom:8px;">'
-            f'<div style="font-weight:700;font-size:0.84em;color:{TEAL};">{fn}</div>'
-            f'<div style="font-size:0.8em;color:#666;margin-top:2px;">{FUNCTION_ONE_THINGS[fn]}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-    st.markdown('**FY27 Goals**')
-    for g in GOALS:
-        st.markdown(
-            f'<div style="border-left:4px solid {PURPLE};background:#F8F8F8;'
-            f'border-radius:0 6px 6px 0;padding:8px 14px;margin-bottom:8px;">'
-            f'<div style="font-weight:700;font-size:0.88em;color:{PURPLE};">{g["title"]}</div>'
-            f'<div style="font-size:0.8em;color:#666;margin-top:2px;">{g["description"]}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        _new_fn[fn] = st.text_area(fn, value=_fn_live.get(fn, ''), key=f'edit_fn_{fn}', height=75)
+
+    if st.button('Save content', type='primary', key='save_cascade_content'):
+        save_cascade_content(_new_goals, _new_fn)
+        st.success('Saved.')
+        st.rerun()
 
 # ── Live tracker ───────────────────────────────────────────────────────────────
 
