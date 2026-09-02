@@ -4,10 +4,6 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import io
 from utils import inject_styles, with_retry, _sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
@@ -18,64 +14,95 @@ from styles_shared import (
 
 inject_styles()
 
-# ── Spectrum chart ────────────────────────────────────────────────────────────────
+# ── Spectrum chart (pure SVG — no matplotlib) ─────────────────────────────────────
 
 def _render_spectrum(current, sc, df, started_at):
-    """Horizontal spectrum showing where each participant landed for this scenario."""
+    """Horizontal spectrum as inline SVG."""
     col = f'S{current + 1}'
     lc  = HEX[sc['left_colour']]
     rc  = HEX[sc['right_colour']]
 
     if df.empty:
         return None
-
     df_shown = df[df['Timestamp'] >= started_at] if started_at else df
     if df_shown.empty:
         return None
 
     people = [(row['Name'].split()[0], int(row[col])) for _, row in df_shown.iterrows()]
 
-    fig, ax = plt.subplots(figsize=(9, 2.4))
-    fig.patch.set_facecolor('#FAFAFA')
-    ax.set_facecolor('#FAFAFA')
+    W, LINE_Y, H = 600, 46, 90
 
-    ax.axvspan(0,   50,  alpha=0.06, color=lc, zorder=0)
-    ax.axvspan(50, 100,  alpha=0.06, color=rc, zorder=0)
-    ax.axvline(50, color='#E0E0E0', linewidth=1, zorder=1)
-    ax.axhline(0.28, color='#CCCCCC', linewidth=2, zorder=1, solid_capstyle='round')
-
-    # Stack labels for clustered positions (bucket to nearest 5)
-    bucket_rank = {}
+    bucket_rank: dict = {}
+    dots_svg = ''
     for name, val in sorted(people, key=lambda x: x[1]):
         bucket = round(val / 5) * 5
         bucket_rank[bucket] = bucket_rank.get(bucket, 0) + 1
         rank = bucket_rank[bucket]
-
-        dot_colour = lc if val < 50 else (rc if val > 50 else '#999999')
-        ax.scatter(val, 0.28, s=90, color=dot_colour, zorder=3,
-                   edgecolors='white', linewidths=1.5, alpha=0.92)
-        ax.annotate(
-            name, (val, 0.28),
-            textcoords='offset points', xytext=(0, 9 + (rank - 1) * 16),
-            ha='center', va='bottom', fontsize=8.5, color='#333333',
+        x = val * W / 100
+        color = lc if val < 50 else (rc if val > 50 else '#999999')
+        label_y = LINE_Y - 12 - (rank - 1) * 14
+        dots_svg += (
+            f'<circle cx="{x:.1f}" cy="{LINE_Y}" r="6" fill="{color}" '
+            f'stroke="white" stroke-width="1.5" opacity="0.92"/>'
+            f'<text x="{x:.1f}" y="{label_y}" text-anchor="middle" '
+            f'font-size="9" fill="#333333" font-family="sans-serif">{name}</text>'
         )
 
-    ax.text(1,  -0.05, sc['left_colour'],  ha='left',  va='top', fontsize=9, color=lc, fontweight='bold')
-    ax.text(99, -0.05, sc['right_colour'], ha='right', va='top', fontsize=9, color=rc, fontweight='bold')
+    return (
+        f'<div style="background:#FAFAFA;border-radius:6px;padding:4px 0;margin:4px 0;">'
+        f'<svg viewBox="0 0 {W} {H}" style="width:100%;">'
+        f'<rect x="0" y="{LINE_Y-8}" width="300" height="16" fill="{lc}" opacity="0.07"/>'
+        f'<rect x="300" y="{LINE_Y-8}" width="300" height="16" fill="{rc}" opacity="0.07"/>'
+        f'<line x1="0" y1="{LINE_Y}" x2="{W}" y2="{LINE_Y}" '
+        f'stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>'
+        f'<line x1="300" y1="{LINE_Y-9}" x2="300" y2="{LINE_Y+9}" stroke="#E0E0E0" stroke-width="1"/>'
+        f'{dots_svg}'
+        f'<text x="5" y="{H-5}" font-size="9" fill="{lc}" font-weight="bold" '
+        f'font-family="sans-serif">{sc["left_colour"]}</text>'
+        f'<text x="{W-5}" y="{H-5}" text-anchor="end" font-size="9" fill="{rc}" '
+        f'font-weight="bold" font-family="sans-serif">{sc["right_colour"]}</text>'
+        f'</svg></div>'
+    )
 
-    ax.set_xlim(-1, 101)
-    ax.set_ylim(-0.2, 1.5)
-    ax.set_xticks([]); ax.set_yticks([])
-    for spine in ax.spines.values():
-        spine.set_visible(False)
 
-    buf = io.BytesIO()
-    fig.tight_layout(pad=0.8)
-    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight',
-                facecolor=fig.get_facecolor())
-    plt.close(fig)
-    buf.seek(0)
-    return buf
+def _team_map_svg(profiles, width=600, height=430):
+    """Pure SVG team scatter map — no matplotlib needed."""
+    hw, hh = width // 2, height // 2
+    dots_svg = ''
+    for p in profiles:
+        s  = p['scores']
+        xn = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
+        yn = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
+        cx = int(xn * width)
+        cy = int((1 - yn) * height)
+        color = HEX[p['primary']]
+        name  = p['name'].split()[0]
+        dots_svg += (
+            f'<circle cx="{cx}" cy="{cy}" r="10" fill="{color}" '
+            f'stroke="white" stroke-width="2" opacity="0.92"/>'
+            f'<text x="{cx}" y="{cy - 14}" text-anchor="middle" '
+            f'font-size="10" fill="#333333" font-family="sans-serif">{name}</text>'
+        )
+    return (
+        f'<div style="background:#F9F9F9;border-radius:8px;padding:8px 0;">'
+        f'<svg viewBox="0 0 {width} {height}" style="width:100%;">'
+        f'<rect x="0" y="0" width="{hw}" height="{hh}" fill="#F5A623" opacity="0.05"/>'
+        f'<rect x="{hw}" y="0" width="{hw}" height="{hh}" fill="#E84040" opacity="0.05"/>'
+        f'<rect x="0" y="{hh}" width="{hw}" height="{hh}" fill="#4285C8" opacity="0.05"/>'
+        f'<rect x="{hw}" y="{hh}" width="{hw}" height="{hh}" fill="#3EAA6D" opacity="0.05"/>'
+        f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="11" '
+        f'fill="#4285C8" font-weight="bold" font-family="sans-serif">Blue</text>'
+        f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" '
+        f'font-size="11" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
+        f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="11" '
+        f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
+        f'<text x="{hw}" y="16" text-anchor="middle" font-size="11" '
+        f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
+        f'{dots_svg}'
+        f'</svg></div>'
+    )
 
 # ── Init ─────────────────────────────────────────────────────────────────────────
 
@@ -209,9 +236,9 @@ def _scenario_view():
                         f'</div>',
                         unsafe_allow_html=True,
                     )
-            buf = _render_spectrum(current, sc, pull_styles(), started_at)
-            if buf:
-                st.image(buf, use_container_width=True)
+            svg_html = _render_spectrum(current, sc, pull_styles(), started_at)
+            if svg_html:
+                st.markdown(svg_html, unsafe_allow_html=True)
             st.markdown(
                 f'<div style="background:#F5F5F5;border-radius:6px;padding:14px 16px;margin-top:4px;">'
                 f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
@@ -328,48 +355,7 @@ with tab_team:
             'Y axis: Green (people-first) to Yellow (possibility-first).'
         )
 
-        fig, ax = plt.subplots(figsize=(9, 6.5))
-        fig.patch.set_facecolor('#F9F9F9')
-        ax.set_facecolor('#F9F9F9')
-
-        ax.fill_between([0.5, 1.0], [0.5, 0.5], [1.0, 1.0], color='#E84040', alpha=0.05)
-        ax.fill_between([0.0, 0.5], [0.5, 0.5], [1.0, 1.0], color='#F5A623', alpha=0.05)
-        ax.fill_between([0.5, 1.0], [0.0, 0.0], [0.5, 0.5], color='#3EAA6D', alpha=0.05)
-        ax.fill_between([0.0, 0.5], [0.0, 0.0], [0.5, 0.5], color='#4285C8', alpha=0.05)
-
-        ax.axvline(0.5, color='#ddd', linewidth=1.2, zorder=1)
-        ax.axhline(0.5, color='#ddd', linewidth=1.2, zorder=1)
-
-        ax.text(0.03, 0.5, 'Blue',   va='center', ha='left',   fontsize=10, color='#4285C8', fontweight='bold', transform=ax.transAxes)
-        ax.text(0.97, 0.5, 'Red',    va='center', ha='right',  fontsize=10, color='#E84040', fontweight='bold', transform=ax.transAxes)
-        ax.text(0.5,  0.03, 'Green', va='bottom', ha='center', fontsize=10, color='#3EAA6D', fontweight='bold', transform=ax.transAxes)
-        ax.text(0.5,  0.97, 'Yellow',va='top',    ha='center', fontsize=10, color='#F5A623', fontweight='bold', transform=ax.transAxes)
-
-        for p in profiles:
-            s  = p['scores']
-            x  = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
-            y  = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
-            pc = HEX[p['primary']]
-            ax.scatter(x, y, s=220, color=pc, zorder=3, alpha=0.92,
-                       edgecolors='white', linewidths=1.5)
-            ax.annotate(
-                p['name'].split()[0], (x, y),
-                textcoords='offset points', xytext=(0, 9),
-                ha='center', fontsize=8, color='#333333',
-            )
-
-        ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-        ax.set_xticks([]); ax.set_yticks([])
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        buf = io.BytesIO()
-        fig.tight_layout(pad=1.5)
-        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight',
-                    facecolor=fig.get_facecolor())
-        plt.close(fig)
-        buf.seek(0)
-        st.image(buf, use_container_width=True)
+        st.markdown(_team_map_svg(profiles), unsafe_allow_html=True)
 
         st.divider()
 
@@ -439,6 +425,6 @@ with tab_team:
                 f'</div>',
                 unsafe_allow_html=True,
             )
-            buf = _render_spectrum(i, sc_item, df, started_at='')
-            if buf:
-                st.image(buf, use_container_width=True)
+            svg_html = _render_spectrum(i, sc_item, df, started_at='')
+            if svg_html:
+                st.markdown(svg_html, unsafe_allow_html=True)

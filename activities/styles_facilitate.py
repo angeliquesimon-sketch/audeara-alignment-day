@@ -4,10 +4,6 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import io
 from datetime import datetime
 from utils import inject_styles, with_retry, _sheets, PURPLE, TEAL
 from styles_shared import (
@@ -19,6 +15,46 @@ from styles_shared import (
 )
 
 inject_styles()
+
+# ── Pure-SVG team map (no matplotlib) ────────────────────────────────────────────
+
+def _team_map_svg(profiles, width=600, height=430):
+    hw, hh = width // 2, height // 2
+    dots_svg = ''
+    for p in profiles:
+        s  = p['scores']
+        xn = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
+        yn = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
+        cx = int(xn * width)
+        cy = int((1 - yn) * height)
+        color = HEX[p['primary']]
+        name  = p['name'].split()[0]
+        dots_svg += (
+            f'<circle cx="{cx}" cy="{cy}" r="10" fill="{color}" '
+            f'stroke="white" stroke-width="2" opacity="0.92"/>'
+            f'<text x="{cx}" y="{cy - 14}" text-anchor="middle" '
+            f'font-size="10" fill="#333333" font-family="sans-serif">{name}</text>'
+        )
+    return (
+        f'<div style="background:#F9F9F9;border-radius:8px;padding:8px 0;">'
+        f'<svg viewBox="0 0 {width} {height}" style="width:100%;">'
+        f'<rect x="0" y="0" width="{hw}" height="{hh}" fill="#F5A623" opacity="0.05"/>'
+        f'<rect x="{hw}" y="0" width="{hw}" height="{hh}" fill="#E84040" opacity="0.05"/>'
+        f'<rect x="0" y="{hh}" width="{hw}" height="{hh}" fill="#4285C8" opacity="0.05"/>'
+        f'<rect x="{hw}" y="{hh}" width="{hw}" height="{hh}" fill="#3EAA6D" opacity="0.05"/>'
+        f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="11" '
+        f'fill="#4285C8" font-weight="bold" font-family="sans-serif">Blue</text>'
+        f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" '
+        f'font-size="11" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
+        f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="11" '
+        f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
+        f'<text x="{hw}" y="16" text-anchor="middle" font-size="11" '
+        f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
+        f'{dots_svg}'
+        f'</svg></div>'
+    )
 
 # ── Password ─────────────────────────────────────────────────────────────────────
 
@@ -236,49 +272,7 @@ if current >= 0:
                         st.markdown(card_html_small(p['name'], p['scores']), unsafe_allow_html=True)
 
             if len(profiles) >= 2:
-                st.markdown('')
-                fig, ax = plt.subplots(figsize=(9, 6))
-                fig.patch.set_facecolor('#F9F9F9')
-                ax.set_facecolor('#F9F9F9')
-
-                ax.fill_between([0.5, 1.0], [0.5, 0.5], [1.0, 1.0], color='#E84040', alpha=0.05)
-                ax.fill_between([0.0, 0.5], [0.5, 0.5], [1.0, 1.0], color='#F5A623', alpha=0.05)
-                ax.fill_between([0.5, 1.0], [0.0, 0.0], [0.5, 0.5], color='#3EAA6D', alpha=0.05)
-                ax.fill_between([0.0, 0.5], [0.0, 0.0], [0.5, 0.5], color='#4285C8', alpha=0.05)
-
-                ax.axvline(0.5, color='#ddd', linewidth=1.2, zorder=1)
-                ax.axhline(0.5, color='#ddd', linewidth=1.2, zorder=1)
-
-                ax.text(0.03, 0.5, 'Blue',   va='center', ha='left',   fontsize=10, color='#4285C8', fontweight='bold', transform=ax.transAxes)
-                ax.text(0.97, 0.5, 'Red',    va='center', ha='right',  fontsize=10, color='#E84040', fontweight='bold', transform=ax.transAxes)
-                ax.text(0.5,  0.03, 'Green', va='bottom', ha='center', fontsize=10, color='#3EAA6D', fontweight='bold', transform=ax.transAxes)
-                ax.text(0.5,  0.97, 'Yellow',va='top',    ha='center', fontsize=10, color='#F5A623', fontweight='bold', transform=ax.transAxes)
-
-                for p in profiles:
-                    s  = p['scores']
-                    x  = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
-                    y  = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
-                    pc = HEX[p['primary']]
-                    ax.scatter(x, y, s=200, color=pc, zorder=3, alpha=0.92,
-                               edgecolors='white', linewidths=1.5)
-                    ax.annotate(
-                        p['name'].split()[0], (x, y),
-                        textcoords='offset points', xytext=(0, 9),
-                        ha='center', fontsize=8, color='#333333',
-                    )
-
-                ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-                ax.set_xticks([]); ax.set_yticks([])
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
-
-                buf = io.BytesIO()
-                fig.tight_layout(pad=1.5)
-                fig.savefig(buf, format='png', dpi=150, bbox_inches='tight',
-                            facecolor=fig.get_facecolor())
-                plt.close(fig)
-                buf.seek(0)
-                st.image(buf, use_container_width=True)
+                st.markdown(_team_map_svg(profiles), unsafe_allow_html=True)
 
 # ── AI summaries ──────────────────────────────────────────────────────────────────
 
