@@ -365,6 +365,9 @@ with tab_team:
 
         with st.expander('Individual breakdown'):
             st.caption("Each person's full colour mix across all six scenarios.")
+            summaries_bd = pull_summaries()
+            session_bd   = pull_session()
+            activity_complete_bd = int(session_bd.get('current_scenario', -1)) >= len(SCENARIOS)
             for p in sorted(profiles, key=lambda x: (x['primary'], x['secondary'])):
                 bar  = ''.join(
                     f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;'
@@ -388,6 +391,16 @@ with tab_team:
                     f'</div>',
                     unsafe_allow_html=True,
                 )
+                if activity_complete_bd and p['name'] in summaries_bd:
+                    st.markdown(
+                        f'<div style="display:flex;gap:10px;margin:-2px 0 10px;">'
+                        f'<div style="width:120px;flex-shrink:0;"></div>'
+                        f'<div style="flex:1;font-size:0.76em;color:#555;line-height:1.55;'
+                        f'padding:6px 10px;background:#F7F7F7;border-radius:4px;">'
+                        f'{summaries_bd[p["name"]]}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
 
         st.divider()
 
