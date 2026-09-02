@@ -349,11 +349,22 @@ with tab_team:
         st.caption('Where the team landed on each of the six spectrums.')
 
         for i, sc_item in enumerate(SCENARIOS):
+            lc = HEX[sc_item['left_colour']]
+            rc = HEX[sc_item['right_colour']]
             st.markdown(
-                f'<div style="margin:20px 0 4px;">'
+                f'<div style="margin:24px 0 6px;">'
                 f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.12em;'
-                f'text-transform:uppercase;color:#bbb;margin-bottom:2px;">Scenario {i + 1}</div>'
-                f'<div style="font-size:0.95em;font-weight:700;color:#111;">{sc_item["title"]}</div>'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:3px;">Scenario {i + 1}</div>'
+                f'<div style="font-size:0.95em;font-weight:700;color:#111;margin-bottom:4px;">{sc_item["title"]}</div>'
+                f'<div style="font-size:0.82em;color:#666;line-height:1.55;margin-bottom:8px;">{sc_item["prompt"]}</div>'
+                f'<div style="display:flex;gap:8px;">'
+                f'<div style="flex:1;font-size:0.78em;font-weight:700;color:{lc};'
+                f'background:{lc}12;border-left:3px solid {lc};border-radius:0 4px 4px 0;'
+                f'padding:6px 10px;">{sc_item["left_label"]}</div>'
+                f'<div style="flex:1;font-size:0.78em;font-weight:700;color:{rc};'
+                f'background:{rc}12;border-right:3px solid {rc};border-radius:4px 0 0 4px;'
+                f'padding:6px 10px;text-align:right;">{sc_item["right_label"]}</div>'
+                f'</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
