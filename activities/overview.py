@@ -142,6 +142,7 @@ with col_leave:
         )
 
 st.markdown('')
+st.divider()
 
 @st.fragment(run_every=20)
 def _overview():
