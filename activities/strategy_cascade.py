@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL
 from strategy_cascade_shared import (
-    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS, GOAL_COLOURS, FUNC_COLOURS,
+    GOALS, FUNCTIONS, FUNCTION_ONE_THINGS,
     _ensure_cascade_tabs,
     pull_cascade_session, pull_cascade_context,
     pull_commitments, pull_confidence,
@@ -70,28 +70,17 @@ def _mission_vision_html(mission_top, vision):
 def _function_one_things_html():
     """Function One Things in a 2-column grid."""
     fns = list(FUNCTION_ONE_THINGS.items())
-    cells = ''
-    for i, (fn, one_thing) in enumerate(fns):
-        colour = FUNC_COLOURS[i % len(FUNC_COLOURS)]
-        cells += (
-            f'<div style="background:#F8F8F8;border-left:4px solid {colour};'
-            f'border-radius:0 8px 8px 0;padding:12px 14px;">'
-            f'<div style="font-size:0.72em;font-weight:700;color:{colour};margin-bottom:4px;">{fn.upper()}</div>'
-            f'<div style="font-size:0.82em;color:#444;line-height:1.5;">{one_thing}</div>'
-            f'</div>'
-        )
 
     # Pair into rows of 2
     rows_html = ''
     for i in range(0, len(fns), 2):
         pair = fns[i:i + 2]
         row  = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'
-        for j, (fn, one_thing) in enumerate(pair):
-            colour = FUNC_COLOURS[(i + j) % len(FUNC_COLOURS)]
+        for fn, one_thing in pair:
             row += (
-                f'<div style="background:#F8F8F8;border-left:4px solid {colour};'
+                f'<div style="background:#F8F8F8;border-left:4px solid {TEAL};'
                 f'border-radius:0 8px 8px 0;padding:12px 14px;">'
-                f'<div style="font-size:0.72em;font-weight:700;color:{colour};margin-bottom:4px;">{fn.upper()}</div>'
+                f'<div style="font-size:0.72em;font-weight:700;color:{TEAL};margin-bottom:4px;">{fn.upper()}</div>'
                 f'<div style="font-size:0.82em;color:#444;line-height:1.5;">{one_thing}</div>'
                 f'</div>'
             )
@@ -112,12 +101,11 @@ def _goals_html():
     html = (
         f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:#888;margin-bottom:10px;">FY27 GOALS</div>'
     )
-    for i, g in enumerate(GOALS):
-        colour = GOAL_COLOURS[i % len(GOAL_COLOURS)]
+    for g in GOALS:
         html += (
-            f'<div style="border-left:4px solid {colour};background:#F8F8F8;'
+            f'<div style="border-left:4px solid {PURPLE};background:#F8F8F8;'
             f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;">'
-            f'<div style="font-weight:700;font-size:0.88em;color:{colour};">{g["title"]}</div>'
+            f'<div style="font-weight:700;font-size:0.88em;color:{PURPLE};">{g["title"]}</div>'
             f'<div style="font-size:0.78em;color:#666;margin-top:2px;">{g["description"]}</div>'
             f'</div>'
         )
@@ -224,8 +212,7 @@ def _cascade_live(name):
     confidence = {}
     risks      = {}
 
-    for i, g in enumerate(GOALS):
-        colour  = GOAL_COLOURS[i % len(GOAL_COLOURS)]
+    for g in GOALS:
         conf_key = f'{g["id"]}_Confidence'
         risk_key = f'{g["id"]}_Risk'
         default_conf = 3
@@ -238,8 +225,8 @@ def _cascade_live(name):
             default_risk = df_conf[df_conf['Name'] == name].iloc[0].get(risk_key, '')
 
         st.markdown(
-            f'<div style="border-left:4px solid {colour};padding:2px 0 2px 12px;margin-bottom:4px;">'
-            f'<div style="font-weight:700;font-size:0.9em;color:{colour};">{g["title"]}</div>'
+            f'<div style="border-left:4px solid {PURPLE};padding:2px 0 2px 12px;margin-bottom:4px;">'
+            f'<div style="font-weight:700;font-size:0.9em;color:{PURPLE};">{g["title"]}</div>'
             f'<div style="font-size:0.78em;color:#666;">{g["description"]}</div>'
             f'</div>',
             unsafe_allow_html=True,
