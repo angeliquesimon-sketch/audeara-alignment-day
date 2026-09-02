@@ -63,9 +63,9 @@ SCENARIOS = [
     dict(
         title='Directness versus diplomacy',
         prompt="You strongly disagree with a colleague's proposed approach. What are you more likely to do?",
-        left_label='Protect the relationship',
+        left_label='Raise it carefully, understand their perspective and avoid making the conversation unnecessarily confrontational.',
         left_colour='Green',
-        right_label='Say it directly',
+        right_label='Explain clearly why I disagree and push to resolve the issue quickly.',
         right_colour='Red',
         discussion='What becomes possible when both instincts are in the conversation at the same time?',
     ),
