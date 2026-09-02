@@ -11,12 +11,12 @@ CASCADE_SESSION_TAB     = 'Cascade Session'
 CASCADE_COMMITMENTS_TAB = 'Cascade Commitments'
 CASCADE_CONFIDENCE_TAB  = 'Cascade Confidence'
 
-STAGES = ['hidden', 'goals', 'functions', 'complete']
+STAGES = ['hidden', 'cascade', 'open', 'complete']
 STAGE_LABELS = {
-    'hidden':    'Not started',
-    'goals':     'Goals revealed',
-    'functions': 'Function priorities revealed — submissions open',
-    'complete':  'Session complete',
+    'hidden':   'Not started',
+    'cascade':  'Cascade shown — James walking through',
+    'open':     'Submissions open',
+    'complete': 'Session complete',
 }
 
 # ── Edit these before the day with James's confirmed goals ────────────────────
@@ -59,7 +59,20 @@ FUNCTION_ONE_THINGS = {
     'Leadership & Strategy':  'Focus on what most directly drives durable, profitable growth and strategic attractiveness.',
 }
 
-GOAL_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
+GOAL_COLOURS  = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
+FUNC_COLOURS  = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
+
+# ── Confidence column layout (interleaved per goal) ───────────────────────────
+
+def _conf_header():
+    cols = ['Timestamp', 'Name']
+    for g in GOALS:
+        cols += [f'{g["id"]}_Confidence', f'{g["id"]}_Risk']
+    return cols
+
+def _conf_end_col():
+    n = len(_conf_header())
+    return chr(ord('A') + n - 1)
 
 # ── Sheet setup ────────────────────────────────────────────────────────────────
 
@@ -68,6 +81,7 @@ def _ensure_cascade_tabs():
         svc      = _sheets()
         existing = {s['properties']['title'] for s in
                     svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute().get('sheets', [])}
+
         to_add = []
         for tab in [CASCADE_SESSION_TAB, CASCADE_COMMITMENTS_TAB, CASCADE_CONFIDENCE_TAB]:
             if tab not in existing:
@@ -99,12 +113,16 @@ def _ensure_cascade_tabs():
                 body={'values': [['Timestamp', 'Name', 'Function', 'Commitment']]},
             ).execute()
 
-        # Confidence tab
-        rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:Z1",
-        ).execute().get('values', [])
-        if not rows:
-            header = ['Timestamp', 'Name'] + [f'{g["id"]}_Confidence' for g in GOALS] + ['Risk']
+        # Confidence tab — check header matches current structure, reset if not
+        header      = _conf_header()
+        end         = _conf_end_col()
+        existing_hdr = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:{end}",
+        ).execute().get('values', [[]])
+        if not existing_hdr or existing_hdr[0] != header:
+            svc.spreadsheets().values().clear(
+                spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:Z",
+            ).execute()
             svc.spreadsheets().values().update(
                 spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1",
                 valueInputOption='RAW', body={'values': [header]},
@@ -145,6 +163,41 @@ def set_cascade_session(key, value):
         ).execute()
     with_retry(_do, on_retry=_sheets.clear)
 
+# ── Mission + Vision context ───────────────────────────────────────────────────
+
+@st.cache_data(ttl=20, show_spinner=False)
+def pull_cascade_context():
+    """Pull top-voted mission answers and locked vision statement."""
+    try:
+        svc = _sheets()
+
+        # Mission votes
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range="'Votes'!A:C",
+        ).execute().get('values', [])
+        mission_top = {}
+        if len(rows) >= 2:
+            df = pd.DataFrame(rows[1:], columns=['Category', 'Answer', 'Votes'])
+            df['Votes'] = pd.to_numeric(df['Votes'], errors='coerce').fillna(0).astype(int)
+            for cat in ['Who', 'What', 'How', 'Makes Possible']:
+                sub = df[df['Category'] == cat].sort_values('Votes', ascending=False)
+                if not sub.empty and sub.iloc[0]['Votes'] > 0:
+                    mission_top[cat] = sub.iloc[0]['Answer']
+
+        # Locked vision statement
+        vision_rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range="'Vision Statement'!A2:B10",
+        ).execute().get('values', [])
+        vision = ''
+        for row in vision_rows:
+            if len(row) >= 2 and row[0] == 'final':
+                vision = row[1]
+                break
+
+        return mission_top, vision
+    except Exception:
+        return {}, ''
+
 # ── Commitments ────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=10, show_spinner=False)
@@ -181,36 +234,34 @@ def save_commitment(name, function, commitment):
         ).execute()
     with_retry(_do, on_retry=_sheets.clear)
 
-# ── Confidence ─────────────────────────────────────────────────────────────────
+# ── Confidence + per-goal risk ─────────────────────────────────────────────────
 
 @st.cache_data(ttl=10, show_spinner=False)
 def pull_confidence():
     try:
-        n     = 2 + len(GOALS) + 1
-        end   = chr(ord('A') + n - 1)
-        rows  = _sheets().spreadsheets().values().get(
+        header = _conf_header()
+        end    = _conf_end_col()
+        rows   = _sheets().spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:{end}",
         ).execute().get('values', [])
-        cols  = ['Timestamp', 'Name'] + [f'{g["id"]}_Confidence' for g in GOALS] + ['Risk']
         if len(rows) < 2:
-            return pd.DataFrame(columns=cols)
-        return pd.DataFrame(rows[1:], columns=cols)
+            return pd.DataFrame(columns=header)
+        return pd.DataFrame(rows[1:], columns=header)
     except Exception:
-        return pd.DataFrame(columns=['Timestamp', 'Name'] + [f'{g["id"]}_Confidence' for g in GOALS] + ['Risk'])
+        return pd.DataFrame(columns=_conf_header())
 
-def save_confidence(name, confidence_dict, risk):
+def save_confidence(name, confidence_dict, risks_dict):
     def _do():
         svc      = _sheets()
-        row_data = (
-            [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name] +
-            [str(confidence_dict.get(g['id'], 3)) for g in GOALS] +
-            [risk]
-        )
+        header   = _conf_header()
+        end      = _conf_end_col()
+        row_data = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name]
+        for g in GOALS:
+            row_data.append(str(confidence_dict.get(g['id'], 3)))
+            row_data.append(risks_dict.get(g['id'], ''))
         rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:B",
         ).execute().get('values', [])
-        n   = 2 + len(GOALS) + 1
-        end = chr(ord('A') + n - 1)
         for i, row in enumerate(rows[1:], start=2):
             if len(row) >= 2 and row[1] == name:
                 svc.spreadsheets().values().update(
