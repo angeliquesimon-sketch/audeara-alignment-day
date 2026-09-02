@@ -165,6 +165,59 @@ def _overview():
     styles_done   = n_styles >= n_team
     styles_alive  = n_styles > 0
 
+    # ── Agenda ────────────────────────────────────────────────────────────────
+
+    st.markdown("#### Today's agenda")
+
+    def _step(label, status, detail):
+        if status == 'done':
+            bc, bg, icon, tc = '#3EAA6D', '#E8F5EE', '✅', '#2D7D4F'
+        elif status == 'active':
+            bc, bg, icon, tc = PURPLE, '#F7F0F7', '▶', PURPLE
+        else:
+            bc, bg, icon, tc = '#CCCCCC', '#F5F5F5', '○', '#999999'
+        st.markdown(
+            f'<div style="border-left:4px solid {bc};background:{bg};'
+            f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
+            f'<div style="font-weight:700;color:{tc};">{icon}&nbsp; {label}</div>'
+            f'<div style="font-size:0.8em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    _step(
+        'Mission Statement',
+        'done'   if mission_done  else ('active' if mission_alive else 'upcoming'),
+        'Agreed.' if mission_done else
+            (f'{n_mission} idea{"s" if n_mission != 1 else ""} submitted — vote on the answers that resonate most.' if mission_alive
+             else 'Submit ideas for each part of the mission sentence, then vote on the best answers.'),
+    )
+    _step(
+        'Vision Statement — Magazine Cover',
+        'done'   if vision_done  else ('active' if vision_alive else 'upcoming'),
+        'Locked.' if vision_done else
+            (f'{n_vision} cover {"stories" if n_vision != 1 else "story"} submitted — vote and the facilitator locks the final statement.' if vision_alive
+             else 'Imagine Audeara on the cover of a major publication in 2030. Submit, vote, and lock a shared vision.'),
+    )
+    _step(
+        'Different Styles, Shared Direction',
+        'done'   if styles_done  else ('active' if styles_alive else 'upcoming'),
+        f'{n_styles} of {n_team} submitted.' if styles_done else
+            (f'{n_styles} of {n_team} submitted so far.' if styles_alive
+             else 'Map how the team approaches decisions, change, and collaboration.'),
+    )
+    casc_done  = casc_stage == 'complete'
+    casc_alive = casc_stage in ('goals', 'functions')
+    _step(
+        'Strategy Cascade',
+        'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
+        'Complete.' if casc_done else
+            (f'In progress — {n_casc_comm} of {n_team} responded.' if casc_alive else
+             'James walks through the FY27 goals and function priorities. The team commits to personal actions and surfaces execution risks.'),
+    )
+
+    st.divider()
+
     # ── Funnel colours ────────────────────────────────────────────────────────
 
     if mission_done:
@@ -296,57 +349,5 @@ def _overview():
             f'</div>',
             unsafe_allow_html=True,
         )
-
-    # ── Agenda ────────────────────────────────────────────────────────────────
-
-    st.divider()
-    st.markdown("#### Today's agenda")
-
-    def _step(label, status, detail):
-        if status == 'done':
-            bc, bg, icon, tc = '#3EAA6D', '#E8F5EE', '✅', '#2D7D4F'
-        elif status == 'active':
-            bc, bg, icon, tc = PURPLE, '#F7F0F7', '▶', PURPLE
-        else:
-            bc, bg, icon, tc = '#CCCCCC', '#F5F5F5', '○', '#999999'
-        st.markdown(
-            f'<div style="border-left:4px solid {bc};background:{bg};'
-            f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
-            f'<div style="font-weight:700;color:{tc};">{icon}&nbsp; {label}</div>'
-            f'<div style="font-size:0.8em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-
-    _step(
-        'Mission Statement',
-        'done'   if mission_done  else ('active' if mission_alive else 'upcoming'),
-        'Agreed.' if mission_done else
-            (f'{n_mission} idea{"s" if n_mission != 1 else ""} submitted — vote on the answers that resonate most.' if mission_alive
-             else 'Submit ideas for each part of the mission sentence, then vote on the best answers.'),
-    )
-    _step(
-        'Vision Statement — Magazine Cover',
-        'done'   if vision_done  else ('active' if vision_alive else 'upcoming'),
-        'Locked.' if vision_done else
-            (f'{n_vision} cover {"stories" if n_vision != 1 else "story"} submitted — vote and the facilitator locks the final statement.' if vision_alive
-             else 'Imagine Audeara on the cover of a major publication in 2030. Submit, vote, and lock a shared vision.'),
-    )
-    _step(
-        'Different Styles, Shared Direction',
-        'done'   if styles_done  else ('active' if styles_alive else 'upcoming'),
-        f'{n_styles} of {n_team} submitted.' if styles_done else
-            (f'{n_styles} of {n_team} submitted so far.' if styles_alive
-             else 'Map how the team approaches decisions, change, and collaboration.'),
-    )
-    casc_done  = casc_stage == 'complete'
-    casc_alive = casc_stage in ('goals', 'functions')
-    _step(
-        'Strategy Cascade',
-        'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
-        'Complete.' if casc_done else
-            (f'In progress — {n_casc_comm} of {n_team} responded.' if casc_alive else
-             'James walks through the FY27 goals and function priorities. The team commits to personal actions and surfaces execution risks.'),
-    )
 
 _overview()
