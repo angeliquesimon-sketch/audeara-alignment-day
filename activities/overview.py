@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 from utils import inject_styles, _sheets, PURPLE, TEAL
 from styles_shared import TEAM as STYLES_TEAM
+from strategy_cascade_shared import pull_cascade_session, pull_commitments as _pull_casc_comm
 
 inject_styles()
 
@@ -146,12 +147,16 @@ st.divider()
 
 @st.fragment(run_every=20)
 def _overview():
-    mission_top  = _mission_top()
-    vision_final = _vision_locked()
-    n_mission    = _row_count('Submissions')
-    n_vision     = _row_count('Vision Submissions')
-    n_styles     = _row_count('Styles Submissions')
-    n_team       = len(STYLES_TEAM)
+    mission_top     = _mission_top()
+    vision_final    = _vision_locked()
+    n_mission       = _row_count('Submissions')
+    n_vision        = _row_count('Vision Submissions')
+    n_styles        = _row_count('Styles Submissions')
+    n_team          = len(STYLES_TEAM)
+    casc_session    = pull_cascade_session()
+    casc_stage      = casc_session.get('stage', 'hidden')
+    casc_df         = _pull_casc_comm()
+    n_casc_comm     = len(casc_df) if not casc_df.empty else 0
 
     mission_done  = len(mission_top) == 4
     mission_alive = n_mission > 0
@@ -333,6 +338,15 @@ def _overview():
         f'{n_styles} of {n_team} submitted.' if styles_done else
             (f'{n_styles} of {n_team} submitted so far.' if styles_alive
              else 'Map how the team approaches decisions, change, and collaboration.'),
+    )
+    casc_done  = casc_stage == 'complete'
+    casc_alive = casc_stage in ('goals', 'functions')
+    _step(
+        'Strategy Cascade',
+        'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
+        'Complete.' if casc_done else
+            (f'In progress — {n_casc_comm} of {n_team} responded.' if casc_alive else
+             'James walks through the FY27 goals and function priorities. The team commits to personal actions and surfaces execution risks.'),
     )
 
 _overview()
