@@ -310,15 +310,16 @@ if st.button('✨ Draft vision statement candidates', type='primary', key='fac_g
             )
             save_vision_candidates(_new_candidates)
             st.cache_data.clear()
-            st.session_state['fac_vision_candidates'] = _new_candidates
             st.toast('Candidates published to Vision Statement tab ✓', icon='✅')
+            st.rerun()
         except Exception as _e:
             st.error(f'Could not generate candidates. ({_e})')
 
-_show_candidates = st.session_state.get('fac_vision_candidates', _v_candidates)
-if _show_candidates:
+# Always read from sheet so participant suggestions appear without a full refresh
+_v_candidates, _v_final = pull_vision_data()
+if _v_candidates:
     st.markdown('**Candidates now showing on the Vision Statement tab:**')
-    for i, c in enumerate(_show_candidates):
+    for i, c in enumerate(_v_candidates):
         st.markdown(f'**{i+1}.** {c}')
 
 st.markdown('')
@@ -335,10 +336,8 @@ if st.button('➕ Add to candidates', key='fac_add_candidate'):
     if _manual_input.strip():
         try:
             _current, _ = pull_vision_data()
-            _updated = (_show_candidates or _current or []) + [_manual_input.strip()]
-            save_vision_candidates(_updated)
+            save_vision_candidates((_current or []) + [_manual_input.strip()])
             st.cache_data.clear()
-            st.session_state['fac_vision_candidates'] = _updated
             st.session_state.pop('fac_manual_candidate', None)
             st.toast('Candidate added to Vision Statement tab ✓', icon='✅')
             st.rerun()
