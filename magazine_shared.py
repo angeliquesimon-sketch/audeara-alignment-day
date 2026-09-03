@@ -93,17 +93,16 @@ def _ensure_tabs():
 
 @st.cache_data(ttl=20, show_spinner=False)
 def pull_submissions():
-    try:
-        rows = _sheets().spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:I",
-        ).execute().get('values', [])
-        if len(rows) < 2:
-            return pd.DataFrame(columns=COLUMNS)
-        headers = rows[0]
-        data    = [r + [''] * (len(headers) - len(r)) for r in rows[1:]]
-        return pd.DataFrame(data, columns=headers)
-    except Exception:
+    rows = _sheets().spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:I",
+    ).execute().get('values', [])
+    if len(rows) < 2:
         return pd.DataFrame(columns=COLUMNS)
+    headers = rows[0]
+    # Pad or trim each data row to match header length
+    n = len(headers)
+    data = [r[:n] + [''] * max(0, n - len(r)) for r in rows[1:]]
+    return pd.DataFrame(data, columns=headers)
 
 def append_submission(year, pub, headline, partner_title, story, quote, standout, image_desc):
     _sheets().spreadsheets().values().append(
@@ -469,6 +468,15 @@ def generate_vision_candidates(pub, headline, story_seed, quote, standout, partn
 # ── Partner badge ──────────────────────────────────────────────────────────────
 
 def build_partner_badge_html(partner_title):
+    rings_svg = (
+        '<svg width="96" height="48" viewBox="0 0 120 56" xmlns="http://www.w3.org/2000/svg">'
+        '<circle cx="18" cy="18" r="14" fill="none" stroke="#0085C7" stroke-width="4.5"/>'
+        '<circle cx="60" cy="18" r="14" fill="none" stroke="#1a1a1a" stroke-width="4.5"/>'
+        '<circle cx="102" cy="18" r="14" fill="none" stroke="#DF0024" stroke-width="4.5"/>'
+        '<circle cx="39" cy="38" r="14" fill="none" stroke="#F4C300" stroke-width="4.5"/>'
+        '<circle cx="81" cy="38" r="14" fill="none" stroke="#009F6B" stroke-width="4.5"/>'
+        '</svg>'
+    )
     return (
         f'<div style="background:linear-gradient(135deg,#50144B,#781E73);'
         f'border-radius:10px;padding:14px 18px;text-align:center;color:white;'
@@ -479,6 +487,9 @@ def build_partner_badge_html(partner_title):
         f'{partner_title}</div>'
         f'<div style="font-size:0.58em;letter-spacing:0.2em;text-transform:uppercase;'
         f'color:rgba(255,255,255,0.65);margin-bottom:10px;">Partner</div>'
+        f'<div style="background:white;border-radius:6px;display:inline-block;'
+        f'padding:5px 10px;margin-bottom:10px;">{rings_svg}</div>'
+        f'<br>'
         f'<div style="background:#188383;border-radius:5px;padding:3px 12px;'
         f'display:inline-block;font-size:0.65em;font-weight:700;letter-spacing:0.1em;">'
         f'BRISBANE 2032</div>'

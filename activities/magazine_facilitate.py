@@ -71,11 +71,29 @@ st.markdown(
 )
 st.caption('Composed cover PNGs save automatically when you preview a version below. Raw AI images also land here.')
 
+# ── Live submission counter (auto-refreshes every 20s) ─────────────────────────
+
+@st.fragment(run_every=20)
+def _submission_counter():
+    _subs = pull_submissions()
+    count = len(_subs)
+    c_msg, c_btn = st.columns([5, 1])
+    with c_msg:
+        if count == 0:
+            st.info('No submissions yet — waiting for the room.')
+        else:
+            st.success(f'**{count} submission{"s" if count != 1 else ""}** received so far.')
+    with c_btn:
+        if st.button('Refresh', key='fac_refresh_top', use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
+_submission_counter()
+
 fac_subs  = pull_submissions()
 fac_votes = pull_votes()
 
 if fac_subs.empty:
-    st.info('No submissions yet.')
     st.stop()
 
 # ── Vote adjustment ────────────────────────────────────────────────────────────
@@ -85,7 +103,7 @@ st.caption('Override any vote count directly. Changes update the sheet immediate
 
 c_ref, _ = st.columns([1, 5])
 with c_ref:
-    if st.button('Refresh', key='fac_refresh'):
+    if st.button('Refresh all', key='fac_refresh'):
         st.cache_data.clear()
         st.rerun()
 
