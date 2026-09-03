@@ -322,6 +322,32 @@ if _show_candidates:
         st.markdown(f'**{i+1}.** {c}')
 
 st.markdown('')
+st.markdown('**Add a candidate manually**')
+st.caption('Type anything the room comes up with and add it to the list on the Vision Statement tab.')
+
+_manual_input = st.text_input(
+    'Manual candidate',
+    key='fac_manual_candidate',
+    label_visibility='collapsed',
+    placeholder='e.g. "Audeara makes every listening moment matter, for everyone."',
+)
+if st.button('➕ Add to candidates', key='fac_add_candidate'):
+    if _manual_input.strip():
+        try:
+            _current, _ = pull_vision_data()
+            _updated = (_show_candidates or _current or []) + [_manual_input.strip()]
+            save_vision_candidates(_updated)
+            st.cache_data.clear()
+            st.session_state['fac_vision_candidates'] = _updated
+            st.session_state.pop('fac_manual_candidate', None)
+            st.toast('Candidate added to Vision Statement tab ✓', icon='✅')
+            st.rerun()
+        except Exception as _e:
+            st.error(f'Could not add candidate. ({_e})')
+    else:
+        st.warning('Type a candidate first.')
+
+st.markdown('')
 st.markdown('**Lock in the final vision statement**')
 st.caption('Type the agreed version here — it will appear at the top of the Vision Statement tab for everyone.')
 
