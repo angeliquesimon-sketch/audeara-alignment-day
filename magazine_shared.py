@@ -513,6 +513,7 @@ def generate_vision_candidates(pub, headline, story_seed, quote, standout, partn
         '- Be grounded in the team\'s actual inputs above, not generic aspiration\n'
         '- Be one sentence, 20 to 35 words\n'
         '- Write the way a person speaks, not the way a marketing team writes — each statement should be specific enough that someone reading it could picture the person whose life changed\n'
+        '- Avoid product features and specific use cases\n'
         '- Use British English\n'
         '- No hyphens or em dashes\n\n'
         'Return only the 3 statements, each on its own line, numbered 1. 2. 3. No other text.'
