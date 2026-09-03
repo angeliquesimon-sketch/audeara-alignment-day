@@ -12,7 +12,7 @@ from magazine_shared import (
     pull_generated_story, save_generated_story, generate_story,
     build_cover_html,
     pull_vision_data, save_vision_candidates, save_final_vision, generate_vision_candidates,
-    pull_vision_candidate_votes,
+    pull_vision_candidate_votes, pull_mission_context,
 )
 
 inject_styles()
@@ -306,8 +306,10 @@ _v_candidates, _v_final = pull_vision_data()
 if st.button('✨ Draft vision statement candidates', type='primary', key='fac_gen_vision'):
     with st.spinner('Drafting candidates…'):
         try:
+            _mission = pull_mission_context()
             _new_candidates = generate_vision_candidates(
                 _st_pub, _st_headline, _st_story, _st_quote, _st_standout, _st_partner,
+                mission=_mission,
             )
             save_vision_candidates(_new_candidates)
             st.cache_data.clear()

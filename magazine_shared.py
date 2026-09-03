@@ -465,7 +465,26 @@ def upsert_vision_candidate_vote(candidate):
         body={'values': [[candidate, 1]]},
     ).execute()
 
-def generate_vision_candidates(pub, headline, story_seed, quote, standout, partner_title=''):
+def pull_mission_context():
+    """Reconstruct agreed mission from top-voted Mission Statement answers."""
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range="'Votes'!A:C",
+        ).execute().get('values', [])
+        if len(rows) < 2:
+            return ''
+        from collections import defaultdict
+        tally = defaultdict(dict)
+        for row in rows[1:]:
+            if len(row) >= 3:
+                tally[row[0]][row[1]] = int(row[2])
+        top = {cat: max(ans, key=ans.get) for cat, ans in tally.items() if ans}
+        parts = [top.get(c, '') for c in ['Who', 'What', 'How', 'Makes Possible']]
+        return ' '.join(p for p in parts if p)
+    except Exception:
+        return ''
+
+def generate_vision_candidates(pub, headline, story_seed, quote, standout, partner_title='', mission=''):
     from openai import OpenAI
     client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
     context_parts = []
@@ -475,15 +494,23 @@ def generate_vision_candidates(pub, headline, story_seed, quote, standout, partn
     if quote:         context_parts.append(f'Key quote: "{quote}"')
     if standout:      context_parts.append(f'Standout fact or moment: {standout}')
     context = '\n'.join(context_parts) or 'Audeara is a leader in hearing technology and accessibility, named Official Partner of the Brisbane 2032 Olympic Games.'
+    mission_block = (
+        f'\nThe team also agreed on this mission statement earlier in the day:\n'
+        f'"{mission}"\n'
+        f'The vision statements must be clearly distinct from this — a vision describes the future world '
+        f'Audeara is working toward, not the work Audeara does today.\n'
+    ) if mission else ''
     prompt = (
         'You are helping a team distil their collective vision into a single company vision statement.\n\n'
-        f'The team imagined Audeara as an Official Partner of the Brisbane 2032 Olympic Games. Here is what they said:\n{context}\n\n'
+        f'The team imagined Audeara as an Official Partner of the Brisbane 2032 Olympic Games. Here is what they said:\n{context}\n'
+        f'{mission_block}\n'
         'Write exactly 3 candidate vision statements for Audeara. Each should:\n'
-        '- Be one or two sentences, under 30 words\n'
-        '- Start with "Audeara"\n'
+        '- Describe a future world or outcome — the change Audeara creates, not the work it does\n'
+        '- Be one or two sentences, under 25 words\n'
+        '- Start with "A world where" or "Every person" or another future-facing opener — do NOT start with "Audeara"\n'
         '- Be ambitious but credible — grounded in the team\'s inputs\n'
-        '- Focus on human outcome, not technology\n'
-        '- Use plain, direct language — no corporate jargon\n'
+        '- Sound nothing like a mission statement — no "we help", "we connect", "we provide"\n'
+        '- Use plain, vivid language — no corporate jargon\n'
         '- Use British English\n'
         '- No hyphens or em dashes\n\n'
         'Return only the 3 statements, each on its own line, numbered 1. 2. 3. No other text.'
