@@ -507,7 +507,7 @@ def generate_vision_candidates(pub, headline, story_seed, quote, standout, partn
         'Write exactly 3 candidate vision statements for Audeara. Each should:\n'
         '- Describe a future world or outcome — the change Audeara creates, not the work it does\n'
         '- Be one or two sentences, under 25 words\n'
-        '- Start with "A world where" or "Every person" or another future-facing opener — do NOT start with "Audeara"\n'
+        '- Start with "Audeara\'s vision is to"\n'
         '- Be ambitious but credible — grounded in the team\'s inputs\n'
         '- Sound nothing like a mission statement — no "we help", "we connect", "we provide"\n'
         '- Use plain, vivid language — no corporate jargon\n'
