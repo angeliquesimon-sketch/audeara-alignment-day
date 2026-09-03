@@ -8,13 +8,14 @@ import pandas as pd
 from datetime import datetime
 from utils import _sheets, _drive, PURPLE, TEAL
 
-SHEET_ID       = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-SUB_TAB        = 'Vision Submissions'
-VOTE_TAB       = 'Vision Votes'
-IMG_CACHE_TAB  = 'Image Cache'
-STORY_TAB      = 'Generated Story'
-VISION_TAB     = 'Vision Statement'
-IMGS_FOLDER_ID = '19fcjPrNdAxpMrLb8il6pBK8KXGTVI9cA'
+SHEET_ID        = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
+SUB_TAB         = 'Vision Submissions'
+VOTE_TAB        = 'Vision Votes'
+IMG_CACHE_TAB   = 'Image Cache'
+STORY_TAB       = 'Generated Story'
+VISION_TAB      = 'Vision Statement'
+VCAND_VOTES_TAB = 'Vision Candidate Votes'
+IMGS_FOLDER_ID  = '19fcjPrNdAxpMrLb8il6pBK8KXGTVI9cA'
 
 COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'Partner Title', 'The Story', 'Quote', 'Standout', 'Image']
 
@@ -432,6 +433,37 @@ def save_final_vision(text):
             spreadsheetId=SHEET_ID, range=f"'{VISION_TAB}'!A{next_row}:B{next_row}",
             valueInputOption='RAW', body={'values': [['final', text]]},
         ).execute()
+
+@st.cache_data(ttl=10, show_spinner=False)
+def pull_vision_candidate_votes():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{VCAND_VOTES_TAB}'!A:B",
+        ).execute().get('values', [])
+        if len(rows) < 2:
+            return {}
+        return {row[0]: int(row[1]) for row in rows[1:] if len(row) >= 2}
+    except Exception:
+        return {}
+
+def upsert_vision_candidate_vote(candidate):
+    svc  = _sheets()
+    rows = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{VCAND_VOTES_TAB}'!A:B",
+    ).execute().get('values', [])
+    for i, row in enumerate(rows[1:], start=2):
+        if len(row) >= 1 and row[0].strip().lower() == candidate.strip().lower():
+            current = int(row[1]) if len(row) > 1 else 0
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{VCAND_VOTES_TAB}'!B{i}",
+                valueInputOption='RAW', body={'values': [[current + 1]]},
+            ).execute()
+            return
+    svc.spreadsheets().values().append(
+        spreadsheetId=SHEET_ID, range=f"'{VCAND_VOTES_TAB}'!A:B",
+        valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+        body={'values': [[candidate, 1]]},
+    ).execute()
 
 def generate_vision_candidates(pub, headline, story_seed, quote, standout, partner_title=''):
     from openai import OpenAI

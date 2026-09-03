@@ -12,6 +12,7 @@ from magazine_shared import (
     pull_generated_story, save_generated_story, generate_story,
     build_cover_html,
     pull_vision_data, save_vision_candidates, save_final_vision, generate_vision_candidates,
+    pull_vision_candidate_votes,
 )
 
 inject_styles()
@@ -318,9 +319,14 @@ if st.button('✨ Draft vision statement candidates', type='primary', key='fac_g
 # Always read from sheet so participant suggestions appear without a full refresh
 _v_candidates, _v_final = pull_vision_data()
 if _v_candidates:
+    _cv = pull_vision_candidate_votes()
+    _sorted_cands = sorted(_v_candidates, key=lambda c: _cv.get(c, 0), reverse=True)
     st.markdown('**Candidates now showing on the Vision Statement tab:**')
-    for i, c in enumerate(_v_candidates):
-        st.markdown(f'**{i+1}.** {c}')
+    for c in _sorted_cands:
+        count = _cv.get(c, 0)
+        st.markdown(
+            f'**{count} vote{"s" if count != 1 else ""}** &nbsp;·&nbsp; {c}'
+        )
 
 st.markdown('')
 st.markdown('**Add a candidate manually**')

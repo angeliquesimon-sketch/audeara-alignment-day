@@ -12,6 +12,7 @@ from magazine_shared import (
     _compose_cover_image, _save_composed_to_drive,
     pull_generated_story, build_cover_html, build_partner_badge_html,
     pull_vision_data, save_vision_candidates,
+    pull_vision_candidate_votes, upsert_vision_candidate_vote,
 )
 
 inject_styles()
@@ -529,17 +530,39 @@ with tab_vision:
 
         elif _candidates:
             st.markdown('#### Candidates from the room')
-            st.caption('Discuss as a group — the facilitator will lock in the final version once you\'ve agreed.')
-            for i, c in enumerate(_candidates):
-                st.markdown(
-                    f'<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
-                    f'padding:20px 24px;margin:10px 0;border-left:4px solid {PURPLE};">'
-                    f'<span style="font-size:0.7em;font-weight:700;letter-spacing:0.1em;'
-                    f'text-transform:uppercase;color:{PURPLE};">Option {i+1}</span><br>'
-                    f'<span style="font-size:1.05em;line-height:1.5;">{c}</span>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+            st.caption('Vote for the one that resonates most. The facilitator will lock in the final version once you\'ve agreed.')
+
+            if 'voted_vision_candidates' not in st.session_state:
+                st.session_state['voted_vision_candidates'] = set()
+
+            _cv = pull_vision_candidate_votes()
+            _sorted = sorted(_candidates, key=lambda c: _cv.get(c, 0), reverse=True)
+
+            for i, c in enumerate(_sorted):
+                count        = _cv.get(c, 0)
+                vote_key     = f'vcand::{c}'
+                already_voted = vote_key in st.session_state['voted_vision_candidates']
+                a_col, b_col = st.columns([7, 1])
+                with a_col:
+                    st.markdown(
+                        f'<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
+                        f'padding:16px 20px;margin:8px 0;border-left:4px solid {PURPLE};">'
+                        f'<span style="font-size:0.95em;line-height:1.5;">{c}</span>'
+                        f'<span style="font-size:0.82em;color:#aaa;margin-left:10px;">'
+                        f'&nbsp;·&nbsp; {count} vote{"s" if count != 1 else ""}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                with b_col:
+                    if st.button(
+                        '✓' if already_voted else '▲',
+                        key=f'vote_vcand_{i}',
+                        disabled=already_voted,
+                        use_container_width=True,
+                    ):
+                        upsert_vision_candidate_vote(c)
+                        st.session_state['voted_vision_candidates'].add(vote_key)
+                        st.cache_data.clear()
         else:
             st.info('Candidates will appear here as the room contributes ideas. Add yours below.')
 
