@@ -11,7 +11,7 @@ from magazine_shared import (
     generate_cover_image, _show_image,
     _compose_cover_image, _save_composed_to_drive,
     pull_generated_story, build_cover_html, build_partner_badge_html,
-    pull_vision_data,
+    pull_vision_data, save_vision_candidates,
 )
 
 inject_styles()
@@ -486,62 +486,90 @@ with tab_results:
 # ── Vision Statement ───────────────────────────────────────────────────────────
 
 with tab_vision:
-    _candidates, _final = pull_vision_data()
-
     c_ref3, _ = st.columns([1, 6])
     with c_ref3:
         if st.button('Refresh', key='refresh_vision_statement'):
             st.cache_data.clear()
             st.rerun()
 
-    if _final:
-        st.markdown(
-            f'<div style="'
-            f'background:linear-gradient(135deg,#f0fafa,#e8f5f5);'
-            f'border:3px solid {TEAL};border-radius:14px;'
-            f'padding:44px 48px;margin:8px 0 36px 0;text-align:center;">'
-            f'<div style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;'
-            f'color:{TEAL};font-weight:700;margin-bottom:16px;">✦ Our Vision</div>'
-            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.9em;font-weight:700;'
-            f'line-height:1.3;color:#111;">{_final}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+    # Auto-polling candidates display
+    @st.fragment(run_every=20)
+    def _vision_tab_display():
+        _candidates, _final = pull_vision_data()
 
-        if _candidates:
-            st.markdown(
-                '<div style="font-size:0.8em;color:#aaa;margin:8px 0 4px 0;'
-                'letter-spacing:0.06em;text-transform:uppercase;">Candidates discussed</div>',
-                unsafe_allow_html=True,
-            )
-            for i, c in enumerate(_candidates):
-                st.markdown(
-                    f'<div style="'
-                    f'background:#f7f7f7;border:1px solid #e8e8e8;border-radius:8px;'
-                    f'padding:16px 20px;margin:6px 0;opacity:0.5;'
-                    f'border-left:4px solid #ccc;">'
-                    f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
-                    f'text-transform:uppercase;color:#bbb;">Option {i+1}</span><br>'
-                    f'<span style="font-size:0.95em;line-height:1.5;color:#999;">{c}</span>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-    elif _candidates:
-        st.markdown('#### Candidates from the room')
-        st.caption('Discuss as a group — the facilitator will lock in the final version once you\'ve agreed.')
-        for i, c in enumerate(_candidates):
+        if _final:
             st.markdown(
                 f'<div style="'
-                f'background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
-                f'padding:20px 24px;margin:10px 0;'
-                f'border-left:4px solid {PURPLE};">'
-                f'<span style="font-size:0.7em;font-weight:700;letter-spacing:0.1em;'
-                f'text-transform:uppercase;color:{PURPLE};">Option {i+1}</span><br>'
-                f'<span style="font-size:1.05em;line-height:1.5;">{c}</span>'
+                f'background:linear-gradient(135deg,#f0fafa,#e8f5f5);'
+                f'border:3px solid {TEAL};border-radius:14px;'
+                f'padding:44px 48px;margin:8px 0 36px 0;text-align:center;">'
+                f'<div style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;'
+                f'color:{TEAL};font-weight:700;margin-bottom:16px;">✦ Our Vision</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.9em;font-weight:700;'
+                f'line-height:1.3;color:#111;">{_final}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
-    else:
-        st.markdown('')
-        st.info('The facilitator will generate vision statement candidates once voting is complete. Check back soon.')
+            if _candidates:
+                st.markdown(
+                    '<div style="font-size:0.8em;color:#aaa;margin:8px 0 4px 0;'
+                    'letter-spacing:0.06em;text-transform:uppercase;">Candidates discussed</div>',
+                    unsafe_allow_html=True,
+                )
+                for i, c in enumerate(_candidates):
+                    st.markdown(
+                        f'<div style="background:#f7f7f7;border:1px solid #e8e8e8;border-radius:8px;'
+                        f'padding:16px 20px;margin:6px 0;opacity:0.5;border-left:4px solid #ccc;">'
+                        f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
+                        f'text-transform:uppercase;color:#bbb;">Option {i+1}</span><br>'
+                        f'<span style="font-size:0.95em;line-height:1.5;color:#999;">{c}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+        elif _candidates:
+            st.markdown('#### Candidates from the room')
+            st.caption('Discuss as a group — the facilitator will lock in the final version once you\'ve agreed.')
+            for i, c in enumerate(_candidates):
+                st.markdown(
+                    f'<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
+                    f'padding:20px 24px;margin:10px 0;border-left:4px solid {PURPLE};">'
+                    f'<span style="font-size:0.7em;font-weight:700;letter-spacing:0.1em;'
+                    f'text-transform:uppercase;color:{PURPLE};">Option {i+1}</span><br>'
+                    f'<span style="font-size:1.05em;line-height:1.5;">{c}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.info('Candidates will appear here as the room contributes ideas. Add yours below.')
+
+    _vision_tab_display()
+
+    # Suggestion form — hidden once the final is locked in
+    # (pull_vision_data is cached so this second call is free)
+    _, _is_final = pull_vision_data()
+    if not _is_final:
+        st.divider()
+        st.markdown('#### 💡 Suggest a vision statement')
+        st.caption('Have an idea? Add it to the list for the room to discuss.')
+        _suggest_input = st.text_area(
+            'Your suggestion',
+            height=80,
+            key='vsuggest_input',
+            label_visibility='collapsed',
+            placeholder='e.g. "Audeara makes every listening moment matter, for everyone."',
+        )
+        if st.button('Add to the list', type='primary', key='vsuggest_submit'):
+            _text = st.session_state.get('vsuggest_input', '').strip()
+            if _text:
+                try:
+                    _cur, _ = pull_vision_data()
+                    save_vision_candidates((_cur or []) + [_text])
+                    st.session_state.pop('vsuggest_input', None)
+                    st.cache_data.clear()
+                    st.toast('Added to the list!', icon='✅')
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f'Could not save — please try again. ({_e})')
+            else:
+                st.warning('Type your idea first.')
