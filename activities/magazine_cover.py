@@ -10,11 +10,9 @@ from magazine_shared import (
     pull_votes, upsert_vote, _img_cache_key,
     generate_cover_image, _show_image,
     _compose_cover_image, _save_composed_to_drive,
-    pull_generated_story, build_cover_html,
+    pull_generated_story, build_cover_html, build_partner_badge_html,
     pull_vision_data,
 )
-
-# ── Styles ─────────────────────────────────────────────────────────────────────
 
 inject_styles()
 
@@ -101,14 +99,16 @@ if not st.session_state.get('_tabs_ensured_v2'):
 
 st.markdown('### Vision Activity — Magazine Cover Story')
 st.markdown(
-    'Imagine it\'s 2030. Audeara has made the cover of a major publication. '
-    'What\'s the story? What did we achieve? What does the world say about us?'
+    f'It\'s {COVER_YEAR}. Audeara has been named an Official Partner of the Brisbane 2032 Olympic Games '
+    f'— and it just made the cover of a major publication. '
+    f'What kind of partner are we? What did we build to get here?'
 )
 st.markdown(
     f'<div class="activity-card">'
     f'<strong>Let\'s discover our shared vision by thinking big together.</strong> '
-    f'Shoot for the moon with your cover story. The answers don\'t need to be realistic. '
-    f'They need to be honest about what excites you. That\'s where the real direction lives.'
+    f'The cover story is an announcement of our Official Olympic Partnership. '
+    f'Think about what that partnership looks like, what we\'ve accomplished by 2032 that makes us the obvious choice, '
+    f'and what the world is saying about us. Shoot for the moon.'
     f'</div>',
     unsafe_allow_html=True,
 )
@@ -121,32 +121,35 @@ tab_submit, tab_vote, tab_results, tab_vision = st.tabs(['💡 Submit ideas', '�
 with tab_submit:
     st.markdown('#### Your cover story')
     st.caption(
-        'Think about Audeara in 2030. What did we achieve? '
-        'Fill in as many or as few fields as you like — there are no wrong answers.'
+        f'Think about Audeara in {COVER_YEAR}. We\'ve landed an Official Olympic Partnership — '
+        f'what kind of partner are we, and what makes us the obvious choice? '
+        f'Fill in as many or as few fields as you like.'
     )
 
     pub      = st.text_input('Publication',
                              placeholder='e.g. Fast Company, The Australian, Time, Harvard Business Review…',
                              key='vsub_pub')
     headline = st.text_input('Cover headline',
-                             placeholder='e.g. "The company that made the world listen"',
+                             placeholder='e.g. "The Brisbane company that made the Olympics more accessible"',
                              key='vsub_headline')
-    story    = st.text_area('The story — what did Audeara achieve?',
-                            placeholder='e.g. "Audeara reached 1 million people across 40 countries by making hearing technology truly accessible…"',
+    partner  = st.text_input('Official ___ Partner of the Brisbane 2032 Olympic Games',
+                             placeholder='e.g. Assistive Listening, Hearing Technology, Accessibility…',
+                             key='vsub_partner')
+    story    = st.text_area('The story — what makes us the obvious choice?',
+                            placeholder='e.g. "By 2032 Audeara had reached 2 million people across 60 countries, making world-class listening technology accessible to anyone, anywhere…"',
                             height=90, key='vsub_story')
     quote    = st.text_input('A quote from the story',
-                             placeholder='e.g. "We didn\'t set out to build a hearing company. We set out to help people feel connected." — James Fielding',
+                             placeholder='e.g. "We didn\'t set out to be an Olympic partner. We set out to help people feel connected." — James Fielding',
                              key='vsub_quote')
-    bottom   = st.text_input('The bottom line — what does the finance section say?',
-                             placeholder='e.g. "Revenue crossed $50M, driven by Auracast partnerships across 3 continents."',
-                             key='vsub_bottom')
+    standout = st.text_input('The standout — what\'s the fact, stat, or moment that defines the journey?',
+                             placeholder='e.g. "Every athlete at Brisbane 2032 could access Audeara\'s technology in their language."',
+                             key='vsub_standout')
     image_desc = st.text_area(
         '🎨 Describe the cover image (optional)',
         placeholder=(
             'Describe a scene, image, or feeling for the cover — '
             'AI will generate it in Audeara\'s brand style.\n'
-            'e.g. "A person wearing headphones in a packed auditorium, '
-            'surrounded by light and warmth, connected to the crowd."'
+            'e.g. "An athlete in a packed Olympic stadium, headphones on, fully absorbed in the moment — surrounded by light and energy."'
         ),
         height=90,
         key='vision_img_desc_outer',
@@ -175,14 +178,15 @@ with tab_submit:
     if submitted:
         _pub      = st.session_state.get('vsub_pub', '').strip()
         _headline = st.session_state.get('vsub_headline', '').strip()
+        _partner  = st.session_state.get('vsub_partner', '').strip()
         _story    = st.session_state.get('vsub_story', '').strip()
         _quote    = st.session_state.get('vsub_quote', '').strip()
-        _bottom   = st.session_state.get('vsub_bottom', '').strip()
+        _standout = st.session_state.get('vsub_standout', '').strip()
         _img_desc = st.session_state.get('vision_img_desc_outer', '').strip()
-        if any([_headline, _story, _quote, _bottom, _img_desc]):
+        if any([_headline, _partner, _story, _quote, _standout, _img_desc]):
             try:
-                append_submission(COVER_YEAR, _pub, _headline, _story, _quote, _bottom, _img_desc)
-                for _k in ['vsub_pub', 'vsub_headline', 'vsub_story', 'vsub_quote', 'vsub_bottom', 'vision_img_desc_outer']:
+                append_submission(COVER_YEAR, _pub, _headline, _partner, _story, _quote, _standout, _img_desc)
+                for _k in ['vsub_pub', 'vsub_headline', 'vsub_partner', 'vsub_story', 'vsub_quote', 'vsub_standout', 'vision_img_desc_outer']:
                     st.session_state.pop(_k, None)
                 st.session_state.pop('_vision_preview_for', None)
                 st.cache_data.clear()
@@ -198,14 +202,16 @@ with tab_submit:
     if not subs.empty:
         st.markdown(f'#### {len(subs)} submission{"s" if len(subs) != 1 else ""} so far')
         for _, row in subs.iterrows():
-            pub_str = f' · {row.get("Publication","").strip()}' if row.get('Publication','').strip() else ''
+            pub_str     = f' · {row.get("Publication","").strip()}' if row.get('Publication','').strip() else ''
+            partner_str = row.get('Partner Title', '').strip()
             st.markdown(
                 f'<div class="activity-card">'
                 f'<span style="font-size:0.75em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
-                f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
+                + (f'<span style="font-size:0.78em;font-weight:700;color:{TEAL};">Official {partner_str} Partner · Brisbane 2032</span><br>' if partner_str else '')
+                + f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
                 f'<span style="font-size:0.88em;color:#555;">{row.get("The Story","")}</span><br>'
                 f'<em style="font-size:0.85em;">{row.get("Quote","")}</em><br>'
-                f'<span style="font-size:0.82em;color:#777;">{row.get("Bottom Line","")}</span>'
+                f'<span style="font-size:0.82em;color:#777;">{row.get("Standout","")}</span>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -228,7 +234,7 @@ with tab_vote:
         st.info('No submissions yet. Be the first to add your cover story in the Submit tab.')
     else:
         st.markdown('#### Upvote the answers that resonate most')
-        st.caption('Vote for the headlines, story lines, quotes, and bottom lines that feel most true to where Audeara is headed.')
+        st.caption('Vote for the headlines, partner titles, stories, quotes, and standout facts that feel most true to where Audeara is headed.')
         c_ref, _ = st.columns([1, 6])
         with c_ref:
             if st.button('Refresh', key='refresh_vision_vote'):
@@ -334,11 +340,12 @@ with tab_results:
             vals = subs[col_name].fillna('').tolist() if col_name in subs.columns else []
             return next((v.strip() for v in vals if v.strip()), '')
 
-        headline_val = _top_or_first('Headline',    'Headline')
-        story_val    = _top_or_first('The Story',   'The Story')
-        quote_val    = _top_or_first('Quote',       'Quote')
-        bottom_val   = _top_or_first('Bottom Line', 'Bottom Line')
-        pub_val      = subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in subs.columns else ''
+        headline_val     = _top_or_first('Headline',      'Headline')
+        partner_val      = _top_or_first('Partner Title', 'Partner Title')
+        story_val        = _top_or_first('The Story',     'The Story')
+        quote_val        = _top_or_first('Quote',         'Quote')
+        standout_val     = _top_or_first('Standout',      'Standout')
+        pub_val          = subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in subs.columns else ''
 
         cover_img_desc = ''
         if 'Image' in top:
@@ -366,17 +373,20 @@ with tab_results:
                     f'</div>',
                     unsafe_allow_html=True,
                 )
+            if partner_val:
+                st.markdown(build_partner_badge_html(partner_val), unsafe_allow_html=True)
 
         with col_cover:
             pub_display = pub_val or 'Audeara · Cover Story'
+            partner_label = f'Official {partner_val} Partner · Brisbane 2032' if partner_val else f'Brisbane 2032'
             st.markdown(
                 f'<div class="magazine-cover">'
                 f'<div class="mag-pub">{pub_display}</div>'
-                f'<div class="mag-year">It\'s {COVER_YEAR}.</div>'
+                f'<div class="mag-year">{partner_label}</div>'
                 f'<div class="mag-headline">{headline_val or "<em style=color:#555>Headline coming soon</em>"}</div>'
                 f'{"<div class=mag-story>" + story_val + "</div>" if story_val else ""}'
                 f'{"<div class=mag-quote>" + quote_val + "</div>" if quote_val else ""}'
-                f'{"<div class=mag-bl-label>The Bottom Line</div><div class=mag-bottom-text>" + bottom_val + "</div>" if bottom_val else ""}'
+                f'{"<div class=mag-bl-label>Standout</div><div class=mag-bottom-text>" + standout_val + "</div>" if standout_val else ""}'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -395,7 +405,7 @@ with tab_results:
         # ── Assemble Cover ─────────────────────────────────────────────────────
         st.divider()
         st.markdown('#### Assemble the magazine cover')
-        st.caption('Puts all the winning pieces together — publication, headline, quote, bottom line, and image — into a proper magazine cover.')
+        st.caption('Puts all the winning pieces together into a proper magazine cover.')
 
         if st.button('🎨 Generate Magazine Cover', type='primary'):
             st.session_state['assembled_cover'] = True
@@ -412,16 +422,16 @@ with tab_results:
                         cover_img_bytes = result if isinstance(result, bytes) else None
 
             components.html(
-                build_cover_html(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes),
+                build_cover_html(pub_val, headline_val, quote_val, standout_val, cover_img_bytes, partner_title=partner_val),
                 height=622,
             )
 
             if cover_img_bytes:
-                composed_key = f'composed_cover_{hashlib.md5((headline_val + quote_val + bottom_val).encode()).hexdigest()}'
+                composed_key = f'composed_cover_{hashlib.md5((headline_val + quote_val + standout_val).encode()).hexdigest()}'
                 if composed_key not in st.session_state:
                     with st.spinner('Saving composed cover to Drive…'):
                         try:
-                            composed = _compose_cover_image(pub_val, headline_val, quote_val, bottom_val, cover_img_bytes)
+                            composed = _compose_cover_image(pub_val, headline_val, quote_val, standout_val, cover_img_bytes)
                             _save_composed_to_drive(headline_val, composed)
                             st.session_state[composed_key] = composed
                             st.toast('Cover saved to Drive ✓', icon='✅')

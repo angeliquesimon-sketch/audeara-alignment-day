@@ -16,22 +16,24 @@ STORY_TAB      = 'Generated Story'
 VISION_TAB     = 'Vision Statement'
 IMGS_FOLDER_ID = '19fcjPrNdAxpMrLb8il6pBK8KXGTVI9cA'
 
-COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'The Story', 'Quote', 'Bottom Line', 'Image']
+COLUMNS = ['Timestamp', 'Year', 'Publication', 'Headline', 'Partner Title', 'The Story', 'Quote', 'Standout', 'Image']
 
 CATEGORIES = [
-    ('Headline',    'The cover headline'),
-    ('The Story',   'What Audeara achieved to make the cover'),
-    ('Quote',       'A quote from the story'),
-    ('Bottom Line', 'What the finance section says'),
-    ('Image',       'The cover image'),
+    ('Headline',      'The cover headline'),
+    ('Partner Title', 'Official ___ Partner of the Brisbane 2032 Olympic Games'),
+    ('The Story',     'What made Audeara the obvious choice'),
+    ('Quote',         'A quote from the story'),
+    ('Standout',      'The standout fact, stat, or moment'),
+    ('Image',         'The cover image'),
 ]
 
-COVER_YEAR    = '2030'
+COVER_YEAR    = '2032'
 PREVIEW_WIDTH = 260
 
 IMAGE_STYLE = (
     'Bold editorial magazine cover photograph. '
     'Warm, aspirational, human — real people in genuine moments of connection. '
+    'Brisbane 2032 Olympic Games atmosphere — vibrant, celebratory, forward-looking. '
     'Colour palette: warm sand and neutral tones as the foundation, with deep teal as the feature accent colour. '
     'Bright, inviting light — confident and optimistic, not dark or dramatic. '
     'Clean, modern composition. Stylish but approachable. '
@@ -53,18 +55,17 @@ def _ensure_tabs():
 
     if SUB_TAB not in existing:
         svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A1:H1",
+            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A1:I1",
             valueInputOption='RAW', body={'values': [COLUMNS]},
         ).execute()
     else:
         headers = (svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A1:H1",
+            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A1:I1",
         ).execute().get('values', [[]])[0] if True else [])
-        if 'Image' not in headers:
-            col_letter = chr(ord('A') + len(headers))
+        if headers != COLUMNS:
             svc.spreadsheets().values().update(
-                spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!{col_letter}1",
-                valueInputOption='RAW', body={'values': [['Image']]},
+                spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A1:I1",
+                valueInputOption='RAW', body={'values': [COLUMNS]},
             ).execute()
 
     if VOTE_TAB not in existing:
@@ -94,7 +95,7 @@ def _ensure_tabs():
 def pull_submissions():
     try:
         rows = _sheets().spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:H",
+            spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:I",
         ).execute().get('values', [])
         if len(rows) < 2:
             return pd.DataFrame(columns=COLUMNS)
@@ -104,12 +105,12 @@ def pull_submissions():
     except Exception:
         return pd.DataFrame(columns=COLUMNS)
 
-def append_submission(year, pub, headline, story, quote, bottom, image_desc):
+def append_submission(year, pub, headline, partner_title, story, quote, standout, image_desc):
     _sheets().spreadsheets().values().append(
-        spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:H",
+        spreadsheetId=SHEET_ID, range=f"'{SUB_TAB}'!A:I",
         valueInputOption='RAW', insertDataOption='INSERT_ROWS',
         body={'values': [[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                          year, pub, headline, story, quote, bottom, image_desc]]},
+                          year, pub, headline, partner_title, story, quote, standout, image_desc]]},
     ).execute()
 
 @st.cache_data(ttl=20, show_spinner=False)
@@ -256,7 +257,7 @@ def _show_image(description, caption=None, save_to_drive=True):
     elif isinstance(img, str):
         st.caption(f'_(Image generation failed: {img})_')
 
-def _compose_cover_image(pub, headline, quote, bottom, img_bytes):
+def _compose_cover_image(pub, headline, quote, standout, img_bytes):
     from PIL import Image, ImageDraw, ImageFont
     import io
     img = Image.open(io.BytesIO(img_bytes)).convert('RGBA')
@@ -314,12 +315,12 @@ def _compose_cover_image(pub, headline, quote, bottom, img_bytes):
             draw.text((PAD + 14, y), line, font=qt_font, fill=(215, 215, 215, 255))
             y += draw.textbbox((0, 0), line, font=qt_font)[3] + 4
         y += int(H * 0.018)
-    if bottom:
+    if standout:
         bl_label = _font(int(W * 0.028), bold=True)
-        draw.text((PAD, y), 'THE BOTTOM LINE', font=bl_label, fill=_TEAL)
-        y += draw.textbbox((0, 0), 'THE BOTTOM LINE', font=bl_label)[3] + 8
+        draw.text((PAD, y), 'STANDOUT', font=bl_label, fill=_TEAL)
+        y += draw.textbbox((0, 0), 'STANDOUT', font=bl_label)[3] + 8
         bl_font = _font(int(W * 0.034))
-        for line in _wrap(bottom, bl_font, text_w):
+        for line in _wrap(standout, bl_font, text_w):
             draw.text((PAD, y), line, font=bl_font, fill=(175, 175, 175, 255))
             y += draw.textbbox((0, 0), line, font=bl_font)[3] + 4
     buf = io.BytesIO()
@@ -330,7 +331,7 @@ def _save_composed_to_drive(headline, composed_bytes):
     import io
     from googleapiclient.http import MediaIoBaseUpload
     slug  = ''.join(c for c in (headline or 'cover')[:40] if c.isalnum() or c in ' -').strip().replace(' ', '-')
-    meta  = {'name': f'Audeara-Vision-Cover-2030-{slug}.png', 'mimeType': 'image/png', 'parents': [IMGS_FOLDER_ID]}
+    meta  = {'name': f'Audeara-Vision-Cover-2032-{slug}.png', 'mimeType': 'image/png', 'parents': [IMGS_FOLDER_ID]}
     media = MediaIoBaseUpload(io.BytesIO(composed_bytes), mimetype='image/png')
     return _drive().files().create(body=meta, media_body=media, fields='id', supportsAllDrives=True).execute().get('id')
 
@@ -353,21 +354,22 @@ def save_generated_story(content):
         body={'values': [[datetime.now().strftime('%Y-%m-%d %H:%M:%S'), content]]},
     ).execute()
 
-def generate_story(pub, headline, story_seed, quote, bottom):
+def generate_story(pub, headline, story_seed, quote, standout, partner_title=''):
     from openai import OpenAI
     client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
     context_parts = []
-    if story_seed: context_parts.append(f'What happened: {story_seed}')
-    if quote:      context_parts.append(f'Key quote: "{quote}"')
-    if bottom:     context_parts.append(f'Financial headline: {bottom}')
-    context = '\n'.join(context_parts) or 'A major milestone for Audeara in hearing technology and accessibility.'
+    if partner_title: context_parts.append(f'Official partnership: Official {partner_title} Partner of the Brisbane 2032 Olympic Games')
+    if story_seed:    context_parts.append(f'What made Audeara the obvious choice: {story_seed}')
+    if quote:         context_parts.append(f'Key quote: "{quote}"')
+    if standout:      context_parts.append(f'Standout fact or moment: {standout}')
+    context = '\n'.join(context_parts) or 'Audeara has been named an Official Partner of the Brisbane 2032 Olympic Games.'
     prompt = (
-        f'Write a magazine feature article for {pub or "a major business publication"} dated 2030.\n\n'
+        f'Write a magazine feature article for {pub or "a major business publication"} dated 2032.\n\n'
         f'Cover headline: "{headline or "Audeara: The Company That Made the World Listen"}"\n\n'
         f'Context from the team:\n{context}\n\n'
         'Write a proper magazine feature — 400 to 500 words. Include:\n'
         '- A compelling lede that draws the reader in\n'
-        '- 3 to 4 narrative paragraphs expanding on what Audeara achieved\n'
+        '- 3 to 4 narrative paragraphs expanding on what Audeara achieved and what makes them the obvious choice for this Olympic partnership\n'
         '- The pull quote set on its own line, formatted with quotation marks\n'
         '- A resonant closing line\n\n'
         'Style: high-quality business magazine. British English. Warm, specific, inspiring. '
@@ -432,18 +434,19 @@ def save_final_vision(text):
             valueInputOption='RAW', body={'values': [['final', text]]},
         ).execute()
 
-def generate_vision_candidates(pub, headline, story_seed, quote, bottom):
+def generate_vision_candidates(pub, headline, story_seed, quote, standout, partner_title=''):
     from openai import OpenAI
     client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
     context_parts = []
-    if headline:    context_parts.append(f'Cover headline: {headline}')
-    if story_seed:  context_parts.append(f'What Audeara achieved: {story_seed}')
-    if quote:       context_parts.append(f'Key quote: "{quote}"')
-    if bottom:      context_parts.append(f'Financial headline: {bottom}')
-    context = '\n'.join(context_parts) or 'Audeara is a leader in hearing technology and accessibility.'
+    if partner_title: context_parts.append(f'Official partnership: Official {partner_title} Partner of the Brisbane 2032 Olympic Games')
+    if headline:      context_parts.append(f'Cover headline: {headline}')
+    if story_seed:    context_parts.append(f'What Audeara achieved: {story_seed}')
+    if quote:         context_parts.append(f'Key quote: "{quote}"')
+    if standout:      context_parts.append(f'Standout fact or moment: {standout}')
+    context = '\n'.join(context_parts) or 'Audeara is a leader in hearing technology and accessibility, named Official Partner of the Brisbane 2032 Olympic Games.'
     prompt = (
         'You are helping a team distil their collective vision into a single company vision statement.\n\n'
-        f'The team imagined Audeara on the cover of a major magazine in 2030. Here is what they said:\n{context}\n\n'
+        f'The team imagined Audeara as an Official Partner of the Brisbane 2032 Olympic Games. Here is what they said:\n{context}\n\n'
         'Write exactly 3 candidate vision statements for Audeara. Each should:\n'
         '- Be one or two sentences, under 30 words\n'
         '- Start with "Audeara"\n'
@@ -463,19 +466,39 @@ def generate_vision_candidates(pub, headline, story_seed, quote, bottom):
     lines = [ln.lstrip('0123456789. ').strip() for ln in raw.split('\n') if ln.strip()]
     return lines[:3]
 
+# ── Partner badge ──────────────────────────────────────────────────────────────
+
+def build_partner_badge_html(partner_title):
+    return (
+        f'<div style="background:linear-gradient(135deg,#50144B,#781E73);'
+        f'border-radius:10px;padding:14px 18px;text-align:center;color:white;'
+        f'margin-top:12px;box-shadow:0 4px 16px rgba(80,20,75,0.3);">'
+        f'<div style="font-size:0.58em;letter-spacing:0.2em;text-transform:uppercase;'
+        f'color:rgba(255,255,255,0.65);margin-bottom:4px;">Official</div>'
+        f'<div style="font-size:1em;font-weight:700;line-height:1.2;margin-bottom:4px;">'
+        f'{partner_title}</div>'
+        f'<div style="font-size:0.58em;letter-spacing:0.2em;text-transform:uppercase;'
+        f'color:rgba(255,255,255,0.65);margin-bottom:10px;">Partner</div>'
+        f'<div style="background:#188383;border-radius:5px;padding:3px 12px;'
+        f'display:inline-block;font-size:0.65em;font-weight:700;letter-spacing:0.1em;">'
+        f'BRISBANE 2032</div>'
+        f'</div>'
+    )
+
 # ── HTML cover builder ─────────────────────────────────────────────────────────
 
-def build_cover_html(pub, headline, quote, bottom, img_bytes):
+def build_cover_html(pub, headline, quote, standout, img_bytes, partner_title=''):
     if img_bytes:
         img_b64 = base64.b64encode(img_bytes).decode()
         bg = f'background-image:url(data:image/png;base64,{img_b64});background-size:cover;background-position:center top;'
     else:
         bg = 'background:linear-gradient(160deg,#094B4B,#188383);'
-    quote_html  = f'<div class="quote">{quote}</div>'   if quote  else ''
-    bottom_html = (
-        f'<div class="bl-tag">The Bottom Line</div>'
-        f'<div class="bl-text">{bottom}</div>'
-    ) if bottom else ''
+    meta_text   = f'Official {partner_title} Partner &nbsp;&middot;&nbsp; Brisbane 2032' if partner_title else '2032 &nbsp;&middot;&nbsp; Olympic Partnership Edition'
+    quote_html  = f'<div class="quote">{quote}</div>'   if quote    else ''
+    standout_html = (
+        f'<div class="bl-tag">Standout</div>'
+        f'<div class="bl-text">{standout}</div>'
+    ) if standout else ''
     return f'''<!DOCTYPE html>
 <html>
 <head>
@@ -499,12 +522,12 @@ body{{background:#e0e0e0;display:flex;justify-content:center;padding:20px;font-s
 <div class="cover">
     <div class="masthead">
         <div class="pub-name">{pub or 'Audeara'}</div>
-        <div class="pub-meta">2030 &nbsp;&middot;&nbsp; Special Edition</div>
+        <div class="pub-meta">{meta_text}</div>
     </div>
     <div class="overlay">
         <div class="headline">{headline or 'The Future of Hearing'}</div>
         {quote_html}
-        {bottom_html}
+        {standout_html}
     </div>
 </div>
 </body>

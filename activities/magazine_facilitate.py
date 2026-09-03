@@ -33,8 +33,6 @@ st.markdown(f'''
 </style>
 ''', unsafe_allow_html=True)
 
-# ── Init (shared with cover page via session_state key) ────────────────────────
-
 if not st.session_state.get('_tabs_ensured_v2'):
     try:
         with_retry(_ensure_tabs, on_retry=_clear_sheets)
@@ -146,19 +144,21 @@ def _col_options(col_name):
 
 for version in ['A', 'B']:
     with st.expander(f'Version {version}', expanded=(version == 'A')):
-        v_pub = st.selectbox('Publication', _col_options('Publication'), key=f'fac_pub_{version}')
-        v_hl  = st.selectbox('Headline',    _col_options('Headline'),    key=f'fac_hl_{version}')
-        v_qt  = st.selectbox('Quote',       _col_options('Quote'),       key=f'fac_qt_{version}')
-        v_bl  = st.selectbox('Bottom Line', _col_options('Bottom Line'), key=f'fac_bl_{version}')
-        v_img = st.selectbox('Cover image', _col_options('Image'),       key=f'fac_img_{version}')
+        v_pub     = st.selectbox('Publication',           _col_options('Publication'),   key=f'fac_pub_{version}')
+        v_hl      = st.selectbox('Headline',              _col_options('Headline'),       key=f'fac_hl_{version}')
+        v_partner = st.selectbox('Official ___ Partner',  _col_options('Partner Title'), key=f'fac_partner_{version}')
+        v_qt      = st.selectbox('Quote',                 _col_options('Quote'),          key=f'fac_qt_{version}')
+        v_standout = st.selectbox('Standout',             _col_options('Standout'),       key=f'fac_standout_{version}')
+        v_img     = st.selectbox('Cover image',           _col_options('Image'),          key=f'fac_img_{version}')
 
         if st.button(f'Preview Version {version}', type='primary', key=f'fac_preview_{version}'):
             st.session_state[f'fac_cover_{version}'] = {
-                'pub': '' if v_pub == '(none)' else v_pub,
-                'hl':  '' if v_hl  == '(none)' else v_hl,
-                'qt':  '' if v_qt  == '(none)' else v_qt,
-                'bl':  '' if v_bl  == '(none)' else v_bl,
-                'img': '' if v_img == '(none)' else v_img,
+                'pub':     '' if v_pub      == '(none)' else v_pub,
+                'hl':      '' if v_hl       == '(none)' else v_hl,
+                'partner': '' if v_partner  == '(none)' else v_partner,
+                'qt':      '' if v_qt       == '(none)' else v_qt,
+                'standout': '' if v_standout == '(none)' else v_standout,
+                'img':     '' if v_img      == '(none)' else v_img,
             }
 
         cover_state = st.session_state.get(f'fac_cover_{version}')
@@ -176,19 +176,20 @@ for version in ['A', 'B']:
             components.html(
                 build_cover_html(
                     cover_state['pub'], cover_state['hl'],
-                    cover_state['qt'],  cover_state['bl'], v_img_bytes,
+                    cover_state['qt'],  cover_state['standout'], v_img_bytes,
+                    partner_title=cover_state.get('partner', ''),
                 ),
                 height=622,
             )
 
             if v_img_bytes:
-                vc_key = f'fac_composed_{version}_{hashlib.md5((cover_state["hl"] + cover_state["qt"] + cover_state["bl"]).encode()).hexdigest()}'
+                vc_key = f'fac_composed_{version}_{hashlib.md5((cover_state["hl"] + cover_state["qt"] + cover_state["standout"]).encode()).hexdigest()}'
                 if vc_key not in st.session_state:
                     with st.spinner(f'Saving Version {version} to Drive…'):
                         try:
                             vc = _compose_cover_image(
                                 cover_state['pub'], cover_state['hl'],
-                                cover_state['qt'],  cover_state['bl'], v_img_bytes,
+                                cover_state['qt'],  cover_state['standout'], v_img_bytes,
                             )
                             _save_composed_to_drive(f"{cover_state['hl']}-v{version}", vc)
                             st.session_state[vc_key] = vc
@@ -229,18 +230,20 @@ def _fac_top_or_first(col_key, col_name):
     vals = fac_subs[col_name].fillna('').tolist() if col_name in fac_subs.columns else []
     return next((v.strip() for v in vals if v.strip()), '')
 
-_st_pub      = fac_subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in fac_subs.columns else ''
-_st_headline = _fac_top_or_first('Headline',    'Headline')
-_st_story    = _fac_top_or_first('The Story',   'The Story')
-_st_quote    = _fac_top_or_first('Quote',       'Quote')
-_st_bottom   = _fac_top_or_first('Bottom Line', 'Bottom Line')
+_st_pub     = fac_subs['Publication'].fillna('').iloc[0].strip() if 'Publication' in fac_subs.columns else ''
+_st_headline = _fac_top_or_first('Headline',      'Headline')
+_st_partner  = _fac_top_or_first('Partner Title', 'Partner Title')
+_st_story    = _fac_top_or_first('The Story',     'The Story')
+_st_quote    = _fac_top_or_first('Quote',         'Quote')
+_st_standout = _fac_top_or_first('Standout',      'Standout')
 
 with st.expander('Source material for the story', expanded=False):
     st.markdown(f'**Publication:** {_st_pub or "_none_"}')
     st.markdown(f'**Headline:** {_st_headline or "_none_"}')
+    st.markdown(f'**Official partner:** {("Official " + _st_partner + " Partner · Brisbane 2032") if _st_partner else "_none_"}')
     st.markdown(f'**Story context:** {_st_story or "_none_"}')
     st.markdown(f'**Quote:** {_st_quote or "_none_"}')
-    st.markdown(f'**Bottom line:** {_st_bottom or "_none_"}')
+    st.markdown(f'**Standout:** {_st_standout or "_none_"}')
 
 _existing_story = pull_generated_story()
 if _existing_story:
@@ -249,7 +252,7 @@ if _existing_story:
 if st.button('📰 Generate the full story', type='primary', key='fac_gen_story'):
     with st.spinner('Writing the feature article…'):
         try:
-            _new_story = generate_story(_st_pub, _st_headline, _st_story, _st_quote, _st_bottom)
+            _new_story = generate_story(_st_pub, _st_headline, _st_story, _st_quote, _st_standout, _st_partner)
             save_generated_story(_new_story)
             st.cache_data.clear()
             st.session_state['fac_story_preview'] = _new_story
@@ -285,7 +288,7 @@ if st.button('✨ Draft vision statement candidates', type='primary', key='fac_g
     with st.spinner('Drafting candidates…'):
         try:
             _new_candidates = generate_vision_candidates(
-                _st_pub, _st_headline, _st_story, _st_quote, _st_bottom,
+                _st_pub, _st_headline, _st_story, _st_quote, _st_standout, _st_partner,
             )
             save_vision_candidates(_new_candidates)
             st.cache_data.clear()
