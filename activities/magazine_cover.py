@@ -447,34 +447,41 @@ with tab_results:
                         key='dl_composed_results',
                     )
 
-        # ── Full story pull-out ────────────────────────────────────────────────
-        _story_text = pull_generated_story()
-        if _story_text:
-            st.divider()
-            st.markdown('#### 📰 The full story')
-            st.markdown(
-                f'<div style="'
-                f'background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
-                f'padding:36px 40px;max-width:680px;margin:0 auto;'
-                f'font-family:\'Noto Sans\',sans-serif;font-size:15px;line-height:1.8;'
-                f'color:#1a1a1a;box-shadow:0 4px 20px rgba(0,0,0,0.06);'
-                f'">'
-                f'<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;'
-                f'color:#188383;font-weight:700;margin-bottom:6px;">'
-                f'{pub_val or "AUDEARA"} &nbsp;·&nbsp; {COVER_YEAR} FEATURE</div>'
-                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:22px;font-weight:700;'
-                f'line-height:1.2;margin-bottom:24px;color:#111;">'
-                f'{headline_val or ""}</div>'
-                + ''.join(
-                    f'<p style="margin:0 0 16px 0;'
-                    + ('border-left:3px solid #188383;padding-left:16px;font-style:italic;color:#333;"'
-                       if ln.startswith('"') else '"')
-                    + f'>{ln}</p>'
-                    for ln in _story_text.split('\n') if ln.strip()
+        # ── Full story pull-out (auto-polls every 20s) ────────────────────────
+        @st.fragment(run_every=20)
+        def _story_section(pub_v, headline_v):
+            _story_text = pull_generated_story()
+            if _story_text:
+                st.divider()
+                st.markdown('#### 📰 The full story')
+                st.markdown(
+                    f'<div style="'
+                    f'background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
+                    f'padding:36px 40px;max-width:680px;margin:0 auto;'
+                    f'font-family:\'Noto Sans\',sans-serif;font-size:15px;line-height:1.8;'
+                    f'color:#1a1a1a;box-shadow:0 4px 20px rgba(0,0,0,0.06);'
+                    f'">'
+                    f'<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;'
+                    f'color:#188383;font-weight:700;margin-bottom:6px;">'
+                    f'{pub_v or "AUDEARA"} &nbsp;·&nbsp; {COVER_YEAR} FEATURE</div>'
+                    f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:22px;font-weight:700;'
+                    f'line-height:1.2;margin-bottom:24px;color:#111;">'
+                    f'{headline_v or ""}</div>'
+                    + ''.join(
+                        f'<p style="margin:0 0 16px 0;'
+                        + ('border-left:3px solid #188383;padding-left:16px;font-style:italic;color:#333;"'
+                           if ln.startswith('"') else '"')
+                        + f'>{ln}</p>'
+                        for ln in _story_text.split('\n') if ln.strip()
+                    )
+                    + '</div>',
+                    unsafe_allow_html=True,
                 )
-                + '</div>',
-                unsafe_allow_html=True,
-            )
+            else:
+                st.divider()
+                st.caption('The facilitator will generate the full story once voting is complete. It will appear here automatically.')
+
+        _story_section(pub_val, headline_val)
 
 # ── Vision Statement ───────────────────────────────────────────────────────────
 
