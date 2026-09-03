@@ -8,7 +8,7 @@ import sys
 # and then find the module already in sys.modules.
 _import_lock = threading.Lock()
 with _import_lock:
-    for _mod in ('utils', 'styles_shared', 'strategy_cascade_shared'):
+    for _mod in ('utils', 'styles_shared', 'strategy_cascade_shared', 'magazine_shared'):
         if _mod not in sys.modules:
             importlib.import_module(_mod)
 
