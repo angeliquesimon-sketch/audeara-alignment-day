@@ -89,7 +89,7 @@ for i, rule in enumerate(RULES):
     with cols[i % 3]:
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
             f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{rule}</div>',
             unsafe_allow_html=True,
         )
@@ -125,7 +125,7 @@ with col_why:
     for item in WHY_HERE:
         st.markdown(
             f'<div style="background:#F7F0F7;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
             f'<span style="color:{PURPLE};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
             unsafe_allow_html=True,
         )
@@ -138,7 +138,7 @@ with col_leave:
     for item in LEAVE_WITH:
         st.markdown(
             f'<div style="background:#F0F8F8;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.84em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
             f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
             unsafe_allow_html=True,
         )
@@ -184,8 +184,8 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid {bc};background:{bg};'
             f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
-            f'<div style="font-weight:700;color:{tc};">{icon}&nbsp; {label}</div>'
-            f'<div style="font-size:0.8em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:{tc};">{icon}&nbsp; {label}</div>'
+            f'<div style="font-size:0.95em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -317,7 +317,7 @@ def _overview():
             m_bc, m_bg, m_icon = '#781E73', '#F7F0F7', '✅'
             m_heading = 'Mission Statement'
             m_body = (
-                f'<div style="font-size:0.88em;line-height:1.7;margin-top:6px;">'
+                f'<div style="font-size:0.95em;line-height:1.7;margin-top:6px;">'
                 f'We help <strong>{mission_top["Who"]}</strong> '
                 f'do <strong>{mission_top["What"]}</strong> '
                 f'by <strong>{mission_top["How"]}</strong>, '
@@ -327,16 +327,16 @@ def _overview():
         elif mission_alive:
             m_bc, m_bg, m_icon = '#C4A0C2', '#FAF5FA', '💬'
             m_heading = f'Mission Statement — {n_mission} idea{"s" if n_mission != 1 else ""} in'
-            m_body = '<div style="font-size:0.82em;color:#999;margin-top:4px;">Voting will surface the top answers.</div>'
+            m_body = '<div style="font-size:0.95em;color:#999;margin-top:4px;">Voting will surface the top answers.</div>'
         else:
             m_bc, m_bg, m_icon = '#CCCCCC', '#F5F5F5', '⏳'
             m_heading = 'Mission Statement'
-            m_body = '<div style="font-size:0.82em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
+            m_body = '<div style="font-size:0.95em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
 
         st.markdown(
             f'<div style="border-left:4px solid {m_bc};background:{m_bg};'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:0.85em;color:{m_bc};">{m_icon} {m_heading}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:{m_bc};">{m_icon} {m_heading}</div>'
             f'{m_body}</div>',
             unsafe_allow_html=True,
         )
@@ -345,20 +345,20 @@ def _overview():
         if vision_done:
             v_bc, v_bg, v_icon = '#188383', '#F0F8F8', '✅'
             v_heading = 'Vision Statement'
-            v_body = f'<div style="font-size:0.88em;line-height:1.7;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
+            v_body = f'<div style="font-size:0.95em;line-height:1.7;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
         elif vision_alive:
             v_bc, v_bg, v_icon = '#9BCFCF', '#F3FAFA', '🎨'
             v_heading = f'Vision — {n_vision} cover {"stories" if n_vision != 1 else "story"} in'
-            v_body = '<div style="font-size:0.82em;color:#999;margin-top:4px;">Voting will surface the top answers. Facilitator locks the final statement.</div>'
+            v_body = '<div style="font-size:0.95em;color:#999;margin-top:4px;">Voting will surface the top answers. Facilitator locks the final statement.</div>'
         else:
             v_bc, v_bg, v_icon = '#CCCCCC', '#F5F5F5', '⏳'
             v_heading = 'Vision Statement'
-            v_body = '<div style="font-size:0.82em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
+            v_body = '<div style="font-size:0.95em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
 
         st.markdown(
             f'<div style="border-left:4px solid {v_bc};background:{v_bg};'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:0.85em;color:{v_bc};">{v_icon} {v_heading}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:{v_bc};">{v_icon} {v_heading}</div>'
             f'{v_body}</div>',
             unsafe_allow_html=True,
         )
@@ -367,8 +367,8 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid #50144B;background:#F5EFF5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:0.85em;color:#50144B;">Values</div>'
-            f'<div style="font-size:0.88em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:#50144B;">Values</div>'
+            f'<div style="font-size:0.95em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -377,8 +377,8 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:0.85em;color:#005E63;">Motto</div>'
-            f'<div style="font-size:1em;color:#005E63;font-weight:700;margin-top:4px;">{MOTTO}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:#005E63;">Motto</div>'
+            f'<div style="font-size:1.05em;color:#005E63;font-weight:700;margin-top:4px;">{MOTTO}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
