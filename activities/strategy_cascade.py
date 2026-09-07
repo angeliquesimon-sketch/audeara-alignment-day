@@ -164,6 +164,7 @@ with tab_pres:
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
             if stage_idx == 2:
+                st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
                 _section_label('FY27 STRATEGIC CHOICES')
                 _ENGINE_ATTRIBUTION = {
                     'c2': 'Australian Wholesale',
@@ -186,8 +187,6 @@ with tab_pres:
                 _choice_cards = ''.join([
                     f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
                     f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-                    f'<div style="font-size:0.62em;font-weight:700;color:{WINE};'
-                    f'letter-spacing:1px;margin-bottom:4px;">{c["number"]}</div>'
                     f'<div style="font-weight:700;font-size:0.86em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
                     + (
                         f'<div style="margin-bottom:8px;">'
