@@ -64,17 +64,8 @@ OPERATING_SYSTEM = [
 
 CHOICES = [
     {
-        'id': 'c1',
-        'number': '1',
-        'title': 'Win through customer outcomes',
-        'description': (
-            'We start with the life being improved, not the feature being shipped. '
-            'Product quality, setup, support, connectivity and follow-through are all part of the outcome.'
-        ),
-    },
-    {
         'id': 'c2',
-        'number': '2',
+        'number': '1',
         'title': 'Grow Australian Wholesale profitably',
         'description': (
             'We will deepen trusted clinic relationships, improve repeat ordering, broaden useful product '
@@ -83,7 +74,7 @@ CHOICES = [
     },
     {
         'id': 'c3',
-        'number': '3',
+        'number': '2',
         'title': 'Convert AUA Technology capability into repeatable revenue',
         'description': (
             'We will prioritise programs that can progress from development to production, repeat orders '
@@ -92,7 +83,7 @@ CHOICES = [
     },
     {
         'id': 'c4',
-        'number': '4',
+        'number': '3',
         'title': 'Scale Auracast as a solutions business',
         'description': (
             'We will sell and support complete shared-listening outcomes: source, broadcast, receive, '
@@ -100,8 +91,27 @@ CHOICES = [
         ),
     },
     {
-        'id': 'c5',
+        'id': 'c7',
+        'number': '4',
+        'title': 'Build Listen & Learn into a scalable, funded partner model',
+        'description': (
+            'Secure the first funded deployments, prove impact with clinical evidence, '
+            'and establish a partner pathway that can be replicated. '
+            'FY27 is the year this goes from promising to proven.'
+        ),
+    },
+    {
+        'id': 'c1',
         'number': '5',
+        'title': 'Win through customer outcomes',
+        'description': (
+            'We start with the life being improved, not the feature being shipped. '
+            'Product quality, setup, support, connectivity and follow-through are all part of the outcome.'
+        ),
+    },
+    {
+        'id': 'c5',
+        'number': '6',
         'title': 'Become tender-grade',
         'description': (
             'We will build the evidence, quality, service, supply, financial and partnership maturity '
@@ -110,21 +120,11 @@ CHOICES = [
     },
     {
         'id': 'c6',
-        'number': '6',
+        'number': '7',
         'title': 'Operate with focus and cash discipline',
         'description': (
             'Opportunity is not the same as priority. We will make trade-offs visibly, fund the work '
             'that best advances the strategy and stop work that no longer earns its place.'
-        ),
-    },
-    {
-        'id': 'c7',
-        'number': '7',
-        'title': 'Build Listen & Learn into a scalable, funded partner model',
-        'description': (
-            'Secure the first funded deployments, prove impact with clinical evidence, '
-            'and establish a partner pathway that can be replicated. '
-            'FY27 is the year this goes from promising to proven.'
         ),
     },
 ]
