@@ -51,6 +51,10 @@ tab_intro, tab_depts, tab_personal = st.tabs([
 @st.fragment(run_every=5)
 def _stage_check():
     pull_one_thing_session.clear()
+    _new = pull_one_thing_session().get('stage', 'hidden')
+    if _new != st.session_state.get('_ot_stage_last'):
+        st.session_state['_ot_stage_last'] = _new
+        st.rerun()
 
 _stage_check()
 

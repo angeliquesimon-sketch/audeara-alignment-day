@@ -40,6 +40,10 @@ tab_goals, tab_contrib, tab_conf, tab_results = st.tabs([
 @st.fragment(run_every=5)
 def _stage_gate():
     pull_cascade_session.clear()
+    _new = pull_cascade_session().get('stage', 'hidden')
+    if _new != st.session_state.get('_casc_stage_last'):
+        st.session_state['_casc_stage_last'] = _new
+        st.rerun()
 
 _stage_gate()
 
