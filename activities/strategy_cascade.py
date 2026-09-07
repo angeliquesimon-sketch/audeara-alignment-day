@@ -124,119 +124,101 @@ with tab_pres:
         _waiting('James will open this session shortly.')
 
     else:
+        # Tab 1 never collapses — it is a permanent record of the full presentation
+
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
-            if stage_idx <= 3:
-                _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
-                _engine_cards = ''.join([
-                    f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
-                    f'border-radius:0 6px 6px 0;padding:14px 16px;">'
-                    f'<div style="font-weight:700;font-size:0.88em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
-                    f'<div style="font-size:0.68em;color:#999;font-style:italic;margin-bottom:6px;">{e["subtitle"]}</div>'
-                    f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{e["description"]}</div>'
-                    f'</div>'
-                    for e in ENGINES
-                ])
-                _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
-                _os_pills = ''.join([
-                    f'<span style="background:rgba(255,255,255,0.15);color:white;font-size:0.79em;'
-                    f'font-weight:500;padding:6px 13px;border-radius:20px;'
-                    f'display:inline-flex;align-items:center;gap:5px;margin:3px;">'
-                    f'{icon}&nbsp;{item}</span>'
-                    for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
-                ])
-                st.markdown(
-                    f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'
-                    f'gap:8px;margin-bottom:0;">'
-                    f'{_engine_cards}'
-                    f'</div>'
-                    f'<div style="background:{FOREST};border-radius:0 0 10px 10px;'
-                    f'padding:16px 20px;margin-top:8px;">'
-                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.5);'
-                    f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
-                    f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                _collapsed_engines()
+            _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
+            _engine_cards = ''.join([
+                f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
+                f'border-radius:0 6px 6px 0;padding:14px 16px;">'
+                f'<div style="font-weight:700;font-size:0.88em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
+                f'<div style="font-size:0.68em;color:#999;font-style:italic;margin-bottom:6px;">{e["subtitle"]}</div>'
+                f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{e["description"]}</div>'
+                f'</div>'
+                for e in ENGINES
+            ])
+            _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
+            _os_pills = ''.join([
+                f'<span style="background:rgba(255,255,255,0.15);color:white;font-size:0.79em;'
+                f'font-weight:500;padding:6px 13px;border-radius:20px;'
+                f'display:inline-flex;align-items:center;gap:5px;margin:3px;">'
+                f'{icon}&nbsp;{item}</span>'
+                for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
+            ])
+            st.markdown(
+                f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'
+                f'gap:8px;margin-bottom:0;">'
+                f'{_engine_cards}'
+                f'</div>'
+                f'<div style="background:{FOREST};border-radius:0 0 10px 10px;'
+                f'padding:16px 20px;margin-top:8px;">'
+                f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.5);'
+                f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
+                f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
-            if stage_idx <= 3:
-                st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
-                _section_label('FY27 STRATEGIC CHOICES')
-                _ENGINE_ATTRIBUTION = {
-                    'c2': 'Australian Wholesale',
-                    'c3': 'AUA Technology',
-                    'c4': 'Auracast Solutions',
-                    'c7': 'ShokzHear / OpenLearn',
-                }
-                # Row 1: engine-aligned (same left-to-right order as the engines above)
-                # Row 2: cross-cutting choices
-                _choice_lookup = {c['id']: c for c in CHOICES}
-                _display_order = [
-                    _choice_lookup['c2'],
-                    _choice_lookup['c3'],
-                    _choice_lookup['c4'],
-                    _choice_lookup['c7'],
-                    _choice_lookup['c1'],
-                    _choice_lookup['c5'],
-                    _choice_lookup['c6'],
-                ]
-                _choice_cards = ''.join([
-                    f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
-                    f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-                    f'<div style="font-weight:700;font-size:0.86em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
-                    + (
-                        f'<div style="margin-bottom:8px;">'
-                        f'<span style="background:{FOREST};color:white;font-size:0.65em;'
-                        f'font-weight:600;padding:3px 9px;border-radius:10px;">'
-                        f'{_ENGINE_ATTRIBUTION[c["id"]]}</span></div>'
-                        if c['id'] in _ENGINE_ATTRIBUTION else ''
-                    ) +
-                    f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{c["description"]}</div>'
-                    f'</div>'
-                    for c in _display_order
-                ])
-                st.markdown(
-                    f'<div style="display:grid;grid-template-columns:repeat(4,1fr);'
-                    f'gap:10px;">{_choice_cards}</div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                _collapsed_choices()
+            st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
+            _section_label('FY27 STRATEGIC CHOICES')
+            _ENGINE_ATTRIBUTION = {
+                'c2': 'Australian Wholesale',
+                'c3': 'AUA Technology',
+                'c4': 'Auracast Solutions',
+                'c7': 'ShokzHear / OpenLearn',
+            }
+            _choice_lookup = {c['id']: c for c in CHOICES}
+            _display_order = [
+                _choice_lookup['c2'],
+                _choice_lookup['c3'],
+                _choice_lookup['c4'],
+                _choice_lookup['c7'],
+                _choice_lookup['c1'],
+                _choice_lookup['c5'],
+                _choice_lookup['c6'],
+            ]
+            _choice_cards = ''.join([
+                f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
+                f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+                f'<div style="font-weight:700;font-size:0.86em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
+                + (
+                    f'<div style="margin-bottom:8px;">'
+                    f'<span style="background:{FOREST};color:white;font-size:0.65em;'
+                    f'font-weight:600;padding:3px 9px;border-radius:10px;">'
+                    f'{_ENGINE_ATTRIBUTION[c["id"]]}</span></div>'
+                    if c['id'] in _ENGINE_ATTRIBUTION else ''
+                ) +
+                f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{c["description"]}</div>'
+                f'</div>'
+                for c in _display_order
+            ])
+            st.markdown(
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);'
+                f'gap:10px;">{_choice_cards}</div>',
+                unsafe_allow_html=True,
+            )
 
         # HOW WE WORK ── show from stage_idx 3 onwards
         if stage_idx >= 3:
-            if stage_idx == 3:
-                _HOW_ICONS = ['💡', '🤝', '✅', '🔬', '🔗', '🛡️', '🎯']
-                _how_items = ''.join([
-                    f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
-                    f'<div style="font-size:0.78em;font-weight:600;color:white;margin-bottom:4px;">'
-                    f'{icon}&nbsp;{principle}</div>'
-                    f'<div style="font-size:0.71em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
-                    f'</div>'
-                    for icon, (principle, description) in zip(_HOW_ICONS, HOW_WE_WORK)
-                ])
-                st.markdown(
-                    f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
-                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.4);'
-                    f'letter-spacing:1.5px;margin-bottom:12px;">HOW WE WILL WORK</div>'
-                    f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
-                    f'{_how_items}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                _collapsed_working()
-
-        # Banner when the discussion is active
-        if stage_idx >= 4:
+            _HOW_ICONS = ['💡', '🤝', '✅', '🔬', '🔗', '🛡️', '🎯']
+            _how_items = ''.join([
+                f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
+                f'<div style="font-size:0.78em;font-weight:600;color:white;margin-bottom:4px;">'
+                f'{icon}&nbsp;{principle}</div>'
+                f'<div style="font-size:0.71em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
+                f'</div>'
+                for icon, (principle, description) in zip(_HOW_ICONS, HOW_WE_WORK)
+            ])
             st.markdown(
-                '<div style="background:#EDF4FF;border:1px solid #BDD5FF;border-radius:8px;'
-                'padding:14px 18px;margin-top:16px;font-size:0.88em;color:#1A4B9F;">'
-                '💬  The discussion is now open — switch to the <strong>Activity</strong> tab to contribute.</div>',
+                f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
+                f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.4);'
+                f'letter-spacing:1.5px;margin-bottom:12px;">HOW WE WILL WORK</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+                f'{_how_items}</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -249,7 +231,14 @@ with tab_activity:
     if stage in ('hidden', 'engines', 'choices', 'working'):
         _waiting('The cascade discussion will open here when James is ready.')
 
-    elif stage == 'cascade':
+    elif stage in ('cascade', 'reveal'):
+        # Compact strategy reference — full detail stays on the Presentation tab
+        _collapsed_engines()
+        _collapsed_choices()
+        _collapsed_working()
+        st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+
+    if stage == 'cascade':
         choice = CHOICES[min(cur_idx, len(CHOICES) - 1)]
         bc     = WINE
 
