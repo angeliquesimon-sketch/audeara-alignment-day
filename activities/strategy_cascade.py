@@ -146,7 +146,7 @@ with tab_pres:
                     for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
                 ])
                 st.markdown(
-                    f'<div style="display:grid;grid-template-columns:1fr 1fr;'
+                    f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'
                     f'gap:8px;margin-bottom:0;">'
                     f'{_engine_cards}'
                     f'</div>'
