@@ -115,7 +115,7 @@ def _collapsed_working():
 
 # ── Two tabs ───────────────────────────────────────────────────────────────────
 
-tab_pres, tab_activity = st.tabs(['📊 Presentation', '💬 Activity'])
+tab_pres, tab_activity, tab_results = st.tabs(['📊 Presentation', '💬 Activity', '📋 Results'])
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — PRESENTATION  (cumulative cascade — each layer collapses as the next opens)
@@ -491,3 +491,133 @@ with tab_activity:
                 st.markdown('<div style="margin-bottom:16px;"></div>', unsafe_allow_html=True)
 
         _reveal()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 3 — RESULTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+with tab_results:
+
+    @st.fragment(run_every=20)
+    def _results():
+        df_c    = pull_cascade_contributions()
+        df_conf = pull_cascade_confidence()
+
+        any_data = (not df_c.empty) or (not df_conf.empty)
+
+        if not any_data:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+                f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+                f'⏳  Results will appear here as the team works through each Strategic Choice.</div>',
+                unsafe_allow_html=True,
+            )
+            return
+
+        for choice in CHOICES:
+            # ── Confidence scores for this choice ──────────────────────────────
+            team_nums = []
+            func_nums = []
+            feedbacks = []
+            if not df_conf.empty:
+                ch_conf = df_conf[df_conf['ChoiceID'] == choice['id']]
+                for _, crow in ch_conf.iterrows():
+                    try: team_nums.append(int(crow['TeamScore']))
+                    except: pass
+                    try: func_nums.append(int(crow['FunctionScore']))
+                    except: pass
+                    fb = str(crow.get('Feedback', '')).strip()
+                    if fb:
+                        feedbacks.append(fb)
+
+            # ── Contributions for this choice ───────────────────────────────────
+            locked_contribs = []
+            if not df_c.empty:
+                ch_c = df_c[df_c['ChoiceID'] == choice['id']]
+                for dept in DEPARTMENTS:
+                    match = ch_c[ch_c['Department'] == dept]
+                    if match.empty:
+                        continue
+                    row = match.iloc[0]
+                    if row['Status'] == 'locked' and row['Text']:
+                        locked_contribs.append((dept, row['Text']))
+
+            # Skip choices with nothing at all
+            if not team_nums and not locked_contribs:
+                continue
+
+            # ── Choice header with inline confidence badge(s) ──────────────────
+            badge_html = ''
+            if team_nums:
+                t_avg = sum(team_nums) / len(team_nums)
+                t_n   = len(team_nums)
+                t_fc  = '#2D7D4F' if t_avg >= 4 else ('#B7770D' if t_avg >= 3 else '#C0392B')
+                t_bg  = '#E8F5EE' if t_avg >= 4 else ('#FEF5E7' if t_avg >= 3 else '#FDECEA')
+                badge_html += (
+                    f'<span style="font-size:0.72em;background:{t_bg};color:{t_fc};'
+                    f'font-weight:700;padding:2px 9px;border-radius:10px;margin-left:8px;">'
+                    f'Team {t_avg:.1f}/5 ({t_n})</span>'
+                )
+            if func_nums:
+                f_avg = sum(func_nums) / len(func_nums)
+                f_n   = len(func_nums)
+                f_fc  = '#2D7D4F' if f_avg >= 4 else ('#B7770D' if f_avg >= 3 else '#C0392B')
+                f_bg  = '#E8F5EE' if f_avg >= 4 else ('#FEF5E7' if f_avg >= 3 else '#FDECEA')
+                badge_html += (
+                    f'<span style="font-size:0.72em;background:{f_bg};color:{f_fc};'
+                    f'font-weight:700;padding:2px 9px;border-radius:10px;margin-left:6px;">'
+                    f'Function {f_avg:.1f}/5 ({f_n})</span>'
+                )
+
+            st.markdown(
+                f'<div style="border-left:4px solid {WINE};padding:14px 18px;'
+                f'background:#F8F8F8;border-radius:0 8px 8px 0;margin-bottom:10px;">'
+                f'<div style="font-weight:700;font-size:0.92em;color:{WINE};">'
+                f'{choice["number"]}. {choice["title"]}{badge_html}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+            # ── Contribution statements ─────────────────────────────────────────
+            if locked_contribs:
+                for dept, text in locked_contribs:
+                    points = [p.strip() for p in text.split('\n') if p.strip()]
+                    if len(points) == 1:
+                        body = f'<span style="color:#333;">{points[0]}</span>'
+                    else:
+                        items = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in points])
+                        body  = f'<ul style="margin:4px 0 0 0;padding-left:18px;color:#333;">{items}</ul>'
+                    st.markdown(
+                        f'<div style="margin-left:4px;border-left:3px solid #3EAA6D;'
+                        f'padding:8px 14px;margin-bottom:6px;background:#FAFFF9;border-radius:0 6px 6px 0;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:#2D7D4F;'
+                        f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>'
+                        f'<div style="font-size:0.84em;line-height:1.6;">{body}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.markdown(
+                    f'<div style="font-size:0.8em;color:#BBBBBB;font-style:italic;'
+                    f'margin-left:4px;margin-bottom:6px;">No contributions locked yet.</div>',
+                    unsafe_allow_html=True,
+                )
+
+            # ── Feedback ────────────────────────────────────────────────────────
+            if feedbacks:
+                st.markdown(
+                    f'<div style="font-size:0.65em;font-weight:700;color:#888;'
+                    f'letter-spacing:1px;margin:8px 0 5px 4px;">FEEDBACK</div>',
+                    unsafe_allow_html=True,
+                )
+                for fb in feedbacks:
+                    st.markdown(
+                        f'<div style="margin-left:4px;background:#F8F8F8;border-left:3px solid #DDDDDD;'
+                        f'padding:7px 12px;border-radius:0 6px 6px 0;font-size:0.82em;'
+                        f'color:#555;margin-bottom:4px;">{fb}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+
+    _results()
