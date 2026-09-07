@@ -157,7 +157,43 @@ if stage == 'cascade':
                     set_contribution_status(choice['id'], dept, 'draft')
                     st.rerun()
 
+            elif status == 'draft':
+                # Submitted by the team — show for facilitator to review, edit and lock
+                st.markdown(
+                    f'<div style="background:#FEF9E7;border-left:3px solid #F4B942;'
+                    f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
+                    f'color:#1a1a1a;margin-bottom:6px;">💬 {text}</div>',
+                    unsafe_allow_html=True,
+                )
+                edited = st.text_area(
+                    dept,
+                    value=text,
+                    height=60,
+                    placeholder=f'Edit before locking…',
+                    key=f'fac_edit_{choice["id"]}_{dept}',
+                    label_visibility='collapsed',
+                )
+                c1, c2, c3 = st.columns([2, 1, 1])
+                with c1:
+                    if edited.strip() and edited.strip() != text:
+                        if st.button('Save edit', key=f'fac_save_{choice["id"]}_{dept}', use_container_width=True):
+                            save_cascade_contribution(choice['id'], dept, edited.strip())
+                            st.rerun()
+                with c2:
+                    if st.button('✅ Lock', key=f'fac_lock_{choice["id"]}_{dept}', type='primary', use_container_width=True):
+                        final = edited.strip() or text
+                        if final:
+                            set_contribution_status(choice['id'], dept, 'locked', text=final)
+                            st.rerun()
+                        else:
+                            st.warning('Nothing to lock.')
+                with c3:
+                    if st.button('Opt out', key=f'fac_opt_{choice["id"]}_{dept}', use_container_width=True):
+                        set_contribution_status(choice['id'], dept, 'opted_out')
+                        st.rerun()
+
             else:
+                # No submission yet — facilitator can type directly
                 edited = st.text_area(
                     dept,
                     value=text,

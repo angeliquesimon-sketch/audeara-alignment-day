@@ -294,7 +294,20 @@ with tab_activity:
                         unsafe_allow_html=True,
                     )
 
+                elif status == 'draft':
+                    # Submitted and visible to the room — under discussion
+                    st.markdown(
+                        f'<div style="background:#FEF9E7;border-left:4px solid #F4B942;'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
+                        f'<div style="font-size:0.65em;font-weight:700;color:#B7860D;'
+                        f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} 💬 IN DISCUSSION</div>'
+                        f'<div style="font-size:0.86em;color:#1a1a1a;line-height:1.6;">{text}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
                 else:
+                    # No submission yet — show editable field
                     st.markdown(
                         f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>',
