@@ -588,9 +588,9 @@ with tab_results:
                         items = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in points])
                         body  = f'<ul style="margin:4px 0 0 0;padding-left:18px;color:#333;">{items}</ul>'
                     st.markdown(
-                        f'<div style="margin-left:4px;border-left:3px solid #3EAA6D;'
-                        f'padding:8px 14px;margin-bottom:6px;background:#FAFFF9;border-radius:0 6px 6px 0;">'
-                        f'<div style="font-size:0.68em;font-weight:700;color:#2D7D4F;'
+                        f'<div style="margin-left:4px;border-left:3px solid {WINE};'
+                        f'padding:8px 14px;margin-bottom:6px;background:#FDF8FC;border-radius:0 6px 6px 0;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:{WINE};'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>'
                         f'<div style="font-size:0.84em;line-height:1.6;">{body}</div>'
                         f'</div>',
