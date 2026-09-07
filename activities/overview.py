@@ -230,19 +230,19 @@ def _overview():
         ot_detail,
     )
 
-    casc_done  = casc_stage == 'complete'
-    casc_alive = casc_stage in ('goals', 'contributions', 'confidence')
+    casc_done  = casc_stage == 'reveal'
+    casc_alive = casc_stage in ('engines', 'choices', 'working', 'cascade', 'reveal')
     if casc_done:
         casc_detail = 'Complete.'
-    elif casc_stage == 'confidence':
+    elif casc_stage == 'cascade':
         n_conf = _row_count('Cascade Confidence')
-        casc_detail = f'{n_conf} anonymous confidence response{"s" if n_conf != 1 else ""} in.'
-    elif casc_stage == 'contributions':
-        casc_detail = f'In progress — {n_casc_comm} of {n_team} contributed.'
+        casc_detail = f'Cascade underway — {n_conf} confidence vote{"s" if n_conf != 1 else ""} in.'
+    elif casc_stage in ('engines', 'choices', 'working'):
+        casc_detail = 'James is presenting the FY27 strategy.'
     elif casc_alive:
-        casc_detail = 'James is walking through the FY27 goals.'
+        casc_detail = 'Strategy Cascade is underway.'
     else:
-        casc_detail = 'James walks through the FY27 goals. The team contributes how each function will help, then shares their confidence anonymously.'
+        casc_detail = 'James presents the FY27 strategy. Each function agrees how they contribute to each strategic choice.'
     _step(
         'Strategy Cascade',
         'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
