@@ -163,126 +163,108 @@ with tab_pres:
                 unsafe_allow_html=True,
             )
 
-            # ── Engine detail accordions ──────────────────────────────────────
+            # ── Engine detail accordions — stats chips + 2-col card grid ────────
             _ENGINE_DETAIL = {
                 'wholesale': {
-                    'intro': (
-                        'Australian Wholesale is our most established commercial engine — the foundation of '
-                        'Audeara\'s revenue and our closest connection to clinicians and customers. '
-                        'We\'re not building the network anymore. We\'re deepening it.'
-                    ),
+                    'stats': [('1,500+', 'AU clinics'), ('12', 'countries'), ('35%', 'leave without aids')],
                     'sections': [
-                        ('What we do for clinics', [
-                            'We give clinics an additional revenue stream and a solution for the 35% of patients who leave without hearing aids.',
-                            'Audeara bridges the gap between "not ready for hearing aids" and the full clinical relationship.',
-                            'Clinicians get products they can confidently recommend — premium, evidence-backed, and easy to demonstrate.',
+                        ('For clinics', [
+                            'Additional revenue stream for clinics.',
+                            'Solution for patients not yet ready for hearing aids.',
+                            'Products clinicians can confidently recommend.',
                         ]),
                         ('Where we are', [
-                            '1,500+ clinics across Australia. Stocked in 12 countries.',
-                            'The network is established. FY27 is about account depth, repeat ordering, and fewer one-off purchases.',
-                            'Major global audiology chain relationships in place.',
+                            '1,500+ AU clinics. Network is built.',
+                            'FY27 = depth per clinic, not expansion.',
+                            'Major global chain relationships in place.',
                         ]),
                         ('Key channels', [
-                            'Australian audiology clinics — major chains and independents.',
-                            'International: EU and US (global chains), Japan (growing), Taiwan (Clinico partnership).',
+                            'AU audiology clinics — chains and independents.',
+                            'International: EU/US chains, Japan, Taiwan (Clinico).',
                             'NDIS and e-commerce.',
                         ]),
                         ('FY27 priorities', [
                             'Account depth and repeat ordering.',
-                            'Onboard and enable the expanded field team, including incoming Clinical Business Managers.',
-                            'Make ordering, training and support simpler and more dependable.',
-                            'Strengthen clinician feedback loops across sales, operations, marketing and product teams.',
+                            'Onboard incoming Clinical Business Managers.',
+                            'Simpler ordering, training and support.',
+                            'Stronger clinician feedback loops.',
                         ]),
                     ],
                 },
                 'aua_tech': {
-                    'intro': (
-                        'AUA Technology turns Audeara\'s proprietary hearing and audio capability into partner products, '
-                        'embedded platforms and repeatable licensing revenue. It\'s our highest-margin division and our '
-                        'clearest path to sustainable profitability. $1.68m in FY26, up 50% year on year.'
-                    ),
+                    'stats': [('$1.68m', 'FY26 revenue'), ('+50%', 'YoY growth'), ('4', 'partners in market')],
                     'sections': [
                         ('How it works', [
-                            'We provide engineering services, white-label products and algorithm licensing to global partners.',
-                            'Revenue comes from three streams: engineering fees, product licensing, and white-label supply.',
-                            'Higher margin than hardware, and it scales without proportional cost.',
+                            'Engineering services + white-label products + algorithm licensing.',
+                            'Three revenue streams: fees, licensing, white-label supply.',
+                            'Higher margin than hardware. Scales without proportional cost.',
                         ]),
                         ('Partners in market', [
-                            'Zildjian — Perfect Tune headphones, global distribution, multiple shipments.',
-                            'Eastech / China — NMPA-certified hearing aids, live on Tmall, JD.com and Pinduoduo.',
-                            'Clinico / Taiwan — white-label earbuds plus an expanding Auracast product range.',
-                            'Optek — AI algorithm licensing embedded into audio chipsets used across global consumer electronics.',
+                            'Zildjian — Perfect Tune headphones, global.',
+                            'Eastech/China — NMPA certified, live on Tmall, JD.com.',
+                            'Clinico/Taiwan — white-label earbuds + Auracast range.',
+                            'Optek — AI algorithm licensing in consumer electronics chips.',
                         ]),
-                        ('Pipeline and discipline', [
-                            'Additional partner programs progressing, including Rion.',
-                            'Disciplined portfolio decisions using the seven-gate framework — fund based on readiness and strategic value.',
-                            'Reusable capability built once and deployed across multiple partners.',
+                        ('Pipeline', [
+                            'Rion and additional programs in development.',
+                            '7-gate framework: fund by readiness and strategic value.',
+                            'Reusable AUAI capability built once, deployed across partners.',
                         ]),
                         ('FY27 priorities', [
-                            'Progress development programs to production revenue and repeat orders.',
-                            'Build reusable AUAI module capability rather than one-off engineering.',
-                            'Expand the partner pipeline with disciplined selection.',
+                            'Progress programs to production revenue.',
+                            'Build reusable capability, not one-off engineering.',
+                            'Expand partner pipeline with disciplined selection.',
                         ]),
                     ],
                 },
                 'auracast': {
-                    'intro': (
-                        'Auracast is how we move beyond the clinic. It\'s a solutions business for venues and institutions — '
-                        'shared listening infrastructure that works for everyone in the room, not just hearing aid wearers.'
-                    ),
+                    'stats': [('∞', 'receivers per transmitter'), ('2', 'live deployments'), ('Replaces', 'hearing loops')],
                     'sections': [
                         ('What it is', [
-                            'Auracast is a Bluetooth standard that replaces traditional hearing loops.',
-                            'One transmitter broadcasts to an unlimited number of compatible devices simultaneously.',
-                            'Easier to deploy, lower cost, better audio quality — and it benefits people of all hearing abilities, not just those with hearing loss.',
+                            'Bluetooth standard replacing traditional hearing loops.',
+                            'One transmitter → unlimited compatible receivers simultaneously.',
+                            'Works for all hearing abilities, not just hearing aid users.',
                         ]),
                         ('Early wins', [
-                            'University of Queensland — classroom and lecture deployment.',
-                            'Bolton Clarke aged care — our reference case for a repeatable, supportable deployment.',
-                            'These prove the model works in real environments with real users.',
+                            'University of Queensland — classrooms and lectures.',
+                            'Bolton Clarke aged care — reference case for repeatable deployment.',
                         ]),
                         ('Priority environments', [
-                            'Senior living and care.',
-                            'Universities, classrooms and education.',
+                            'Senior living and aged care.',
+                            'Universities and classrooms.',
                             'Healthcare and clinical settings.',
-                            'Public venues, events and AV partner-led installations.',
+                            'Public venues and AV partner installations.',
                         ]),
                         ('FY27 priorities', [
-                            'Formalise the deployment offer, delivery playbook and partner model.',
-                            'Convert the Bolton Clarke learning into a repeatable solution package.',
-                            'Build a qualified pipeline of environments for AV sector distribution.',
-                            'Grow Japan and Clinico Taiwan channels as the Auracast product range expands.',
+                            'Formalise deployment offer, playbook and partner model.',
+                            'Convert Bolton Clarke into a repeatable package.',
+                            'Build AV sector pipeline. Grow Japan + Clinico Taiwan.',
                         ]),
                     ],
                 },
                 'shokzhear': {
-                    'intro': (
-                        'Listen & Learn is how Audeara makes an impact. It\'s a partner-funded program that gets assistive '
-                        'listening technology to children who need it — in schools and community settings — through a model '
-                        'that doesn\'t depend on clinical channels or individual purchasing.'
-                    ),
+                    'stats': [('3-party', 'delivery model'), ('Exclusive AU', 'deployment rights'), ('FY27', 'first funded orders')],
                     'sections': [
                         ('The program', [
-                            'Three groups work together: Audeara (program founder and device provider), community delivery partners (charities and organisations who identify children, distribute devices and report impact), and funding partners (who provide financial support in exchange for impact reporting).',
-                            'The three-party model removes the individual purchasing barrier and lowers customer acquisition cost.',
+                            'Audeara: program founder and device provider.',
+                            'Community delivery partners: charities who reach children.',
+                            'Funding partners: financial support in exchange for impact reporting.',
                         ]),
                         ('The product', [
                             'OpenLearn Small by ShokzHear.',
-                            'Audeara sets the functionality, size and audio-tuning requirements.',
-                            'ShokzHear customises and manufactures.',
+                            'Audeara sets specs. ShokzHear manufactures.',
                             'Audeara holds exclusive Australian deployment rights.',
                         ]),
                         ('Path to scale', [
                             'Schools and education systems.',
-                            'State and national programs.',
-                            'Charities, grants and community delivery partners.',
-                            'Institutional and community-led reach — sustainable without a clinical intermediary.',
+                            'State and national programs + grants.',
+                            'Community delivery partners — no clinical intermediary needed.',
                         ]),
                         ('FY27 priorities', [
                             'Initial customer orders.',
                             'First funded deployments.',
                             'Measurable evidence of impact.',
-                            'A repeatable partner model that can be replicated across new delivery partners.',
+                            'Repeatable partner model.',
                         ]),
                     ],
                 },
@@ -294,35 +276,38 @@ with tab_pres:
                 if not _edetail:
                     continue
                 with st.expander(_e['title'], expanded=False):
-                    if _edetail.get('intro'):
+                    # Stats chips
+                    if _edetail.get('stats'):
+                        _chips = ''.join([
+                            f'<div style="background:{FOREST};color:white;border-radius:8px;'
+                            f'padding:10px 20px;text-align:center;min-width:90px;">'
+                            f'<div style="font-size:1.25em;font-weight:700;line-height:1.2;">{val}</div>'
+                            f'<div style="font-size:0.72em;opacity:0.75;margin-top:2px;">{label}</div>'
+                            f'</div>'
+                            for val, label in _edetail['stats']
+                        ])
                         st.markdown(
-                            f'<div style="font-size:0.95em;color:#555;font-style:italic;'
-                            f'line-height:1.6;margin-bottom:14px;">{_edetail["intro"]}</div>',
+                            f'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">{_chips}</div>',
                             unsafe_allow_html=True,
                         )
-                    for _sec_title, _sec_content in _edetail['sections']:
-                        st.markdown(
-                            f'<div style="font-size:0.84em;font-weight:700;color:{FOREST};'
-                            f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
-                            f'{_sec_title.upper()}</div>',
-                            unsafe_allow_html=True,
-                        )
+                    # 2-col section cards
+                    _cards = ''
+                    for _sec_title, _sec_content in _edetail.get('sections', []):
                         if isinstance(_sec_content, list):
-                            _items = ''.join([
-                                f'<li style="margin-bottom:4px;">{item}</li>'
-                                for item in _sec_content
-                            ])
-                            st.markdown(
-                                f'<ul style="font-size:0.95em;color:#333;line-height:1.6;'
-                                f'margin:0;padding-left:18px;">{_items}</ul>',
-                                unsafe_allow_html=True,
-                            )
+                            _items = ''.join([f'<li style="margin-bottom:3px;">{item}</li>' for item in _sec_content])
+                            _body  = f'<ul style="font-size:0.84em;color:#333;line-height:1.5;margin:0;padding-left:16px;">{_items}</ul>'
                         else:
-                            st.markdown(
-                                f'<div style="font-size:0.95em;color:#333;line-height:1.6;">'
-                                f'{_sec_content}</div>',
-                                unsafe_allow_html=True,
-                            )
+                            _body  = f'<div style="font-size:0.84em;color:#333;line-height:1.5;">{_sec_content}</div>'
+                        _cards += (
+                            f'<div style="background:#F8F8F8;border-radius:8px;padding:13px 15px;">'
+                            f'<div style="font-size:0.72em;font-weight:700;color:{FOREST};'
+                            f'letter-spacing:1px;margin-bottom:7px;">{_sec_title.upper()}</div>'
+                            f'{_body}</div>'
+                        )
+                    st.markdown(
+                        f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">{_cards}</div>',
+                        unsafe_allow_html=True,
+                    )
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:

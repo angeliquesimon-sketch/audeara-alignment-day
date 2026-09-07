@@ -117,10 +117,11 @@ if stage == 'cascade':
             dept_rows   = df[(df['ChoiceID'] == choice['id']) & (df['Department'] == dept)] if not df.empty else df
             locked_rows = dept_rows[dept_rows['Status'] == 'locked'] if not dept_rows.empty else dept_rows
             draft_rows  = dept_rows[dept_rows['Status'] == 'draft']  if not dept_rows.empty else dept_rows
+            held_rows   = dept_rows[dept_rows['Status'] == 'held']   if not dept_rows.empty else dept_rows
             is_opted    = (not dept_rows.empty
                            and dept_rows['Status'].eq('opted_out').any()
-                           and locked_rows.empty and draft_rows.empty)
-            n_active    = len(locked_rows) + len(draft_rows)
+                           and locked_rows.empty and draft_rows.empty and held_rows.empty)
+            n_active    = len(locked_rows) + len(draft_rows) + len(held_rows)
 
             st.markdown(
                 f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
@@ -165,6 +166,36 @@ if stage == 'cascade':
                             update_contribution(ts, new_status='deleted')
                             st.rerun()
 
+                for _, row in held_rows.iterrows():
+                    ts   = row['Timestamp']
+                    text = row['Text']
+                    pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
+                    if len(pts) == 1:
+                        hbody = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">📌 {pts[0]}</div>'
+                    else:
+                        hitems = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in pts])
+                        hbody  = (f'<div style="font-size:0.76em;color:#005E63;margin-bottom:3px;">📌 KEPT FOR LATER</div>'
+                                  f'<ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{hitems}</ul>')
+                    st.markdown(
+                        f'<div style="background:#EEF6F6;border-left:3px solid #188383;'
+                        f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:4px;">'
+                        f'{hbody}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    c1, c2, c3 = st.columns([1, 1, 1])
+                    with c1:
+                        if st.button('✅ Lock', key=f'fac_lock_h_{ts}', type='primary', use_container_width=True):
+                            update_contribution(ts, new_status='locked')
+                            st.rerun()
+                    with c2:
+                        if st.button('Release', key=f'fac_rel_{ts}', use_container_width=True):
+                            update_contribution(ts, new_status='draft')
+                            st.rerun()
+                    with c3:
+                        if st.button('Delete', key=f'fac_del_h_{ts}', use_container_width=True):
+                            update_contribution(ts, new_status='deleted')
+                            st.rerun()
+
                 for _, row in draft_rows.iterrows():
                     ts   = row['Timestamp']
                     text = row['Text']
@@ -189,7 +220,7 @@ if stage == 'cascade':
                         key=f'fac_edit_{ts}',
                         label_visibility='collapsed',
                     )
-                    c1, c2, c3 = st.columns([2, 1, 1])
+                    c1, c2, c3, c4 = st.columns([2, 1, 1, 1])
                     with c1:
                         if edited.strip() and edited.strip() != text:
                             if st.button('Save edit', key=f'fac_save_{ts}', use_container_width=True):
@@ -204,6 +235,11 @@ if stage == 'cascade':
                             else:
                                 st.warning('Nothing to lock.')
                     with c3:
+                        if st.button('Hold', key=f'fac_hold_{ts}', use_container_width=True):
+                            final = edited.strip() or text
+                            update_contribution(ts, new_status='held', new_text=final)
+                            st.rerun()
+                    with c4:
                         if st.button('Delete', key=f'fac_del_d_{ts}', use_container_width=True):
                             update_contribution(ts, new_status='deleted')
                             st.rerun()
