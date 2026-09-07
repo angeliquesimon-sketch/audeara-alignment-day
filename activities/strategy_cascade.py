@@ -277,7 +277,7 @@ with tab_activity:
 
                 # Department heading + One Thing reference
                 ot_text = one_thing if one_thing else 'One Thing not yet agreed'
-                ot_colour = '#AAAAAA' if one_thing else '#DDDDDD'
+                ot_colour = '#777777' if one_thing else '#BBBBBB'
                 ot_html = (
                     f'<div style="font-size:0.68em;color:{ot_colour};font-style:italic;'
                     f'margin-top:2px;margin-bottom:8px;">Our One Thing: {ot_text}</div>'
@@ -314,13 +314,18 @@ with tab_activity:
 
                 elif status == 'draft':
                     # Submitted and visible to the room — under discussion
+                    _points = [p.strip() for p in text.split('\n') if p.strip()]
+                    if len(_points) == 1:
+                        _body = f'<div style="font-size:0.86em;color:#1a1a1a;line-height:1.6;">{_points[0]}</div>'
+                    else:
+                        _items = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in _points])
+                        _body  = f'<ul style="font-size:0.86em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{_items}</ul>'
                     st.markdown(
                         f'<div style="background:#FEF9E7;border-left:4px solid #F4B942;'
                         f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
                         f'<div style="font-size:0.65em;font-weight:700;color:#B7860D;'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} 💬 IN DISCUSSION</div>'
-                        f'<div style="font-size:0.86em;color:#1a1a1a;line-height:1.6;">{text}</div>'
-                        f'</div>',
+                        f'{_body}</div>',
                         unsafe_allow_html=True,
                     )
                     add_text = st.text_area(
@@ -328,7 +333,7 @@ with tab_activity:
                         value='',
                         height=60,
                         placeholder='Add another point…',
-                        key=f'casc_ta_{choice["id"]}_{dept}',
+                        key=f'casc_ta_{choice["id"]}_{dept}_{len(_points)}',
                         label_visibility='collapsed',
                     )
                     if st.button(
