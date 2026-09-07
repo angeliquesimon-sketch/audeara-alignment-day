@@ -263,12 +263,17 @@ with tab_personal:
             unsafe_allow_html=True,
         )
     else:
+        intro_text = (
+            'Read through your departments\' One Things below, then write the single action '
+            '<em>you</em> can commit to this year that will have the most impact. Be specific: '
+            'what will you start, stop, or do more of?'
+            if len(my_depts) > 1 else
+            'Based on your department\'s One Thing — what\'s the single action <em>you</em> can commit to '
+            'this year that will have the most impact on your function\'s goal? Be specific: '
+            'what will you start, stop, or do more of?'
+        )
         st.markdown(
-            f'<div class="activity-card">'
-            f'Based on your department\'s One Thing — what\'s the single action <em>you</em> can commit to '
-            f'this year that will have the most impact on your function\'s goal? Be specific: '
-            f'what will you start, stop, or do more of?'
-            f'</div>',
+            f'<div class="activity-card">{intro_text}</div>',
             unsafe_allow_html=True,
         )
         st.markdown('')
@@ -279,7 +284,27 @@ with tab_personal:
             winners = pull_one_thing_winners()
             goals_live, fn_live = pull_cascade_content()
 
-            # Determine function — auto-select if one dept, selectbox if multiple
+            # Show ALL departments' One Things as context
+            for dept in my_depts:
+                one_thing_context = winners.get(dept) or drafts.get(dept) or fn_live.get(dept, '')
+                if one_thing_context:
+                    is_locked = bool(winners.get(dept))
+                    bc = '#3EAA6D' if is_locked else PURPLE
+                    bg = '#E8F5EE' if is_locked else '#F7F0F7'
+                    label = 'AGREED ONE THING' if is_locked else 'DRAFT ONE THING'
+                    st.markdown(
+                        f'<div style="background:{bg};border-left:4px solid {bc};'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:{bc};'
+                        f'letter-spacing:1px;margin-bottom:4px;">{label} — {dept.upper()}</div>'
+                        f'<div style="font-size:0.86em;color:#333;line-height:1.6;">{one_thing_context}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.markdown('')
+
+            # Function tag — auto-select if one dept, selectbox if multiple
             if len(my_depts) == 1:
                 function = my_depts[0]
                 st.markdown(
@@ -289,26 +314,9 @@ with tab_personal:
                 )
             else:
                 function = st.selectbox(
-                    'Your primary function for this commitment',
+                    'Which function does your One Thing sit under?',
                     my_depts,
                     key='ot_personal_fn',
-                )
-
-            # Show dept One Thing context
-            one_thing_context = winners.get(function) or drafts.get(function) or fn_live.get(function, '')
-            if one_thing_context:
-                is_locked = bool(winners.get(function))
-                bc = '#3EAA6D' if is_locked else PURPLE
-                bg = '#E8F5EE' if is_locked else '#F7F0F7'
-                label = 'AGREED ONE THING' if is_locked else 'DRAFT ONE THING'
-                st.markdown(
-                    f'<div style="background:{bg};border-left:4px solid {bc};'
-                    f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:16px;">'
-                    f'<div style="font-size:0.68em;font-weight:700;color:{bc};'
-                    f'letter-spacing:1px;margin-bottom:4px;">{label} — {function.upper()}</div>'
-                    f'<div style="font-size:0.86em;color:#333;line-height:1.6;">{one_thing_context}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
                 )
 
             df_comm = pull_commitments()
