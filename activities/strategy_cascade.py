@@ -15,9 +15,9 @@ from strategy_cascade_shared import (
 
 inject_styles()
 
-FOREST = '#2D6A4F'
-WINE   = '#6B1530'
-BLACK  = '#1a1a1a'
+FOREST = '#005E63'
+WINE   = '#50144B'
+BLACK  = '#000000'
 
 if not st.session_state.get('_cascade_tabs_ready'):
     try:

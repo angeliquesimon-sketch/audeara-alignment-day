@@ -14,7 +14,7 @@ from strategy_cascade_shared import (
 
 inject_styles()
 
-WINE = '#6B1530'
+WINE = '#50144B'
 
 st.markdown('### 🎛️ Facilitate — Strategy Cascade')
 
