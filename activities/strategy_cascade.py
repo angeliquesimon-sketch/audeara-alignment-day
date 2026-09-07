@@ -210,17 +210,24 @@ with tab_pres:
         # HOW WE WORK ── show from stage_idx 3 onwards
         if stage_idx >= 3:
             if stage_idx == 3:
-                _section_label('HOW WE WILL WORK')
-                for i, (principle, description) in enumerate(HOW_WE_WORK):
-                    bc = BLACK
-                    st.markdown(
-                        f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
-                        f'border-radius:0 8px 8px 0;padding:14px 20px;margin-bottom:10px;">'
-                        f'<div style="font-weight:700;font-size:0.92em;color:{bc};margin-bottom:4px;">{principle}</div>'
-                        f'<div style="font-size:0.84em;color:#555;line-height:1.6;">{description}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+                _HOW_ICONS = ['💡', '🤝', '✅', '🔬', '🔗', '🛡️', '🎯']
+                _how_items = ''.join([
+                    f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
+                    f'<div style="font-size:0.78em;font-weight:600;color:white;margin-bottom:4px;">'
+                    f'{icon}&nbsp;{principle}</div>'
+                    f'<div style="font-size:0.71em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
+                    f'</div>'
+                    for icon, (principle, description) in zip(_HOW_ICONS, HOW_WE_WORK)
+                ])
+                st.markdown(
+                    f'<div style="background:{BLACK};border-radius:10px;padding:18px 20px;margin-top:28px;">'
+                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.4);'
+                    f'letter-spacing:1.5px;margin-bottom:12px;">HOW WE WILL WORK</div>'
+                    f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+                    f'{_how_items}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
             else:
                 _collapsed_working()
 
