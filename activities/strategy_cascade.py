@@ -131,7 +131,7 @@ with tab_pres:
 
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
-            _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
+            _section_label('Commercial Engines')
             _engine_cards = ''.join([
                 f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
                 f'border-radius:0 6px 6px 0;padding:14px 16px;">'
