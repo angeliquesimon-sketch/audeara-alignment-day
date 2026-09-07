@@ -128,30 +128,32 @@ with tab_pres:
         if stage_idx >= 1:
             if stage_idx == 1:
                 _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
-                for i, engine in enumerate(ENGINES):
-                    bc = FOREST
-                    st.markdown(
-                        f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
-                        f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:12px;">'
-                        f'<div style="font-weight:700;font-size:0.95em;color:{bc};">{engine["title"]}</div>'
-                        f'<div style="font-size:0.72em;color:#888;font-style:italic;margin-bottom:6px;">{engine["subtitle"]}</div>'
-                        f'<div style="font-size:0.84em;color:#555;line-height:1.6;">{engine["description"]}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+                _engine_cards = ''.join([
+                    f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
+                    f'border-radius:0 6px 6px 0;padding:14px 16px;">'
+                    f'<div style="font-weight:700;font-size:0.88em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
+                    f'<div style="font-size:0.68em;color:#999;font-style:italic;margin-bottom:6px;">{e["subtitle"]}</div>'
+                    f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{e["description"]}</div>'
+                    f'</div>'
+                    for e in ENGINES
+                ])
                 _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
                 _os_pills = ''.join([
-                    f'<span style="background:rgba(255,255,255,0.15);color:white;'
-                    f'font-size:0.8em;font-weight:500;padding:7px 14px;border-radius:20px;'
-                    f'display:inline-flex;align-items:center;gap:6px;margin:3px 3px;">'
+                    f'<span style="background:rgba(255,255,255,0.15);color:white;font-size:0.79em;'
+                    f'font-weight:500;padding:6px 13px;border-radius:20px;'
+                    f'display:inline-flex;align-items:center;gap:5px;margin:3px;">'
                     f'{icon}&nbsp;{item}</span>'
                     for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
                 ])
                 st.markdown(
-                    f'<div style="background:{FOREST};border-radius:10px;'
-                    f'padding:18px 20px;margin-top:8px;">'
-                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.55);'
-                    f'letter-spacing:1.5px;margin-bottom:12px;">ONE COMPANY OPERATING SYSTEM</div>'
+                    f'<div style="display:grid;grid-template-columns:1fr 1fr;'
+                    f'gap:8px;margin-bottom:0;">'
+                    f'{_engine_cards}'
+                    f'</div>'
+                    f'<div style="background:{FOREST};border-radius:0 0 10px 10px;'
+                    f'padding:16px 20px;margin-top:8px;">'
+                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.5);'
+                    f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
                     f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
                     f'</div>',
                     unsafe_allow_html=True,
