@@ -14,6 +14,8 @@ from strategy_cascade_shared import (
 
 inject_styles()
 
+WINE = '#6B1530'
+
 st.markdown('### 🎛️ Facilitate — Strategy Cascade')
 
 session   = pull_cascade_session()
@@ -59,7 +61,7 @@ st.divider()
 
 if stage == 'cascade':
     choice = CHOICES[min(cur_idx, len(CHOICES) - 1)]
-    bc     = CHOICE_COLOURS[cur_idx % len(CHOICE_COLOURS)]
+    bc     = WINE
 
     st.markdown(
         f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
@@ -237,7 +239,7 @@ elif stage == 'reveal':
         df_conf = pull_cascade_confidence()
 
         for i, choice in enumerate(CHOICES):
-            bc     = CHOICE_COLOURS[i]
+            bc     = WINE
             locked = opted = pending = 0
             if not df_c.empty:
                 ch      = df_c[df_c['ChoiceID'] == choice['id']]

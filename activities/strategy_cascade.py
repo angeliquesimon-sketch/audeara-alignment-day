@@ -15,6 +15,10 @@ from strategy_cascade_shared import (
 
 inject_styles()
 
+FOREST = '#2D6A4F'
+WINE   = '#6B1530'
+BLACK  = '#1a1a1a'
+
 if not st.session_state.get('_cascade_tabs_ready'):
     try:
         with_retry(_ensure_cascade_tabs, on_retry=_clear_sheets)
@@ -63,7 +67,7 @@ def _section_label(text):
 
 def _collapsed_engines():
     pills = ''.join([
-        f'<span style="background:{ENGINE_COLOURS[i]};color:white;font-size:0.72em;'
+        f'<span style="background:{FOREST};color:white;font-size:0.72em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{e["title"]}</span>'
         for i, e in enumerate(ENGINES)
@@ -78,7 +82,7 @@ def _collapsed_engines():
 
 def _collapsed_choices():
     pills = ''.join([
-        f'<span style="background:{CHOICE_COLOURS[i]};color:white;font-size:0.72em;'
+        f'<span style="background:{WINE};color:white;font-size:0.72em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{c["number"]}. {c["title"]}</span>'
         for i, c in enumerate(CHOICES)
@@ -93,7 +97,7 @@ def _collapsed_choices():
 
 def _collapsed_working():
     pills = ''.join([
-        f'<span style="background:{CHOICE_COLOURS[i % len(CHOICE_COLOURS)]};color:white;'
+        f'<span style="background:{BLACK};color:white;'
         f'font-size:0.72em;font-weight:600;padding:4px 11px;border-radius:14px;'
         f'margin-right:6px;display:inline-block;margin-bottom:5px;">{principle}</span>'
         for i, (principle, _) in enumerate(HOW_WE_WORK)
@@ -123,17 +127,9 @@ with tab_pres:
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
             if stage_idx == 1:
-                _section_label('THE COMPANY WE ARE BUILDING')
-                st.markdown(
-                    '<div style="font-size:0.88em;color:#555;line-height:1.7;margin-bottom:24px;">'
-                    'Audeara is not simply a headphone company, a hearing-aid company, an app company or a '
-                    'technology project. We are building one connected company with four commercial engines, '
-                    'supported by a shared operating system.'
-                    '</div>',
-                    unsafe_allow_html=True,
-                )
+                _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
                 for i, engine in enumerate(ENGINES):
-                    bc = ENGINE_COLOURS[i]
+                    bc = FOREST
                     st.markdown(
                         f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
                         f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:12px;">'
@@ -158,7 +154,7 @@ with tab_pres:
             if stage_idx == 2:
                 _section_label('OUR SIX STRATEGIC CHOICES')
                 for i, choice in enumerate(CHOICES):
-                    bc = CHOICE_COLOURS[i]
+                    bc = WINE
                     st.markdown(
                         f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
                         f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:12px;">'
@@ -176,7 +172,7 @@ with tab_pres:
             if stage_idx == 3:
                 _section_label('HOW WE WILL WORK')
                 for i, (principle, description) in enumerate(HOW_WE_WORK):
-                    bc = CHOICE_COLOURS[i % len(CHOICE_COLOURS)]
+                    bc = BLACK
                     st.markdown(
                         f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
                         f'border-radius:0 8px 8px 0;padding:14px 20px;margin-bottom:10px;">'
@@ -208,7 +204,7 @@ with tab_activity:
 
     elif stage == 'cascade':
         choice = CHOICES[min(cur_idx, len(CHOICES) - 1)]
-        bc     = CHOICE_COLOURS[cur_idx % len(CHOICE_COLOURS)]
+        bc     = WINE
 
         st.markdown(
             f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
@@ -331,7 +327,7 @@ with tab_activity:
             df_conf = pull_cascade_confidence()
 
             for i, choice in enumerate(CHOICES):
-                bc = CHOICE_COLOURS[i]
+                bc = WINE
 
                 conf_badge = ''
                 if not df_conf.empty:
