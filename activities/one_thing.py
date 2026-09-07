@@ -1,0 +1,360 @@
+"""The One Thing — participant page (Intro / Departmental / Personal tabs)."""
+
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+import streamlit as st
+from utils import inject_styles, PURPLE, TEAL, with_retry, _clear_sheets
+from one_thing_shared import (
+    DEPARTMENTS, DEPARTMENT_MAP, DEPARTMENT_HEADS,
+    ONE_THING_STAGES, ONE_THING_STAGE_LABELS,
+    _ensure_one_thing_tabs,
+    pull_one_thing_session, pull_one_thing_drafts,
+    pull_one_thing_suggestions, save_one_thing_suggestion,
+    pull_one_thing_winners, save_one_thing_winner,
+)
+from strategy_cascade_shared import (
+    pull_commitments, save_commitment, pull_cascade_content,
+)
+from styles_shared import TEAM
+
+inject_styles()
+
+if not st.session_state.get('_one_thing_tabs_ready'):
+    try:
+        with_retry(_ensure_one_thing_tabs, on_retry=_clear_sheets)
+        st.session_state['_one_thing_tabs_ready'] = True
+    except Exception as _e:
+        st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
+
+st.markdown('### The One Thing')
+
+# ── Name selector ──────────────────────────────────────────────────────────────
+
+name = st.selectbox('Your name', [''] + TEAM, key='ot_name')
+
+if not name:
+    st.caption('Select your name above to get started.')
+    st.stop()
+
+my_depts = DEPARTMENT_MAP.get(name, [])
+is_dept_head = any(DEPARTMENT_HEADS.get(d) == name for d in my_depts)
+
+tab_intro, tab_depts, tab_personal = st.tabs([
+    '💡 What is The One Thing?',
+    '🏢 Departmental One Things',
+    '✋ Your One Thing',
+])
+
+# ── Auto-refreshing stage gate ─────────────────────────────────────────────────
+
+@st.fragment(run_every=5)
+def _stage_check():
+    pull_one_thing_session.clear()
+
+_stage_check()
+
+session = pull_one_thing_session()
+stage   = session.get('stage', 'hidden')
+
+# ── Tab 1: Introduction ────────────────────────────────────────────────────────
+
+with tab_intro:
+    if stage == 'hidden':
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+            f'text-align:center;color:#AAAAAA;font-size:0.9em;margin-top:8px;">'
+            f'⏳  We\'ll get started shortly.<br>'
+            f'<span style="font-size:0.82em;">Stay on this page.</span></div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f'<div style="font-weight:700;font-size:1.15em;color:{PURPLE};margin-bottom:6px;">'
+            f'What\'s the one thing you can do, such that by doing it, everything else becomes easier or unnecessary?'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown('')
+
+        st.markdown(
+            f'<div style="background:#F7F0F7;border-left:4px solid {PURPLE};'
+            f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:16px;">'
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:{PURPLE};margin-bottom:8px;">THE IDEA</div>'
+            f'<div style="font-size:0.88em;color:#444;line-height:1.7;">'
+            f'From Gary Keller\'s <em>The ONE Thing</em> — the idea that extraordinary results come not from doing more, '
+            f'but from doing the right thing. When you identify the one action that makes everything else easier, '
+            f'you stop spreading effort across too many priorities and start making real progress on what actually matters.'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
+
+        cols = st.columns(3)
+        for col, (icon, heading, body) in zip(cols, [
+            ('🎯', 'Focus over volume', 'Doing many things at average is less valuable than doing one thing exceptionally well.'),
+            ('🔗', 'Everything connects', 'The right One Thing at each level — company, team, individual — creates a chain of impact.'),
+            ('📅', 'Today shapes tomorrow', 'Consistent daily focus on your One Thing compounds into results that scattered effort never reaches.'),
+        ]):
+            with col:
+                st.markdown(
+                    f'<div style="background:#F5F5F5;border-radius:8px;padding:14px 16px;">'
+                    f'<div style="font-size:1.2em;margin-bottom:6px;">{icon}</div>'
+                    f'<div style="font-weight:700;font-size:0.84em;color:#333;margin-bottom:4px;">{heading}</div>'
+                    f'<div style="font-size:0.78em;color:#666;line-height:1.5;">{body}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+        st.markdown('')
+        st.markdown(
+            f'<div style="background:#F0F8F8;border-left:4px solid {TEAL};'
+            f'border-radius:0 8px 8px 0;padding:14px 20px;">'
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:{TEAL};margin-bottom:6px;">TODAY</div>'
+            f'<div style="font-size:0.88em;color:#444;line-height:1.6;">'
+            f'We\'ll look at each department\'s One Thing — what James has drafted and what the team thinks. '
+            f'Then you\'ll each commit to your personal One Thing for the year ahead. '
+            f'These will be visible to the whole team.'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
+
+# ── Tab 2: Departmental One Things ────────────────────────────────────────────
+
+with tab_depts:
+    if stage in ('hidden', 'intro'):
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+            f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+            f'⏳  This will open shortly.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        @st.fragment(run_every=15)
+        def _dept_section():
+            drafts    = pull_one_thing_drafts()
+            all_suggs = pull_one_thing_suggestions()
+            winners   = pull_one_thing_winners()
+
+            for dept in my_depts:
+                draft  = drafts.get(dept, '')
+                winner = winners.get(dept, '')
+                head   = DEPARTMENT_HEADS.get(dept, '')
+                i_am_head = (head == name)
+
+                st.markdown(
+                    f'<div style="font-weight:700;font-size:1em;color:{PURPLE};'
+                    f'margin:16px 0 10px;">{dept}</div>',
+                    unsafe_allow_html=True,
+                )
+
+                if winner:
+                    st.markdown(
+                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:10px;">'
+                        f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
+                        f'letter-spacing:1px;margin-bottom:6px;">AGREED ONE THING ✅</div>'
+                        f'<div style="font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                elif draft:
+                    st.markdown(
+                        f'<div style="background:#F7F0F7;border-left:4px solid {PURPLE};'
+                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:10px;">'
+                        f'<div style="font-size:0.7em;font-weight:700;color:{PURPLE};'
+                        f'letter-spacing:1px;margin-bottom:6px;">DRAFT ONE THING</div>'
+                        f'<div style="font-size:0.9em;color:#1a1a1a;line-height:1.6;">{draft}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.info('James is still drafting the One Thing for this department.')
+
+                # Suggestions from this dept
+                dept_suggs = all_suggs[all_suggs['Department'] == dept] if not all_suggs.empty else all_suggs
+                if not dept_suggs.empty:
+                    st.markdown(
+                        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1px;'
+                        f'color:#888;margin:12px 0 6px;">TEAM SUGGESTIONS</div>',
+                        unsafe_allow_html=True,
+                    )
+                    for _, row in dept_suggs.iterrows():
+                        st.markdown(
+                            f'<div style="border-left:3px solid #CCCCCC;padding:8px 14px;'
+                            f'margin-bottom:6px;font-size:0.84em;color:#444;line-height:1.5;">'
+                            f'{row["Suggestion"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+
+                # Suggestion form (not shown once winner is locked)
+                if not winner:
+                    already_suggested = (
+                        not all_suggs.empty
+                        and ((all_suggs['Name'] == name) & (all_suggs['Department'] == dept)).any()
+                    )
+                    if already_suggested:
+                        st.caption('Your suggestion has been added.')
+                    else:
+                        with st.form(f'sugg_form_{dept}', clear_on_submit=True):
+                            sugg = st.text_area(
+                                'Suggest a refinement',
+                                height=72,
+                                placeholder='What would you change or add?',
+                                label_visibility='collapsed',
+                                key=f'sugg_input_{dept}',
+                            )
+                            if st.form_submit_button('Add suggestion', use_container_width=True):
+                                if sugg.strip():
+                                    try:
+                                        save_one_thing_suggestion(name, dept, sugg.strip())
+                                        st.toast('Suggestion added ✓', icon='✅')
+                                        st.rerun()
+                                    except Exception as _e:
+                                        st.error(f'Could not save. ({_e})')
+                                else:
+                                    st.warning('Type a suggestion first.')
+
+                # Winner lock (dept heads only, one dept at a time)
+                if i_am_head and not winner:
+                    st.markdown('')
+                    st.markdown(
+                        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1px;'
+                        f'color:{TEAL};margin-bottom:6px;">LOCK THE AGREED ONE THING</div>',
+                        unsafe_allow_html=True,
+                    )
+                    lock_key = f'ot_lock_{dept}'
+                    winner_input = st.text_area(
+                        f'Agreed One Thing for {dept}',
+                        value=draft,
+                        height=80,
+                        key=lock_key,
+                        label_visibility='collapsed',
+                        placeholder='Type the agreed version here…',
+                    )
+                    if st.button(f'🔒 Lock for {dept}', key=f'ot_lock_btn_{dept}', type='primary'):
+                        if winner_input.strip():
+                            try:
+                                save_one_thing_winner(dept, winner_input.strip(), name)
+                                st.cache_data.clear()
+                                st.toast(f'{dept} One Thing locked ✓', icon='✅')
+                                st.rerun()
+                            except Exception as _e:
+                                st.error(f'Could not lock. ({_e})')
+                        else:
+                            st.warning('Type the agreed One Thing first.')
+
+                if len(my_depts) > 1:
+                    st.divider()
+
+        _dept_section()
+
+# ── Tab 3: Personal One Thing ─────────────────────────────────────────────────
+
+with tab_personal:
+    if stage in ('hidden', 'intro', 'departments'):
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+            f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+            f'⏳  This will open after the department discussion.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f'<div class="activity-card">'
+            f'Based on your department\'s One Thing — what\'s the single action <em>you</em> can commit to '
+            f'this year that will have the most impact on your function\'s goal? Be specific: '
+            f'what will you start, stop, or do more of?'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown('')
+
+        @st.fragment(run_every=15)
+        def _personal_section():
+            drafts  = pull_one_thing_drafts()
+            winners = pull_one_thing_winners()
+            goals_live, fn_live = pull_cascade_content()
+
+            # Determine function — auto-select if one dept, selectbox if multiple
+            if len(my_depts) == 1:
+                function = my_depts[0]
+                st.markdown(
+                    f'<div style="font-size:0.8em;color:#888;margin-bottom:8px;">'
+                    f'Function: <strong style="color:#444;">{function}</strong></div>',
+                    unsafe_allow_html=True,
+                )
+            else:
+                function = st.selectbox(
+                    'Your primary function for this commitment',
+                    my_depts,
+                    key='ot_personal_fn',
+                )
+
+            # Show dept One Thing context
+            one_thing_context = winners.get(function) or drafts.get(function) or fn_live.get(function, '')
+            if one_thing_context:
+                is_locked = bool(winners.get(function))
+                bc = '#3EAA6D' if is_locked else PURPLE
+                bg = '#E8F5EE' if is_locked else '#F7F0F7'
+                label = 'AGREED ONE THING' if is_locked else 'DRAFT ONE THING'
+                st.markdown(
+                    f'<div style="background:{bg};border-left:4px solid {bc};'
+                    f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:16px;">'
+                    f'<div style="font-size:0.68em;font-weight:700;color:{bc};'
+                    f'letter-spacing:1px;margin-bottom:4px;">{label} — {function.upper()}</div>'
+                    f'<div style="font-size:0.86em;color:#333;line-height:1.6;">{one_thing_context}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+            df_comm = pull_commitments()
+            has_submitted = (
+                not df_comm.empty and name in df_comm['Name'].values
+            )
+
+            if has_submitted and not st.session_state.get(f'ot_edit_{name}'):
+                my_row = df_comm[df_comm['Name'] == name].iloc[0]
+                st.markdown(
+                    f'<div style="border-left:4px solid #3EAA6D;background:#E8F5EE;'
+                    f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+                    f'<div style="font-weight:700;color:#2D7D4F;margin-bottom:8px;">✅  Submitted</div>'
+                    f'<div style="font-size:0.84em;color:#444;margin-bottom:2px;">'
+                    f'<strong>Function:</strong> {my_row["Function"]}</div>'
+                    f'<div style="font-size:0.84em;color:#444;">'
+                    f'<strong>One Thing:</strong> {my_row["Commitment"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button('Edit my One Thing', key=f'ot_edit_btn_{name}'):
+                    st.session_state[f'ot_edit_{name}'] = True
+                    st.rerun()
+                return
+
+            default_commitment = ''
+            if has_submitted:
+                default_commitment = df_comm[df_comm['Name'] == name].iloc[0].get('Commitment', '')
+
+            commitment = st.text_area(
+                'My One Thing',
+                value=default_commitment,
+                height=100,
+                placeholder='What one action, if you committed to it, would have the most impact on your function\'s goal?',
+                key=f'ot_comm_{name}',
+                label_visibility='collapsed',
+            )
+
+            st.markdown('')
+            if st.button('Submit my One Thing', type='primary', key=f'ot_submit_{name}', use_container_width=True):
+                if not commitment.strip():
+                    st.warning('Please write your One Thing before submitting.')
+                    return
+                try:
+                    save_commitment(name, function, commitment.strip())
+                    st.session_state[f'ot_edit_{name}'] = False
+                    pull_commitments.clear()
+                    st.toast('Your One Thing has been saved ✓', icon='✅')
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f'Could not save. ({_e})')
+
+        _personal_section()

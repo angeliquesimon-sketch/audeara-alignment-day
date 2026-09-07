@@ -4,11 +4,10 @@ import importlib
 import sys
 
 # Ensure shared modules are fully imported before any page can race on them.
-# Uses a process-level lock so only one thread does the import; others wait
-# and then find the module already in sys.modules.
 _import_lock = threading.Lock()
 with _import_lock:
-    for _mod in ('utils', 'styles_shared', 'strategy_cascade_shared', 'magazine_shared'):
+    for _mod in ('utils', 'styles_shared', 'strategy_cascade_shared',
+                 'magazine_shared', 'one_thing_shared'):
         if _mod not in sys.modules:
             importlib.import_module(_mod)
 
@@ -29,11 +28,13 @@ pg = st.navigation({
         st.Page('activities/mission_statement.py',              title='Mission Statement'),
         st.Page('activities/magazine_cover.py',                 title='Vision Statement'),
         st.Page('activities/styles.py',                         title='Different Styles'),
+        st.Page('activities/one_thing.py',                      title='The One Thing'),
         st.Page('activities/strategy_cascade.py',               title='Strategy Cascade'),
     ],
     'Facilitator': [
         st.Page('activities/magazine_facilitate.py',            title='🎛️ Facilitate — Vision'),
         st.Page('activities/styles_facilitate.py',              title='🎛️ Facilitate — Styles'),
+        st.Page('activities/one_thing_facilitate.py',           title='🎛️ Facilitate — One Thing'),
         st.Page('activities/strategy_cascade_facilitate.py',    title='🎛️ Facilitate — Cascade'),
     ],
 })

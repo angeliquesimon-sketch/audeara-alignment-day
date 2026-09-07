@@ -7,19 +7,19 @@ from utils import _sheets, _clear_sheets, with_retry
 
 SHEET_ID = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 
-CASCADE_SESSION_TAB     = 'Cascade Session'
-CASCADE_COMMITMENTS_TAB = 'Cascade Commitments'
-CASCADE_CONFIDENCE_TAB  = 'Cascade Confidence'
-CASCADE_CONTENT_TAB     = 'Cascade Content'
+CASCADE_SESSION_TAB      = 'Cascade Session'
+CASCADE_COMMITMENTS_TAB  = 'Cascade Commitments'
+CASCADE_CONFIDENCE_TAB   = 'Cascade Confidence'
+CASCADE_CONTENT_TAB      = 'Cascade Content'
+TEAM_CONTRIBUTIONS_TAB   = 'Team Contributions'
 
-STAGES = ['hidden', 'functions', 'goals', 'confidence', 'commitment', 'complete']
-STAGE_LABELS = {
-    'hidden':     'Not started',
-    'functions':  'Function One Things visible',
-    'goals':      'FY27 Goals visible',
-    'confidence': 'Goal confidence form open',
-    'commitment': 'Personal One Thing form open',
-    'complete':   'Session complete',
+CASCADE_STAGES = ['hidden', 'goals', 'contributions', 'confidence', 'complete']
+CASCADE_STAGE_LABELS = {
+    'hidden':        'Not started',
+    'goals':         'FY27 Goals visible',
+    'contributions': 'Team contributions open',
+    'confidence':    'Individual confidence open',
+    'complete':      'Session complete',
 }
 
 # ── Edit these before the day with James's confirmed goals ────────────────────
@@ -46,7 +46,7 @@ FUNCTIONS = [
     'Marketing',
     'Sales',
     'Product / R&D',
-    'Operations & Logistics',
+    'Operations & Customer Service',
     'Finance',
     'Leadership & Strategy',
 ]
@@ -54,28 +54,33 @@ FUNCTIONS = [
 # ── Edit these with James's confirmed One Things per function ─────────────────
 
 FUNCTION_ONE_THINGS = {
-    'Marketing':              'Build brand trust and awareness that converts to profitable demand.',
-    'Sales':                  'Secure repeatable, profitable sales channels with strong unit margins.',
-    'Product / R&D':          'Complete delivery on time while maintaining future readiness for the branded roadmap.',
-    'Operations & Logistics': 'Minimise cost-to-serve while ensuring premium experience.',
-    'Finance':                'Optimise margin and maintain capital efficiency.',
-    'Leadership & Strategy':  'Focus on what most directly drives durable, profitable growth and strategic attractiveness.',
+    'Marketing':                     'Build brand trust and awareness that converts to profitable demand.',
+    'Sales':                         'Secure repeatable, profitable sales channels with strong unit margins.',
+    'Product / R&D':                 'Complete delivery on time while maintaining future readiness for the branded roadmap.',
+    'Operations & Customer Service': 'Minimise cost-to-serve while ensuring a premium customer experience.',
+    'Finance':                       'Optimise margin and maintain capital efficiency.',
+    'Leadership & Strategy':         'Focus on what most directly drives durable, profitable growth and strategic attractiveness.',
 }
 
 GOAL_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
 FUNC_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#C4A0C2', '#9BCFCF']
 
-# ── Confidence column layout (interleaved per goal) ───────────────────────────
+# ── Confidence column layout — anonymous, no Name field ───────────────────────
 
 def _conf_header():
-    cols = ['Timestamp', 'Name']
+    cols = ['Timestamp']
     for g in GOALS:
-        cols += [f'{g["id"]}_Confidence', f'{g["id"]}_Risk']
+        cols += [f'{g["id"]}_Confidence', f'{g["id"]}_Contribution']
     return cols
 
 def _conf_end_col():
     n = len(_conf_header())
     return chr(ord('A') + n - 1)
+
+# ── Team Contributions column layout ──────────────────────────────────────────
+
+def _contrib_header(goals):
+    return ['Timestamp', 'Name', 'Function'] + [g['id'] for g in goals]
 
 # ── Sheet setup ────────────────────────────────────────────────────────────────
 
@@ -86,7 +91,9 @@ def _ensure_cascade_tabs():
                     svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute().get('sheets', [])}
 
         to_add = []
-        for tab in [CASCADE_SESSION_TAB, CASCADE_COMMITMENTS_TAB, CASCADE_CONFIDENCE_TAB, CASCADE_CONTENT_TAB]:
+        for tab in [CASCADE_SESSION_TAB, CASCADE_COMMITMENTS_TAB,
+                    CASCADE_CONFIDENCE_TAB, CASCADE_CONTENT_TAB,
+                    TEAM_CONTRIBUTIONS_TAB]:
             if tab not in existing:
                 to_add.append({'addSheet': {'properties': {'title': tab}}})
         if to_add:
@@ -137,9 +144,9 @@ def _ensure_cascade_tabs():
                 valueInputOption='RAW', body={'values': seed},
             ).execute()
 
-        # Confidence tab — check header matches current structure, reset if not
-        header      = _conf_header()
-        end         = _conf_end_col()
+        # Confidence tab — anonymous header (no Name); reset if structure has changed
+        header       = _conf_header()
+        end          = _conf_end_col()
         existing_hdr = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:{end}",
         ).execute().get('values', [[]])
@@ -152,17 +159,27 @@ def _ensure_cascade_tabs():
                 valueInputOption='RAW', body={'values': [header]},
             ).execute()
 
+        # Team Contributions tab — seed header if empty
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A1:Z1",
+        ).execute().get('values', [])
+        expected_hdr = _contrib_header(GOALS)
+        if not rows or rows[0] != expected_hdr:
+            svc.spreadsheets().values().clear(
+                spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A:Z",
+            ).execute()
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A1",
+                valueInputOption='RAW', body={'values': [expected_hdr]},
+            ).execute()
+
     with_retry(_do, on_retry=_clear_sheets)
 
 # ── Cascade content (editable goals + function one things) ─────────────────────
 
 @st.cache_data(ttl=30, show_spinner=False)
 def pull_cascade_content():
-    """Returns (goals, fn_one_things) from the sheet; falls back to hardcoded defaults.
-
-    Sheet uses a section-marker format: a cell containing 'GOALS' opens the goals
-    section; 'FUNCTIONS' opens the functions section. Headers (id/function) are skipped.
-    """
+    """Returns (goals, fn_one_things) from sheet; falls back to hardcoded defaults."""
     try:
         svc      = _sheets()
         all_data = svc.spreadsheets().values().get(
@@ -251,7 +268,6 @@ def pull_cascade_context():
     try:
         svc = _sheets()
 
-        # Mission votes
         rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range="'Votes'!A:C",
         ).execute().get('values', [])
@@ -264,7 +280,6 @@ def pull_cascade_context():
                 if not sub.empty and sub.iloc[0]['Votes'] > 0:
                     mission_top[cat] = sub.iloc[0]['Answer']
 
-        # Locked vision statement
         vision_rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range="'Vision Statement'!A2:B10",
         ).execute().get('values', [])
@@ -278,7 +293,7 @@ def pull_cascade_context():
     except Exception:
         return {}, ''
 
-# ── Commitments ────────────────────────────────────────────────────────────────
+# ── Personal commitments (One Thing page writes here) ─────────────────────────
 
 @st.cache_data(ttl=10, show_spinner=False)
 def pull_commitments():
@@ -314,7 +329,7 @@ def save_commitment(name, function, commitment):
         ).execute()
     with_retry(_do, on_retry=_clear_sheets)
 
-# ── Confidence + per-goal risk ─────────────────────────────────────────────────
+# ── Anonymous confidence ───────────────────────────────────────────────────────
 
 @st.cache_data(ttl=10, show_spinner=False)
 def pull_confidence():
@@ -326,33 +341,69 @@ def pull_confidence():
         ).execute().get('values', [])
         if len(rows) < 2:
             return pd.DataFrame(columns=header)
-        return pd.DataFrame(rows[1:], columns=header)
+        data = [r + [''] * max(0, len(header) - len(r)) for r in rows[1:]]
+        return pd.DataFrame(data, columns=header)
     except Exception:
         return pd.DataFrame(columns=_conf_header())
 
-def save_confidence(name, confidence_dict, risks_dict):
+def save_confidence(confidence_dict, contribution_dict):
+    """Append-only — no name, truly anonymous."""
     def _do():
-        svc      = _sheets()
         header   = _conf_header()
         end      = _conf_end_col()
-        row_data = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name]
+        row_data = [datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
         for g in GOALS:
             row_data.append(str(confidence_dict.get(g['id'], 3)))
-            row_data.append(risks_dict.get(g['id'], ''))
-        rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:B",
+            row_data.append(contribution_dict.get(g['id'], ''))
+        _sheets().spreadsheets().values().append(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:{end}",
+            valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+            body={'values': [row_data]},
+        ).execute()
+    with_retry(_do, on_retry=_clear_sheets)
+
+# ── Team contributions (one sentence per goal, identified) ────────────────────
+
+@st.cache_data(ttl=10, show_spinner=False)
+def pull_team_contributions():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A:Z",
+        ).execute().get('values', [])
+        if len(rows) < 2:
+            goals, _ = pull_cascade_content()
+            return pd.DataFrame(columns=_contrib_header(goals))
+        goals, _ = pull_cascade_content()
+        header   = _contrib_header(goals)
+        data     = [r + [''] * max(0, len(header) - len(r)) for r in rows[1:]]
+        return pd.DataFrame(data, columns=header)
+    except Exception:
+        goals, _ = pull_cascade_content()
+        return pd.DataFrame(columns=_contrib_header(goals))
+
+def save_team_contribution(name, function, contrib_dict):
+    """Upsert by name — one row per person."""
+    def _do():
+        svc    = _sheets()
+        goals, _ = pull_cascade_content()
+        header = _contrib_header(goals)
+        end    = chr(ord('A') + len(header) - 1)
+        new    = ([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name, function]
+                  + [contrib_dict.get(g['id'], '') for g in goals])
+        rows   = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A:B",
         ).execute().get('values', [])
         for i, row in enumerate(rows[1:], start=2):
             if len(row) >= 2 and row[1] == name:
                 svc.spreadsheets().values().update(
                     spreadsheetId=SHEET_ID,
-                    range=f"'{CASCADE_CONFIDENCE_TAB}'!A{i}:{end}{i}",
-                    valueInputOption='RAW', body={'values': [row_data]},
+                    range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A{i}:{end}{i}",
+                    valueInputOption='RAW', body={'values': [new]},
                 ).execute()
                 return
         svc.spreadsheets().values().append(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:A",
+            spreadsheetId=SHEET_ID, range=f"'{TEAM_CONTRIBUTIONS_TAB}'!A:{end}",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-            body={'values': [row_data]},
+            body={'values': [new]},
         ).execute()
     with_retry(_do, on_retry=_clear_sheets)
