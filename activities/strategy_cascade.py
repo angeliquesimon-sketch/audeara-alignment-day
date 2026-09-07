@@ -12,6 +12,7 @@ from strategy_cascade_shared import (
     pull_cascade_session, pull_cascade_contributions, save_cascade_contribution,
     pull_cascade_confidence, save_cascade_confidence,
 )
+from one_thing_shared import pull_one_thing_winners
 
 inject_styles()
 
@@ -259,7 +260,8 @@ with tab_activity:
 
         @st.fragment(run_every=8)
         def _contributions():
-            df = pull_cascade_contributions()
+            df       = pull_cascade_contributions()
+            winners  = pull_one_thing_winners()
 
             for dept in DEPARTMENTS:
                 status = 'none'
@@ -270,6 +272,21 @@ with tab_activity:
                         row    = match.iloc[0]
                         status = row['Status']
                         text   = row['Text']
+
+                one_thing = winners.get(dept, '')
+
+                # Department heading + One Thing reference
+                ot_html = (
+                    f'<div style="font-size:0.68em;color:#AAAAAA;font-style:italic;'
+                    f'margin-top:2px;margin-bottom:8px;">Our One Thing: {one_thing}</div>'
+                    if one_thing else ''
+                )
+                st.markdown(
+                    f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
+                    f'letter-spacing:1px;margin-bottom:0;">{dept.upper()}</div>'
+                    f'{ot_html}',
+                    unsafe_allow_html=True,
+                )
 
                 if status == 'locked':
                     st.markdown(
@@ -331,11 +348,6 @@ with tab_activity:
 
                 else:
                     # No submission yet — show editable field
-                    st.markdown(
-                        f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
-                        f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>',
-                        unsafe_allow_html=True,
-                    )
                     new_text = st.text_area(
                         dept,
                         value=text,
