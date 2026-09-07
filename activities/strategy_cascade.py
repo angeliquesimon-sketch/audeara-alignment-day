@@ -571,45 +571,29 @@ with tab_activity:
         def _contributions():
             df       = pull_cascade_contributions()
             winners  = pull_one_thing_winners()
+            ch_c     = df[df['ChoiceID'] == choice['id']] if not df.empty else df
 
             for dept in DEPARTMENTS:
-                status = 'none'
-                text   = ''
-                if not df.empty:
-                    match = df[(df['ChoiceID'] == choice['id']) & (df['Department'] == dept)]
-                    if not match.empty:
-                        row    = match.iloc[0]
-                        status = row['Status']
-                        text   = row['Text']
+                dept_rows   = ch_c[ch_c['Department'] == dept] if not ch_c.empty else ch_c
+                locked_rows = dept_rows[dept_rows['Status'] == 'locked'] if not dept_rows.empty else dept_rows
+                draft_rows  = dept_rows[dept_rows['Status'] == 'draft']  if not dept_rows.empty else dept_rows
+                is_opted    = (not dept_rows.empty
+                               and dept_rows['Status'].eq('opted_out').any()
+                               and locked_rows.empty and draft_rows.empty)
 
+                # Department heading + One Thing ref
                 one_thing = winners.get(dept, '')
-
-                # Department heading + One Thing reference
-                ot_text = one_thing if one_thing else 'One Thing not yet agreed'
+                ot_text   = one_thing if one_thing else 'One Thing not yet agreed'
                 ot_colour = '#777777' if one_thing else '#BBBBBB'
-                ot_html = (
-                    f'<div style="font-size:0.75em;color:{ot_colour};font-style:italic;'
-                    f'margin-top:2px;margin-bottom:8px;">Our One Thing: {ot_text}</div>'
-                )
                 st.markdown(
                     f'<div style="font-size:0.84em;font-weight:700;color:{bc};'
                     f'letter-spacing:1px;margin-bottom:0;">{dept.upper()}</div>'
-                    f'{ot_html}',
+                    f'<div style="font-size:0.75em;color:{ot_colour};font-style:italic;'
+                    f'margin-top:2px;margin-bottom:8px;">Our One Thing: {ot_text}</div>',
                     unsafe_allow_html=True,
                 )
 
-                if status == 'locked':
-                    st.markdown(
-                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
-                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
-                        f'<div style="font-size:0.75em;font-weight:700;color:#2D7D4F;'
-                        f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} ✅</div>'
-                        f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{text}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                elif status == 'opted_out':
+                if is_opted:
                     st.markdown(
                         f'<div style="border-left:4px solid #DDDDDD;background:#FAFAFA;'
                         f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
@@ -620,72 +604,81 @@ with tab_activity:
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+                    st.markdown('')
+                    continue
 
-                elif status == 'draft':
-                    # Submitted and visible to the room — under discussion
-                    _points = [p.strip() for p in text.split('\n') if p.strip()]
-                    if len(_points) == 1:
-                        _body = f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{_points[0]}</div>'
+                # ── Locked rows (first 3 by default) ─────────────────────────
+                if not locked_rows.empty:
+                    show_key = f'casc_show_all_{choice["id"]}_{dept}'
+                    show_all = st.session_state.get(show_key, False)
+                    visible  = locked_rows if show_all else locked_rows.iloc[:3]
+                    for _, lrow in visible.iterrows():
+                        pts = [p.strip() for p in str(lrow['Text']).split('\n') if p.strip()]
+                        if len(pts) == 1:
+                            lbody = f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
+                        else:
+                            litems = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in pts])
+                            lbody  = f'<ul style="font-size:0.95em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{litems}</ul>'
+                        st.markdown(
+                            f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                            f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
+                            f'<div style="font-size:0.75em;font-weight:700;color:#2D7D4F;'
+                            f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} ✅</div>'
+                            f'{lbody}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    n_hidden = len(locked_rows) - 3
+                    if not show_all and n_hidden > 0:
+                        if st.button(f'Show {n_hidden} more', key=f'casc_showmore_{choice["id"]}_{dept}', use_container_width=True):
+                            st.session_state[show_key] = True
+                            st.rerun()
+                    elif show_all and len(locked_rows) > 3:
+                        if st.button('Show less', key=f'casc_showless_{choice["id"]}_{dept}', use_container_width=True):
+                            st.session_state[show_key] = False
+                            st.rerun()
+
+                # ── Draft rows (read-only on participant side) ─────────────────
+                for _, drow in draft_rows.iterrows():
+                    pts = [p.strip() for p in str(drow['Text']).split('\n') if p.strip()]
+                    if len(pts) == 1:
+                        dbody = f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
                     else:
-                        _items = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in _points])
-                        _body  = f'<ul style="font-size:0.95em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{_items}</ul>'
+                        ditems = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in pts])
+                        dbody  = f'<ul style="font-size:0.95em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{ditems}</ul>'
                     st.markdown(
                         f'<div style="background:#FEF9E7;border-left:4px solid #F4B942;'
-                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
                         f'<div style="font-size:0.75em;font-weight:700;color:#B7860D;'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} 💬 IN DISCUSSION</div>'
-                        f'{_body}</div>',
+                        f'{dbody}</div>',
                         unsafe_allow_html=True,
                     )
-                    add_text = st.text_area(
-                        dept,
-                        value='',
-                        height=60,
-                        placeholder='Add another point…',
-                        key=f'casc_ta_{choice["id"]}_{dept}_{len(_points)}',
-                        label_visibility='collapsed',
-                    )
-                    if st.button(
-                        'Add to discussion',
-                        key=f'casc_sub_{choice["id"]}_{dept}',
-                        use_container_width=True,
-                    ):
-                        if add_text.strip():
-                            try:
-                                save_cascade_contribution(choice['id'], dept, text + '\n' + add_text.strip())
-                                st.toast(f'{dept} added ✓', icon='💬')
-                                st.rerun()
-                            except Exception as _e:
-                                st.error(f'Could not save. ({_e})')
-                        else:
-                            st.warning('Add a point before submitting.')
-                    st.markdown('')
 
-                else:
-                    # No submission yet — show editable field
-                    new_text = st.text_area(
-                        dept,
-                        value=text,
-                        height=72,
-                        placeholder=f'How does {dept} contribute to this?',
-                        key=f'casc_ta_{choice["id"]}_{dept}',
-                        label_visibility='collapsed',
-                    )
-                    if st.button(
-                        'Submit for discussion',
-                        key=f'casc_sub_{choice["id"]}_{dept}',
-                        use_container_width=True,
-                    ):
-                        if new_text.strip():
-                            try:
-                                save_cascade_contribution(choice['id'], dept, new_text.strip())
-                                st.toast(f'{dept} submitted ✓', icon='💬')
-                                st.rerun()
-                            except Exception as _e:
-                                st.error(f'Could not save. ({_e})')
-                        else:
-                            st.warning('Add a contribution before submitting.')
-                    st.markdown('')
+                # ── Add new contribution (always visible) ──────────────────────
+                n_rows   = len(dept_rows)
+                new_text = st.text_area(
+                    dept,
+                    value='',
+                    height=68,
+                    placeholder=f'Add {dept}\'s contribution to this choice…',
+                    key=f'casc_ta_new_{choice["id"]}_{dept}_{n_rows}',
+                    label_visibility='collapsed',
+                )
+                if st.button(
+                    'Submit for discussion',
+                    key=f'casc_sub_new_{choice["id"]}_{dept}_{n_rows}',
+                    use_container_width=True,
+                ):
+                    if new_text.strip():
+                        try:
+                            save_cascade_contribution(choice['id'], dept, new_text.strip())
+                            st.toast(f'{dept} submitted ✓', icon='💬')
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f'Could not save. ({_e})')
+                    else:
+                        st.warning('Add a contribution before submitting.')
+                st.markdown('')
 
             # Confidence vote (facilitator opens per choice)
             if conf_open:
@@ -773,23 +766,27 @@ with tab_activity:
 
                 if not df_c.empty:
                     for dept in DEPARTMENTS:
-                        match = df_c[
-                            (df_c['ChoiceID'] == choice['id']) & (df_c['Department'] == dept)
-                        ]
-                        if match.empty:
-                            continue
-                        row    = match.iloc[0]
-                        status = row['Status']
-                        text   = row['Text']
-                        if status == 'locked' and text:
+                        dept_rows   = df_c[(df_c['ChoiceID'] == choice['id']) & (df_c['Department'] == dept)]
+                        locked_rows = dept_rows[dept_rows['Status'] == 'locked'] if not dept_rows.empty else dept_rows
+                        is_opted    = (not dept_rows.empty
+                                       and dept_rows['Status'].eq('opted_out').any()
+                                       and locked_rows.empty)
+                        for _, row in locked_rows.iterrows():
+                            if not row['Text']:
+                                continue
+                            pts = [p.strip() for p in str(row['Text']).split('\n') if p.strip()]
+                            if len(pts) == 1:
+                                body = f'<strong style="color:#2D7D4F;">{dept}:</strong> {pts[0]}'
+                            else:
+                                items = ''.join([f'<li>{p}</li>' for p in pts])
+                                body  = f'<strong style="color:#2D7D4F;">{dept}:</strong><ul style="margin:4px 0 0 0;padding-left:18px;">{items}</ul>'
                             st.markdown(
                                 f'<div style="margin-left:20px;border-left:3px solid #3EAA6D;'
                                 f'padding:8px 14px;margin-bottom:4px;font-size:0.95em;'
-                                f'color:#333;line-height:1.5;">'
-                                f'<strong style="color:#2D7D4F;">{dept}:</strong> {text}</div>',
+                                f'color:#333;line-height:1.5;">{body}</div>',
                                 unsafe_allow_html=True,
                             )
-                        elif status == 'opted_out':
+                        if is_opted:
                             st.markdown(
                                 f'<div style="margin-left:20px;border-left:3px solid #DDDDDD;'
                                 f'padding:8px 14px;margin-bottom:4px;font-size:0.95em;'
@@ -844,12 +841,10 @@ with tab_results:
             if not df_c.empty:
                 ch_c = df_c[df_c['ChoiceID'] == choice['id']]
                 for dept in DEPARTMENTS:
-                    match = ch_c[ch_c['Department'] == dept]
-                    if match.empty:
-                        continue
-                    row = match.iloc[0]
-                    if row['Status'] == 'locked' and row['Text']:
-                        locked_contribs.append((dept, row['Text']))
+                    dept_locked = ch_c[(ch_c['Department'] == dept) & (ch_c['Status'] == 'locked')]
+                    for _, row in dept_locked.iterrows():
+                        if row['Text']:
+                            locked_contribs.append((dept, row['Text']))
 
             # Skip choices with nothing at all
             if not team_nums and not locked_contribs:

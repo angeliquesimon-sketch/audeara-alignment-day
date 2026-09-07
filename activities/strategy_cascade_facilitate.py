@@ -9,7 +9,8 @@ from strategy_cascade_shared import (
     CHOICES, DEPARTMENTS, CHOICE_COLOURS,
     pull_cascade_session, set_cascade_session,
     pull_cascade_contributions, save_cascade_contribution,
-    set_contribution_status, pull_cascade_confidence,
+    update_contribution, set_dept_opted_out, restore_dept,
+    pull_cascade_confidence,
 )
 
 inject_styles()
@@ -113,15 +114,13 @@ if stage == 'cascade':
         )
 
         for dept in DEPARTMENTS:
-            row    = None
-            status = 'none'
-            text   = ''
-            if not df.empty:
-                match = df[(df['ChoiceID'] == choice['id']) & (df['Department'] == dept)]
-                if not match.empty:
-                    row    = match.iloc[0]
-                    status = row['Status']
-                    text   = row['Text']
+            dept_rows   = df[(df['ChoiceID'] == choice['id']) & (df['Department'] == dept)] if not df.empty else df
+            locked_rows = dept_rows[dept_rows['Status'] == 'locked'] if not dept_rows.empty else dept_rows
+            draft_rows  = dept_rows[dept_rows['Status'] == 'draft']  if not dept_rows.empty else dept_rows
+            is_opted    = (not dept_rows.empty
+                           and dept_rows['Status'].eq('opted_out').any()
+                           and locked_rows.empty and draft_rows.empty)
+            n_active    = len(locked_rows) + len(draft_rows)
 
             st.markdown(
                 f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
@@ -129,24 +128,7 @@ if stage == 'cascade':
                 unsafe_allow_html=True,
             )
 
-            if status == 'locked':
-                st.markdown(
-                    f'<div style="background:#E8F5EE;border-left:3px solid #3EAA6D;'
-                    f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
-                    f'color:#1a1a1a;margin-bottom:6px;">✅ {text}</div>',
-                    unsafe_allow_html=True,
-                )
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button('Unlock to edit', key=f'fac_unlock_{choice["id"]}_{dept}', use_container_width=True):
-                        set_contribution_status(choice['id'], dept, 'draft')
-                        st.rerun()
-                with c2:
-                    if st.button('Opt out', key=f'fac_opt_{choice["id"]}_{dept}', use_container_width=True):
-                        set_contribution_status(choice['id'], dept, 'opted_out')
-                        st.rerun()
-
-            elif status == 'opted_out':
+            if is_opted:
                 st.markdown(
                     f'<div style="background:#FAFAFA;border-left:3px solid #DDDDDD;'
                     f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
@@ -154,77 +136,99 @@ if stage == 'cascade':
                     unsafe_allow_html=True,
                 )
                 if st.button('Restore', key=f'fac_restore_{choice["id"]}_{dept}', use_container_width=True):
-                    set_contribution_status(choice['id'], dept, 'draft')
+                    restore_dept(choice['id'], dept)
                     st.rerun()
-
-            elif status == 'draft':
-                # Submitted by the team — show for facilitator to review, edit and lock
-                _points = [p.strip() for p in text.split('\n') if p.strip()]
-                if len(_points) == 1:
-                    _body = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">💬 {_points[0]}</div>'
-                else:
-                    _items = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in _points])
-                    _body  = f'<div style="font-size:0.78em;color:#B7860D;margin-bottom:4px;">💬 IN DISCUSSION</div><ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{_items}</ul>'
-                st.markdown(
-                    f'<div style="background:#FEF9E7;border-left:3px solid #F4B942;'
-                    f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:6px;">'
-                    f'{_body}</div>',
-                    unsafe_allow_html=True,
-                )
-                edited = st.text_area(
-                    dept,
-                    value=text,
-                    height=60,
-                    placeholder=f'Edit before locking…',
-                    key=f'fac_edit_{choice["id"]}_{dept}',
-                    label_visibility='collapsed',
-                )
-                c1, c2, c3 = st.columns([2, 1, 1])
-                with c1:
-                    if edited.strip() and edited.strip() != text:
-                        if st.button('Save edit', key=f'fac_save_{choice["id"]}_{dept}', use_container_width=True):
-                            save_cascade_contribution(choice['id'], dept, edited.strip())
-                            st.rerun()
-                with c2:
-                    if st.button('✅ Lock', key=f'fac_lock_{choice["id"]}_{dept}', type='primary', use_container_width=True):
-                        final = edited.strip() or text
-                        if final:
-                            set_contribution_status(choice['id'], dept, 'locked', text=final)
-                            st.rerun()
-                        else:
-                            st.warning('Nothing to lock.')
-                with c3:
-                    if st.button('Opt out', key=f'fac_opt_{choice["id"]}_{dept}', use_container_width=True):
-                        set_contribution_status(choice['id'], dept, 'opted_out')
-                        st.rerun()
-
             else:
-                # No submission yet — facilitator can type directly
-                edited = st.text_area(
-                    dept,
-                    value=text,
-                    height=72,
-                    placeholder=f'Edit or type the agreed contribution for {dept}…',
-                    key=f'fac_edit_{choice["id"]}_{dept}',
+                # ── All active rows — each with Lock/Unlock + Delete ───────────
+                for ri, (_, row) in enumerate(locked_rows.iterrows()):
+                    ts   = row['Timestamp']
+                    text = row['Text']
+                    pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
+                    if len(pts) == 1:
+                        rbody = f'✅ {pts[0]}'
+                    else:
+                        items = ''.join([f'<li>{p}</li>' for p in pts])
+                        rbody = f'✅<ul style="margin:4px 0 0 0;padding-left:18px;">{items}</ul>'
+                    st.markdown(
+                        f'<div style="background:#E8F5EE;border-left:3px solid #3EAA6D;'
+                        f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
+                        f'color:#1a1a1a;margin-bottom:4px;">{rbody}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button('Unlock', key=f'fac_unlock_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                            update_contribution(ts, new_status='draft')
+                            st.rerun()
+                    with c2:
+                        if st.button('Delete', key=f'fac_del_l_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                            update_contribution(ts, new_status='deleted')
+                            st.rerun()
+
+                for ri, (_, row) in enumerate(draft_rows.iterrows()):
+                    ts      = row['Timestamp']
+                    text    = row['Text']
+                    pts     = [p.strip() for p in str(text).split('\n') if p.strip()]
+                    if len(pts) == 1:
+                        dbody = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">💬 {pts[0]}</div>'
+                    else:
+                        ditems = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in pts])
+                        dbody  = (f'<div style="font-size:0.76em;color:#B7860D;margin-bottom:3px;">💬 IN DISCUSSION</div>'
+                                  f'<ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{ditems}</ul>')
+                    st.markdown(
+                        f'<div style="background:#FEF9E7;border-left:3px solid #F4B942;'
+                        f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:4px;">'
+                        f'{dbody}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    edited = st.text_area(
+                        f'{dept} draft {ri}',
+                        value=text,
+                        height=56,
+                        placeholder='Edit before locking…',
+                        key=f'fac_edit_{choice["id"]}_{dept}_{ri}',
+                        label_visibility='collapsed',
+                    )
+                    c1, c2, c3 = st.columns([2, 1, 1])
+                    with c1:
+                        if edited.strip() and edited.strip() != text:
+                            if st.button('Save edit', key=f'fac_save_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                                update_contribution(ts, new_text=edited.strip())
+                                st.rerun()
+                    with c2:
+                        if st.button('✅ Lock', key=f'fac_lock_{choice["id"]}_{dept}_{ri}', type='primary', use_container_width=True):
+                            final = edited.strip() or text
+                            if final:
+                                update_contribution(ts, new_status='locked', new_text=final)
+                                st.rerun()
+                            else:
+                                st.warning('Nothing to lock.')
+                    with c3:
+                        if st.button('Delete', key=f'fac_del_d_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                            update_contribution(ts, new_status='deleted')
+                            st.rerun()
+
+                # ── Add new contribution ───────────────────────────────────────
+                st.markdown('<div style="margin-top:4px;"></div>', unsafe_allow_html=True)
+                new_text = st.text_area(
+                    f'{dept} new',
+                    value='',
+                    height=56,
+                    placeholder=f'Add a contribution for {dept}…',
+                    key=f'fac_add_{choice["id"]}_{dept}_{n_active}',
                     label_visibility='collapsed',
                 )
-                c1, c2, c3 = st.columns([2, 1, 1])
+                c1, c2 = st.columns([3, 1])
                 with c1:
-                    if edited.strip() and edited.strip() != text:
-                        if st.button('Save draft', key=f'fac_save_{choice["id"]}_{dept}', use_container_width=True):
-                            save_cascade_contribution(choice['id'], dept, edited.strip())
-                            st.rerun()
-                with c2:
-                    if st.button('✅ Lock', key=f'fac_lock_{choice["id"]}_{dept}', type='primary', use_container_width=True):
-                        final = edited.strip() or text
-                        if final:
-                            set_contribution_status(choice['id'], dept, 'locked', text=final)
+                    if st.button('Add', key=f'fac_addbtn_{choice["id"]}_{dept}_{n_active}', use_container_width=True):
+                        if new_text.strip():
+                            save_cascade_contribution(choice['id'], dept, new_text.strip())
                             st.rerun()
                         else:
-                            st.warning('Nothing to lock.')
-                with c3:
-                    if st.button('Opt out', key=f'fac_opt_{choice["id"]}_{dept}', use_container_width=True):
-                        set_contribution_status(choice['id'], dept, 'opted_out')
+                            st.warning('Nothing to add.')
+                with c2:
+                    if st.button('No contrib', key=f'fac_opt_{choice["id"]}_{dept}', use_container_width=True):
+                        set_dept_opted_out(choice['id'], dept)
                         st.rerun()
 
             st.markdown('')
@@ -364,13 +368,20 @@ elif stage == 'reveal':
                 if nums:
                     conf_str = f'  ·  {sum(nums)/len(nums):.1f}/5'
 
+            n_locked_depts = ch['Department'][ch['Status'] == 'locked'].nunique() if not df_c.empty else 0
+            n_opted_depts  = ch['Department'][ch['Status'] == 'opted_out'].nunique() if not df_c.empty else 0
+            n_locked_items = int((ch['Status'] == 'locked').sum()) if not df_c.empty else 0
+            n_pending      = len(DEPARTMENTS) - n_locked_depts - n_opted_depts
+
             st.markdown(
                 f'<div style="border-left:4px solid {bc};padding:10px 14px;'
                 f'background:#F8F8F8;border-radius:0 6px 6px 0;margin-bottom:8px;">'
                 f'<div style="font-weight:700;font-size:0.88em;color:{bc};">'
                 f'{choice["number"]}. {choice["title"]}{conf_str}</div>'
                 f'<div style="font-size:0.74em;color:#888;margin-top:4px;">'
-                f'✅ {locked} locked · {opted} opted out · {pending} pending</div>'
+                f'✅ {n_locked_depts} dept{"s" if n_locked_depts!=1 else ""} locked '
+                f'({n_locked_items} contribution{"s" if n_locked_items!=1 else ""}) · '
+                f'{n_opted_depts} opted out · {n_pending} pending</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )

@@ -283,7 +283,7 @@ def set_cascade_session(**kwargs):
     with_retry(_do, on_retry=_clear_sheets)
 
 
-# ── Contributions ──────────────────────────────────────────────────────────────
+# ── Contributions (multi-row per dept per choice) ──────────────────────────────
 
 @st.cache_data(ttl=5, show_spinner=False)
 def pull_cascade_contributions():
@@ -293,64 +293,93 @@ def pull_cascade_contributions():
         ).execute().get('values', [])
         if len(rows) <= 1:
             return pd.DataFrame(columns=['Timestamp', 'ChoiceID', 'Department', 'Text', 'Status'])
-        return pd.DataFrame(rows[1:], columns=['Timestamp', 'ChoiceID', 'Department', 'Text', 'Status'])
+        data = [r + [''] * (5 - len(r)) for r in rows[1:]]
+        df   = pd.DataFrame(data, columns=['Timestamp', 'ChoiceID', 'Department', 'Text', 'Status'])
+        return df[df['Status'] != 'deleted'].reset_index(drop=True)
     except Exception:
         return pd.DataFrame(columns=['Timestamp', 'ChoiceID', 'Department', 'Text', 'Status'])
 
 
 def save_cascade_contribution(choice_id, department, text):
-    """Upsert (choice_id, department) with status=draft."""
+    """Append a new draft contribution row (unlimited rows per dept per choice)."""
     def _do():
-        svc  = _sheets()
-        rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
-        ).execute().get('values', [])
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        new = [now, choice_id, department, text, 'draft']
-        for i, row in enumerate(rows[1:], start=2):
-            if len(row) >= 3 and row[1] == choice_id and row[2] == department:
-                svc.spreadsheets().values().update(
-                    spreadsheetId=SHEET_ID,
-                    range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A{i}:E{i}",
-                    valueInputOption='RAW', body={'values': [new]},
-                ).execute()
-                pull_cascade_contributions.clear()
-                return
-        svc.spreadsheets().values().append(
+        ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        _sheets().spreadsheets().values().append(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-            body={'values': [new]},
+            body={'values': [[ts, choice_id, department, text, 'draft']]},
         ).execute()
         pull_cascade_contributions.clear()
     with_retry(_do, on_retry=_clear_sheets)
 
 
-def set_contribution_status(choice_id, department, status, text=None):
-    """Set status (locked / opted_out / draft) for a (choice_id, department) row.
-    Optionally update text at the same time (facilitator edit before locking)."""
+def update_contribution(ts, new_status=None, new_text=None):
+    """Update status and/or text for a specific row identified by Timestamp."""
     def _do():
         svc  = _sheets()
         rows = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
         ).execute().get('values', [])
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for i, row in enumerate(rows[1:], start=2):
-            if len(row) >= 3 and row[1] == choice_id and row[2] == department:
-                new_text = text if text is not None else (row[3] if len(row) >= 4 else '')
+            if not row or row[0] != ts:
+                continue
+            cur_choice = row[1] if len(row) > 1 else ''
+            cur_dept   = row[2] if len(row) > 2 else ''
+            cur_text   = row[3] if len(row) > 3 else ''
+            cur_status = row[4] if len(row) > 4 else 'draft'
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID,
+                range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A{i}:E{i}",
+                valueInputOption='RAW',
+                body={'values': [[ts, cur_choice, cur_dept,
+                                 new_text   if new_text   is not None else cur_text,
+                                 new_status if new_status is not None else cur_status]]},
+            ).execute()
+            pull_cascade_contributions.clear()
+            return
+    with_retry(_do, on_retry=_clear_sheets)
+
+
+def set_dept_opted_out(choice_id, dept):
+    """Soft-delete all active rows for this dept+choice and add an opted_out marker."""
+    def _do():
+        svc  = _sheets()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
+        ).execute().get('values', [])
+        ts_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        for i, row in enumerate(rows[1:], start=2):
+            if (len(row) >= 5 and row[1] == choice_id and row[2] == dept
+                    and row[4] not in ('opted_out', 'deleted')):
                 svc.spreadsheets().values().update(
                     spreadsheetId=SHEET_ID,
-                    range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A{i}:E{i}",
-                    valueInputOption='RAW',
-                    body={'values': [[now, choice_id, department, new_text, status]]},
+                    range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!E{i}",
+                    valueInputOption='RAW', body={'values': [['deleted']]},
                 ).execute()
-                pull_cascade_contributions.clear()
-                return
-        # No existing row — create one (e.g. opt-out with no prior text)
         svc.spreadsheets().values().append(
             spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-            body={'values': [[now, choice_id, department, text or '', status]]},
+            body={'values': [[ts_now, choice_id, dept, '', 'opted_out']]},
         ).execute()
+        pull_cascade_contributions.clear()
+    with_retry(_do, on_retry=_clear_sheets)
+
+
+def restore_dept(choice_id, dept):
+    """Remove opted_out marker for a dept, allowing fresh contributions."""
+    def _do():
+        svc  = _sheets()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!A:E",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=2):
+            if (len(row) >= 5 and row[1] == choice_id and row[2] == dept
+                    and row[4] == 'opted_out'):
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{CASCADE_CONTRIBUTIONS_TAB}'!E{i}",
+                    valueInputOption='RAW', body={'values': [['deleted']]},
+                ).execute()
         pull_cascade_contributions.clear()
     with_retry(_do, on_retry=_clear_sheets)
 
