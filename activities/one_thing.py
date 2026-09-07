@@ -40,10 +40,11 @@ if not name:
 my_depts = DEPARTMENT_MAP.get(name, [])
 is_dept_head = any(DEPARTMENT_HEADS.get(d) == name for d in my_depts)
 
-tab_intro, tab_depts, tab_personal = st.tabs([
+tab_intro, tab_depts, tab_personal, tab_all = st.tabs([
     '💡 What is The One Thing?',
     '🏢 Departmental One Things',
     '✋ Your One Thing',
+    '🌟 Our One Things',
 ])
 
 # ── Auto-refreshing stage gate ─────────────────────────────────────────────────
@@ -151,16 +152,53 @@ with tab_depts:
                     unsafe_allow_html=True,
                 )
 
-                if winner:
+                editing_winner = i_am_head and st.session_state.get(f'ot_dept_edit_{dept}', False)
+
+                if winner and not editing_winner:
                     st.markdown(
                         f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
-                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:10px;">'
+                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:6px;">'
                         f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
                         f'letter-spacing:1px;margin-bottom:6px;">AGREED ONE THING ✅</div>'
                         f'<div style="font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+                    if i_am_head:
+                        if st.button('Edit', key=f'ot_dept_edit_btn_{dept}', use_container_width=False):
+                            st.session_state[f'ot_dept_edit_{dept}'] = True
+                            st.rerun()
+                elif winner and editing_winner:
+                    st.markdown(
+                        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1px;'
+                        f'color:{TEAL};margin-bottom:6px;">UPDATE THE AGREED ONE THING</div>',
+                        unsafe_allow_html=True,
+                    )
+                    winner_input = st.text_area(
+                        f'Agreed One Thing for {dept}',
+                        value=winner,
+                        height=80,
+                        key=f'ot_lock_{dept}',
+                        label_visibility='collapsed',
+                    )
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button('Cancel', key=f'ot_dept_cancel_{dept}', use_container_width=True):
+                            st.session_state[f'ot_dept_edit_{dept}'] = False
+                            st.rerun()
+                    with c2:
+                        if st.button(f'🔒 Update', key=f'ot_lock_btn_{dept}', type='primary', use_container_width=True):
+                            if winner_input.strip():
+                                try:
+                                    save_one_thing_winner(dept, winner_input.strip(), name)
+                                    st.cache_data.clear()
+                                    st.session_state[f'ot_dept_edit_{dept}'] = False
+                                    st.toast(f'{dept} One Thing updated ✓', icon='✅')
+                                    st.rerun()
+                                except Exception as _e:
+                                    st.error(f'Could not update. ({_e})')
+                            else:
+                                st.warning('Type the agreed One Thing first.')
                 elif draft:
                     st.markdown(
                         f'<div style="background:#F7F0F7;border-left:4px solid {PURPLE};'
@@ -354,3 +392,60 @@ with tab_personal:
                     st.error(f'Could not save. ({_e})')
 
         _personal_section()
+
+# ── Tab 4: Our One Things ─────────────────────────────────────────────────────
+
+with tab_all:
+    if stage in ('hidden', 'intro', 'departments'):
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+            f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+            f'⏳  The team\'s One Things will appear here once the facilitator opens this section.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        @st.fragment(run_every=20)
+        def _all_one_things():
+            winners = pull_one_thing_winners()
+
+            locked = {d: winners[d] for d in DEPARTMENTS if winners.get(d)}
+
+            if not locked:
+                st.markdown(
+                    f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
+                    f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
+                    f'Departmental One Things will appear here as they\'re agreed.</div>',
+                    unsafe_allow_html=True,
+                )
+                return
+
+            st.markdown(
+                f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+                f'color:#888;margin-bottom:16px;">AGREED ONE THINGS</div>',
+                unsafe_allow_html=True,
+            )
+
+            for dept in DEPARTMENTS:
+                w = winners.get(dept, '')
+                if w:
+                    st.markdown(
+                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:10px;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:#2D7D4F;'
+                        f'letter-spacing:1px;margin-bottom:6px;">{dept.upper()}</div>'
+                        f'<div style="font-size:0.9em;color:#1a1a1a;line-height:1.6;">{w}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f'<div style="border-left:4px solid #DDDDDD;border-radius:0 8px 8px 0;'
+                        f'padding:14px 18px;margin-bottom:10px;background:#FAFAFA;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:#AAAAAA;'
+                        f'letter-spacing:1px;margin-bottom:6px;">{dept.upper()}</div>'
+                        f'<div style="font-size:0.84em;color:#BBBBBB;font-style:italic;">Still being agreed…</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+        _all_one_things()
