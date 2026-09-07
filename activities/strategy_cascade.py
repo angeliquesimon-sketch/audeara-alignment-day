@@ -204,6 +204,154 @@ with tab_pres:
                 unsafe_allow_html=True,
             )
 
+            # ── Detail accordions (collapsed by default — James opens as he speaks) ──
+            _CHOICE_DETAIL = {
+                'c2': {
+                    'intro': 'Australian Wholesale is both a growth engine and our closest day-to-day learning loop with clinicians, partners and end users.',
+                    'sections': [
+                        ('What we will do', [
+                            'Build on FY26 momentum through account depth, repeat ordering and a focused portfolio.',
+                            'Onboard and enable the expanded field team, including the incoming Clinical Business Managers.',
+                            'Make ordering, training, setup and support simpler and more dependable.',
+                            'Strengthen feedback loops between clinicians, customer care, marketing, operations and product teams.',
+                            'Use returns, support and sales data to remove recurring friction.',
+                        ]),
+                        ('Customer promise', 'Easy to understand. Easy to order. Easy to set up. Dependable when help is needed.'),
+                    ],
+                },
+                'c3': {
+                    'intro': 'AUA Technology turns Audeara\'s insight and engineering into capabilities that partners can deploy in products and platforms.',
+                    'sections': [
+                        ('Capability areas', [
+                            'Hearing insight, audio intelligence and clinical translation.',
+                            'Embedded systems, firmware, connectivity and device control.',
+                            'Applications, fitting tools, diagnostics and service interfaces.',
+                            'Platform implementation across supported chips, products and end-user environments.',
+                            'Evidence, validation, quality and controlled release.',
+                        ]),
+                        ('In market and scaling', [
+                            'A-02 TV Bundle and Audeara Buds.',
+                            'BT-03, BT-LE and the expanding Auracast solution set.',
+                            'Clinico and partner products moving toward repeatable revenue.',
+                        ]),
+                        ('Development and commercialisation', [
+                            'A-03 in development.',
+                            'OpenLearn Small by ShokzHear — initial orders and funded deployments.',
+                            'OPTEK.',
+                            'China hearing-aid programs.',
+                            'Rion and other prioritised partner opportunities.',
+                        ]),
+                        ('Portfolio discipline', 'We will describe products and programs honestly, fund them according to readiness and strategic value, and avoid turning possibility into an unvalidated promise.'),
+                    ],
+                },
+                'c4': {
+                    'intro': 'Auracast is becoming a distinct solutions business: not a single device or feature, but a complete system designed around a real environment and the people in it.',
+                    'sections': [
+                        ('The solution chain', [
+                            'Source — capture the right audio.',
+                            'Broadcast — distribute it reliably.',
+                            'Receive — connect compatible hearing and listening devices.',
+                            'Personalise — deliver the best useful experience for each listener.',
+                            'Deploy and support — make installation, training and ongoing use dependable.',
+                        ]),
+                        ('Priority environments', [
+                            'Senior living and care.',
+                            'Universities, classrooms and education.',
+                            'Healthcare and clinical settings.',
+                            'Public venues, events and partner-led installations.',
+                        ]),
+                        ('FY27 focus', 'The Bolton Clarke deployment gives us a reference point for turning technology into a repeatable, supportable solution. FY27 is about converting that learning into a clear offer, delivery playbook and partner model.'),
+                    ],
+                },
+                'c7': {
+                    'intro': 'A dedicated, partner-led commercial engine distinct from AUA Technology licensing and Auracast solutions.',
+                    'sections': [
+                        ('The product', 'OpenLearn Small by ShokzHear: Audeara sets functionality, size and audio-tuning requirements; ShokzHear customises and manufactures; Audeara holds exclusive Australian deployment rights.'),
+                        ('Path to scale', 'Institutional and community-led: schools and education systems, state and national programs, charities, grants and delivery partners. The Listen & Learn Community Impact Program is the delivery framework.'),
+                        ('FY27 focus', 'Initial customer orders, funded deployments, evidence of impact and a repeatable partner model.'),
+                    ],
+                },
+                'c1': {
+                    'intro': 'We start with the life being improved, not the feature being shipped.',
+                    'sections': [
+                        ('What this means in practice', [
+                            'Product quality, setup, support, connectivity and follow-through are all part of the outcome.',
+                            'Every function contributes to whether a customer\'s experience is good or not.',
+                            'Returns, support data and clinical feedback are signals — not just costs.',
+                        ]),
+                    ],
+                },
+                'c5': {
+                    'intro': 'The tender is exciting because it is a visible test of the company we are becoming. It is not a HALO project and it cannot be won by engineering, sales or leadership alone.',
+                    'sections': [
+                        ('Tender readiness is a whole-company capability', [
+                            'A compelling, dependable product portfolio.',
+                            'Clinical evidence and measurable customer outcomes.',
+                            'Quality, regulatory and risk discipline.',
+                            'National service, training, logistics and support.',
+                            'Supply, customisation and production partnerships.',
+                            'Financial capacity and working-capital planning.',
+                            'A coherent story about why Audeara and its partners can deliver.',
+                        ]),
+                        ('How each group contributes', [
+                            'Leadership: sets direction, makes trade-offs and creates internal and external cohesion.',
+                            'Market, Growth and Australian Wholesale: create demand, build trusted relationships and translate market learning into opportunity.',
+                            'Customer and Delivery: make promises real through operations, care, support, training and feedback.',
+                            'Technology and Product: turn insight into safe, useful, scalable products and platforms.',
+                            'Finance and Governance: protect sustainability, discipline, compliance and informed decision-making.',
+                        ]),
+                        ('Why it matters', 'Reaching the point where a tender is genuinely worth submitting will itself be an extraordinary achievement. It will show how far Audeara has progressed in one year.'),
+                    ],
+                },
+                'c6': {
+                    'intro': 'Opportunity is not the same as priority. FY27 requires deliberate trade-offs to protect cash and build what the strategy actually needs.',
+                    'sections': [
+                        ('What this means', [
+                            'Make trade-offs visibly — the whole team knows what we are not doing and why.',
+                            'Fund the work that best advances the strategy.',
+                            'Stop work that no longer earns its place.',
+                            'Revenue quality, gross margin, cash conversion and progress toward positive operating cash flow are the measures.',
+                        ]),
+                    ],
+                },
+            }
+
+            st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
+            for _c in _display_order:
+                _detail = _CHOICE_DETAIL.get(_c['id'])
+                if not _detail:
+                    continue
+                with st.expander(_c['title'], expanded=False):
+                    if _detail.get('intro'):
+                        st.markdown(
+                            f'<div style="font-size:0.88em;color:#555;font-style:italic;'
+                            f'line-height:1.6;margin-bottom:14px;">{_detail["intro"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    for _sec_title, _sec_content in _detail['sections']:
+                        st.markdown(
+                            f'<div style="font-size:0.7em;font-weight:700;color:{WINE};'
+                            f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
+                            f'{_sec_title.upper()}</div>',
+                            unsafe_allow_html=True,
+                        )
+                        if isinstance(_sec_content, list):
+                            _items = ''.join([
+                                f'<li style="margin-bottom:4px;">{item}</li>'
+                                for item in _sec_content
+                            ])
+                            st.markdown(
+                                f'<ul style="font-size:0.86em;color:#333;line-height:1.6;'
+                                f'margin:0;padding-left:18px;">{_items}</ul>',
+                                unsafe_allow_html=True,
+                            )
+                        else:
+                            st.markdown(
+                                f'<div style="font-size:0.86em;color:#333;line-height:1.6;">'
+                                f'{_sec_content}</div>',
+                                unsafe_allow_html=True,
+                            )
+
         # HOW WE WORK ── show from stage_idx 3 onwards
         if stage_idx >= 3:
             _HOW_ICONS = ['💡', '🤝', '✅', '🔬', '🔗', '🛡️', '🎯']
