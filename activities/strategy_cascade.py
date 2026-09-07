@@ -139,13 +139,23 @@ with tab_pres:
                         f'</div>',
                         unsafe_allow_html=True,
                     )
-                _section_label('ONE COMPANY OPERATING SYSTEM')
-                for item in OPERATING_SYSTEM:
-                    st.markdown(
-                        f'<div style="border-left:3px solid {TEAL};padding:8px 14px;'
-                        f'margin-bottom:6px;font-size:0.84em;color:#444;">{item}</div>',
-                        unsafe_allow_html=True,
-                    )
+                _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
+                _os_pills = ''.join([
+                    f'<span style="background:rgba(255,255,255,0.15);color:white;'
+                    f'font-size:0.8em;font-weight:500;padding:7px 14px;border-radius:20px;'
+                    f'display:inline-flex;align-items:center;gap:6px;margin:3px 3px;">'
+                    f'{icon}&nbsp;{item}</span>'
+                    for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
+                ])
+                st.markdown(
+                    f'<div style="background:{FOREST};border-radius:10px;'
+                    f'padding:18px 20px;margin-top:8px;">'
+                    f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.55);'
+                    f'letter-spacing:1.5px;margin-bottom:12px;">ONE COMPANY OPERATING SYSTEM</div>'
+                    f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
             else:
                 _collapsed_engines()
 
