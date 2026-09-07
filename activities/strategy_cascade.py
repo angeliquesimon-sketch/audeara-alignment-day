@@ -97,7 +97,7 @@ def _collapsed_choices():
 
 def _collapsed_working():
     pills = ''.join([
-        f'<span style="background:{BLACK};color:white;'
+        f'<span style="background:{WINE};color:white;'
         f'font-size:0.72em;font-weight:600;padding:4px 11px;border-radius:14px;'
         f'margin-right:6px;display:inline-block;margin-bottom:5px;">{principle}</span>'
         for i, (principle, _) in enumerate(HOW_WE_WORK)
@@ -220,7 +220,7 @@ with tab_pres:
                     for icon, (principle, description) in zip(_HOW_ICONS, HOW_WE_WORK)
                 ])
                 st.markdown(
-                    f'<div style="background:{BLACK};border-radius:10px;padding:18px 20px;margin-top:28px;">'
+                    f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
                     f'<div style="font-size:0.62em;font-weight:700;color:rgba(255,255,255,0.4);'
                     f'letter-spacing:1.5px;margin-bottom:12px;">HOW WE WILL WORK</div>'
                     f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
