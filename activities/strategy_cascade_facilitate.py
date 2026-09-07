@@ -139,8 +139,8 @@ if stage == 'cascade':
                     restore_dept(choice['id'], dept)
                     st.rerun()
             else:
-                # ── All active rows — each with Lock/Unlock + Delete ───────────
-                for ri, (_, row) in enumerate(locked_rows.iterrows()):
+                # ── All active rows — keyed on Timestamp so indices never shift ──
+                for _, row in locked_rows.iterrows():
                     ts   = row['Timestamp']
                     text = row['Text']
                     pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
@@ -157,18 +157,18 @@ if stage == 'cascade':
                     )
                     c1, c2 = st.columns(2)
                     with c1:
-                        if st.button('Unlock', key=f'fac_unlock_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                        if st.button('Unlock', key=f'fac_unlock_{ts}', use_container_width=True):
                             update_contribution(ts, new_status='draft')
                             st.rerun()
                     with c2:
-                        if st.button('Delete', key=f'fac_del_l_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                        if st.button('Delete', key=f'fac_del_l_{ts}', use_container_width=True):
                             update_contribution(ts, new_status='deleted')
                             st.rerun()
 
-                for ri, (_, row) in enumerate(draft_rows.iterrows()):
-                    ts      = row['Timestamp']
-                    text    = row['Text']
-                    pts     = [p.strip() for p in str(text).split('\n') if p.strip()]
+                for _, row in draft_rows.iterrows():
+                    ts   = row['Timestamp']
+                    text = row['Text']
+                    pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
                     if len(pts) == 1:
                         dbody = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">💬 {pts[0]}</div>'
                     else:
@@ -182,21 +182,21 @@ if stage == 'cascade':
                         unsafe_allow_html=True,
                     )
                     edited = st.text_area(
-                        f'{dept} draft {ri}',
+                        ts,
                         value=text,
                         height=56,
                         placeholder='Edit before locking…',
-                        key=f'fac_edit_{choice["id"]}_{dept}_{ri}',
+                        key=f'fac_edit_{ts}',
                         label_visibility='collapsed',
                     )
                     c1, c2, c3 = st.columns([2, 1, 1])
                     with c1:
                         if edited.strip() and edited.strip() != text:
-                            if st.button('Save edit', key=f'fac_save_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                            if st.button('Save edit', key=f'fac_save_{ts}', use_container_width=True):
                                 update_contribution(ts, new_text=edited.strip())
                                 st.rerun()
                     with c2:
-                        if st.button('✅ Lock', key=f'fac_lock_{choice["id"]}_{dept}_{ri}', type='primary', use_container_width=True):
+                        if st.button('✅ Lock', key=f'fac_lock_{ts}', type='primary', use_container_width=True):
                             final = edited.strip() or text
                             if final:
                                 update_contribution(ts, new_status='locked', new_text=final)
@@ -204,7 +204,7 @@ if stage == 'cascade':
                             else:
                                 st.warning('Nothing to lock.')
                     with c3:
-                        if st.button('Delete', key=f'fac_del_d_{choice["id"]}_{dept}_{ri}', use_container_width=True):
+                        if st.button('Delete', key=f'fac_del_d_{ts}', use_container_width=True):
                             update_contribution(ts, new_status='deleted')
                             st.rerun()
 
