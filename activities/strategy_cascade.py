@@ -126,7 +126,7 @@ with tab_pres:
     else:
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
-            if stage_idx <= 2:
+            if stage_idx <= 3:
                 _section_label('FOUR CONNECTED COMMERCIAL ENGINES')
                 _engine_cards = ''.join([
                     f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
@@ -163,7 +163,7 @@ with tab_pres:
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
-            if stage_idx == 2:
+            if stage_idx <= 3:
                 st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
                 _section_label('FY27 STRATEGIC CHOICES')
                 _ENGINE_ATTRIBUTION = {
