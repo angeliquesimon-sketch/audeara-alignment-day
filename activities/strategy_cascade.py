@@ -305,6 +305,29 @@ with tab_activity:
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+                    add_text = st.text_area(
+                        dept,
+                        value='',
+                        height=60,
+                        placeholder='Add another point…',
+                        key=f'casc_ta_{choice["id"]}_{dept}',
+                        label_visibility='collapsed',
+                    )
+                    if st.button(
+                        'Add to discussion',
+                        key=f'casc_sub_{choice["id"]}_{dept}',
+                        use_container_width=True,
+                    ):
+                        if add_text.strip():
+                            try:
+                                save_cascade_contribution(choice['id'], dept, text + '\n' + add_text.strip())
+                                st.toast(f'{dept} added ✓', icon='💬')
+                                st.rerun()
+                            except Exception as _e:
+                                st.error(f'Could not save. ({_e})')
+                        else:
+                            st.warning('Add a point before submitting.')
+                    st.markdown('')
 
                 else:
                     # No submission yet — show editable field
