@@ -159,10 +159,16 @@ if stage == 'cascade':
 
             elif status == 'draft':
                 # Submitted by the team — show for facilitator to review, edit and lock
+                _points = [p.strip() for p in text.split('\n') if p.strip()]
+                if len(_points) == 1:
+                    _body = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">💬 {_points[0]}</div>'
+                else:
+                    _items = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in _points])
+                    _body  = f'<div style="font-size:0.78em;color:#B7860D;margin-bottom:4px;">💬 IN DISCUSSION</div><ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{_items}</ul>'
                 st.markdown(
                     f'<div style="background:#FEF9E7;border-left:3px solid #F4B942;'
-                    f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
-                    f'color:#1a1a1a;margin-bottom:6px;">💬 {text}</div>',
+                    f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:6px;">'
+                    f'{_body}</div>',
                     unsafe_allow_html=True,
                 )
                 edited = st.text_area(
