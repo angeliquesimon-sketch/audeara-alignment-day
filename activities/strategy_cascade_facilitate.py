@@ -6,16 +6,19 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 from utils import inject_styles, PURPLE, TEAL
 from strategy_cascade_shared import (
-    CHOICES, DEPARTMENTS, CHOICE_COLOURS,
+    CHOICES, DEPARTMENTS, CHOICE_COLOURS, HOW_WE_WORK_ICONS,
     pull_cascade_session, set_cascade_session,
     pull_cascade_contributions, save_cascade_contribution,
     update_contribution, set_dept_opted_out, restore_dept,
     pull_cascade_confidence,
+    get_live_engines, get_live_os, get_live_choices, get_live_how,
+    save_cascade_content_section, pull_cascade_content_overrides,
 )
 
 inject_styles()
 
-WINE = '#50144B'
+WINE   = '#50144B'
+FOREST = '#005E63'
 
 st.markdown('### 🎛️ Facilitate — Strategy Cascade')
 
@@ -33,6 +36,300 @@ STAGE_LABELS = {
     'reveal':  'Full Reveal',
 }
 STAGES = list(STAGE_LABELS)
+
+# ── View selector (Facilitate vs Edit Content) ─────────────────────────────────
+
+_view_col, _ = st.columns([3, 2])
+with _view_col:
+    _page_view = st.radio(
+        'view', ['🎛️ Facilitate', '📝 Edit Content'],
+        horizontal=True, label_visibility='collapsed',
+        key='fac_page_view',
+    )
+
+if _page_view == '📝 Edit Content':
+
+    st.markdown(
+        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'color:#888;margin-bottom:4px;">PRESENTATION CONTENT EDITOR</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption('Each item has its own Save button — changes write to Google Sheets immediately and appear on the Presentation tab within ~10 seconds. Reload to see current saved state.')
+
+    _rc1, _rc2 = st.columns([1, 4])
+    with _rc1:
+        if st.button('🔄 Reload', use_container_width=True):
+            pull_cascade_content_overrides.clear()
+            st.rerun()
+
+    _live_eng = get_live_engines()
+    _live_os  = get_live_os()
+    _live_cho = get_live_choices()
+    _live_how = get_live_how()
+
+    st.divider()
+
+    # ── COMMERCIAL ENGINES ──────────────────────────────────────────────────────
+    st.markdown(
+        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'color:{FOREST};margin-bottom:12px;">COMMERCIAL ENGINES</div>',
+        unsafe_allow_html=True,
+    )
+    _eng_draft = list(_live_eng)
+
+    for _ei, _eng in enumerate(_eng_draft):
+        with st.expander(f'**{_eng["title"]}** — {_eng.get("subtitle","")}', expanded=False):
+            _new_title = st.text_input('Title', value=_eng['title'], key=f'ce_eng_title_{_ei}')
+            _new_sub   = st.text_input('Subtitle', value=_eng.get('subtitle',''), key=f'ce_eng_sub_{_ei}')
+            _new_desc  = st.text_area('Description', value=_eng['description'], height=80, key=f'ce_eng_desc_{_ei}')
+
+            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">STAT CHIPS (value | label)</div>', unsafe_allow_html=True)
+            _curr_stats = list(_eng.get('stats', []))
+            while len(_curr_stats) < 3:
+                _curr_stats.append(['', ''])
+            _new_stats = []
+            for _si in range(3):
+                _sc1, _sc2 = st.columns(2)
+                with _sc1:
+                    _sv = st.text_input(f'stat_v_{_ei}_{_si}', value=_curr_stats[_si][0] if _si < len(_curr_stats) and _curr_stats[_si] else '', key=f'ce_eng_sv_{_ei}_{_si}', label_visibility='collapsed', placeholder=f'Stat {_si+1} value')
+                with _sc2:
+                    _sl = st.text_input(f'stat_l_{_ei}_{_si}', value=_curr_stats[_si][1] if _si < len(_curr_stats) and len(_curr_stats[_si]) > 1 else '', key=f'ce_eng_sl_{_ei}_{_si}', label_visibility='collapsed', placeholder='label')
+                if _sv.strip():
+                    _new_stats.append([_sv.strip(), _sl.strip()])
+
+            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
+            _curr_secs = list(_eng.get('sections', []))
+            _new_secs  = []
+            for _si, _sec in enumerate(_curr_secs):
+                _stc1, _stc2 = st.columns([3, 1])
+                with _stc1:
+                    _sec_title = st.text_input(f'sec_t_{_ei}_{_si}', value=_sec.get('title',''), key=f'ce_eng_sect_{_ei}_{_si}', label_visibility='collapsed', placeholder='Section title')
+                with _stc2:
+                    _del_sec = st.button('✕', key=f'ce_eng_delsec_{_ei}_{_si}', use_container_width=True)
+                if _del_sec:
+                    continue
+                _cnt = _sec.get('content', [])
+                _cnt_str = '\n'.join(_cnt) if isinstance(_cnt, list) else str(_cnt)
+                _sec_cnt = st.text_area(f'sec_c_{_ei}_{_si}', value=_cnt_str, height=72, key=f'ce_eng_secc_{_ei}_{_si}', label_visibility='collapsed', placeholder='One bullet per line (or a single paragraph)')
+                if _sec_title.strip():
+                    _lines = [l.strip() for l in _sec_cnt.split('\n') if l.strip()]
+                    _new_secs.append({'title': _sec_title.strip(), 'content': _lines if len(_lines) != 1 else _lines[0]})
+
+            _add_sec_t = st.text_input('new_sec', value='', key=f'ce_eng_addsect_{_ei}', label_visibility='collapsed', placeholder='+ Add section title…')
+            if _add_sec_t.strip():
+                _new_secs.append({'title': _add_sec_t.strip(), 'content': []})
+
+            _cb1, _cb2, _cb3, _cb4 = st.columns([2, 1, 1, 1])
+            with _cb1:
+                if st.button('Save engine', key=f'ce_eng_save_{_ei}', type='primary', use_container_width=True):
+                    _eng_draft[_ei] = {'id': _eng['id'], 'title': _new_title.strip() or _eng['title'], 'subtitle': _new_sub.strip(), 'description': _new_desc.strip(), 'stats': _new_stats, 'sections': _new_secs}
+                    save_cascade_content_section('engines', _eng_draft)
+                    st.toast('Engine saved ✓', icon='✅')
+                    st.rerun()
+            with _cb2:
+                if st.button('Delete', key=f'ce_eng_del_{_ei}', use_container_width=True):
+                    _eng_draft.pop(_ei)
+                    save_cascade_content_section('engines', _eng_draft)
+                    st.toast('Deleted', icon='🗑️')
+                    st.rerun()
+            with _cb3:
+                if _ei > 0 and st.button('↑', key=f'ce_eng_up_{_ei}', use_container_width=True):
+                    _eng_draft[_ei-1], _eng_draft[_ei] = _eng_draft[_ei], _eng_draft[_ei-1]
+                    save_cascade_content_section('engines', _eng_draft)
+                    st.rerun()
+            with _cb4:
+                if _ei < len(_eng_draft)-1 and st.button('↓', key=f'ce_eng_dn_{_ei}', use_container_width=True):
+                    _eng_draft[_ei+1], _eng_draft[_ei] = _eng_draft[_ei], _eng_draft[_ei+1]
+                    save_cascade_content_section('engines', _eng_draft)
+                    st.rerun()
+
+    with st.expander('➕ Add new engine', expanded=False):
+        _ne_title = st.text_input('Title', key='ce_new_eng_title', placeholder='e.g. Retail')
+        _ne_sub   = st.text_input('Subtitle', key='ce_new_eng_sub', placeholder='e.g. ndis, ecommerce, healthy hearing')
+        _ne_desc  = st.text_area('Description', key='ce_new_eng_desc', height=68, placeholder='One or two sentences.')
+        if st.button('Add engine', key='ce_new_eng_add', type='primary') and _ne_title.strip():
+            import re as _re
+            _new_id = _re.sub(r'[^a-z0-9]', '_', _ne_title.strip().lower())
+            _eng_draft.append({'id': _new_id, 'title': _ne_title.strip(), 'subtitle': _ne_sub.strip(), 'description': _ne_desc.strip(), 'stats': [], 'sections': []})
+            save_cascade_content_section('engines', _eng_draft)
+            st.toast('Engine added ✓', icon='✅')
+            st.rerun()
+
+    st.divider()
+
+    # ── OPERATING SYSTEM ────────────────────────────────────────────────────────
+    st.markdown(
+        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'color:{FOREST};margin-bottom:12px;">ONE COMPANY OPERATING SYSTEM</div>',
+        unsafe_allow_html=True,
+    )
+    _os_draft = list(_live_os)
+    for _oi, _os_item in enumerate(_os_draft):
+        _oc1, _oc2, _oc3, _oc4 = st.columns([5, 1, 1, 1])
+        with _oc1:
+            _os_val = st.text_input(f'os_{_oi}', value=_os_item, key=f'ce_os_{_oi}', label_visibility='collapsed')
+        with _oc2:
+            if st.button('Save', key=f'ce_os_save_{_oi}', use_container_width=True):
+                _os_draft[_oi] = _os_val.strip() or _os_item
+                save_cascade_content_section('os', _os_draft)
+                st.toast('Saved ✓', icon='✅')
+                st.rerun()
+        with _oc3:
+            if st.button('✕', key=f'ce_os_del_{_oi}', use_container_width=True):
+                _os_draft.pop(_oi)
+                save_cascade_content_section('os', _os_draft)
+                st.rerun()
+        with _oc4:
+            if _oi > 0 and st.button('↑', key=f'ce_os_up_{_oi}', use_container_width=True):
+                _os_draft[_oi-1], _os_draft[_oi] = _os_draft[_oi], _os_draft[_oi-1]
+                save_cascade_content_section('os', _os_draft)
+                st.rerun()
+
+    _oc_a1, _oc_a2 = st.columns([5, 1])
+    with _oc_a1:
+        _new_os = st.text_input('new_os', value='', key='ce_os_new', label_visibility='collapsed', placeholder='+ Add OS principle…')
+    with _oc_a2:
+        if st.button('Add', key='ce_os_add', use_container_width=True) and _new_os.strip():
+            _os_draft.append(_new_os.strip())
+            save_cascade_content_section('os', _os_draft)
+            st.toast('Added ✓', icon='✅')
+            st.rerun()
+
+    st.divider()
+
+    # ── STRATEGIC CHOICES ───────────────────────────────────────────────────────
+    st.markdown(
+        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'color:{WINE};margin-bottom:12px;">FY27 STRATEGIC CHOICES</div>',
+        unsafe_allow_html=True,
+    )
+    _cho_draft = list(_live_cho)
+    for _ci, _cho in enumerate(_cho_draft):
+        with st.expander(f'**{_cho.get("number",_ci+1)}.** {_cho["title"]}', expanded=False):
+            _cc1, _cc2 = st.columns([1, 5])
+            with _cc1:
+                _cho_num = st.text_input('No.', value=str(_cho.get('number', _ci+1)), key=f'ce_cho_num_{_ci}')
+            with _cc2:
+                _cho_title = st.text_input('Title', value=_cho['title'], key=f'ce_cho_title_{_ci}')
+            _cho_attr  = st.text_input('Engine attribution tag (leave blank for none)', value=_cho.get('attribution',''), key=f'ce_cho_attr_{_ci}')
+            _cho_desc  = st.text_area('Card description', value=_cho['description'], height=80, key=f'ce_cho_desc_{_ci}')
+            _cho_intro = st.text_area('Accordion intro (italic)', value=_cho.get('intro',''), height=56, key=f'ce_cho_intro_{_ci}')
+
+            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
+            _csecs     = list(_cho.get('sections', []))
+            _new_csecs = []
+            for _csi, _csec in enumerate(_csecs):
+                _cs1, _cs2 = st.columns([3, 1])
+                with _cs1:
+                    _cst = st.text_input(f'cho_st_{_ci}_{_csi}', value=_csec.get('title',''), key=f'ce_cho_sect_{_ci}_{_csi}', label_visibility='collapsed', placeholder='Section title')
+                with _cs2:
+                    _cdel = st.button('✕', key=f'ce_cho_delsec_{_ci}_{_csi}', use_container_width=True)
+                if _cdel:
+                    continue
+                _csc = _csec.get('content', [])
+                _csc_str = '\n'.join(_csc) if isinstance(_csc, list) else str(_csc)
+                _csc_new = st.text_area(f'cho_sc_{_ci}_{_csi}', value=_csc_str, height=68, key=f'ce_cho_secc_{_ci}_{_csi}', label_visibility='collapsed', placeholder='One bullet per line (or a paragraph)')
+                if _cst.strip():
+                    _lines = [l.strip() for l in _csc_new.split('\n') if l.strip()]
+                    _new_csecs.append({'title': _cst.strip(), 'content': _lines if len(_lines) != 1 else (_lines[0] if _lines else '')})
+            _add_cst = st.text_input('new_cho_sec', value='', key=f'ce_cho_addsec_{_ci}', label_visibility='collapsed', placeholder='+ Add section…')
+            if _add_cst.strip():
+                _new_csecs.append({'title': _add_cst.strip(), 'content': []})
+
+            _cb1, _cb2, _cb3, _cb4 = st.columns([2, 1, 1, 1])
+            with _cb1:
+                if st.button('Save choice', key=f'ce_cho_save_{_ci}', type='primary', use_container_width=True):
+                    _cho_draft[_ci] = {'id': _cho['id'], 'number': _cho_num.strip() or str(_ci+1), 'title': _cho_title.strip() or _cho['title'], 'description': _cho_desc.strip(), 'attribution': _cho_attr.strip(), 'intro': _cho_intro.strip(), 'sections': _new_csecs}
+                    save_cascade_content_section('choices', _cho_draft)
+                    st.toast('Choice saved ✓', icon='✅')
+                    st.rerun()
+            with _cb2:
+                if st.button('Delete', key=f'ce_cho_del_{_ci}', use_container_width=True):
+                    _cho_draft.pop(_ci)
+                    save_cascade_content_section('choices', _cho_draft)
+                    st.rerun()
+            with _cb3:
+                if _ci > 0 and st.button('↑', key=f'ce_cho_up_{_ci}', use_container_width=True):
+                    _cho_draft[_ci-1], _cho_draft[_ci] = _cho_draft[_ci], _cho_draft[_ci-1]
+                    save_cascade_content_section('choices', _cho_draft)
+                    st.rerun()
+            with _cb4:
+                if _ci < len(_cho_draft)-1 and st.button('↓', key=f'ce_cho_dn_{_ci}', use_container_width=True):
+                    _cho_draft[_ci+1], _cho_draft[_ci] = _cho_draft[_ci], _cho_draft[_ci+1]
+                    save_cascade_content_section('choices', _cho_draft)
+                    st.rerun()
+
+    with st.expander('➕ Add new choice', expanded=False):
+        _nc_num   = st.text_input('Number', key='ce_new_cho_num', placeholder='8')
+        _nc_title = st.text_input('Title', key='ce_new_cho_title', placeholder='Choice title…')
+        _nc_desc  = st.text_area('Description', key='ce_new_cho_desc', height=56, placeholder='One sentence.')
+        _nc_attr  = st.text_input('Engine tag (optional)', key='ce_new_cho_attr', placeholder='e.g. Retail')
+        if st.button('Add choice', key='ce_new_cho_add', type='primary') and _nc_title.strip():
+            import re as _re2
+            _nc_id = 'cx_' + _re2.sub(r'[^a-z0-9]', '_', _nc_title.strip().lower()[:12])
+            _cho_draft.append({'id': _nc_id, 'number': _nc_num.strip() or str(len(_cho_draft)+1), 'title': _nc_title.strip(), 'description': _nc_desc.strip(), 'attribution': _nc_attr.strip(), 'intro': '', 'sections': []})
+            save_cascade_content_section('choices', _cho_draft)
+            st.toast('Choice added ✓', icon='✅')
+            st.rerun()
+
+    st.divider()
+
+    # ── HOW WE WILL WORK ────────────────────────────────────────────────────────
+    st.markdown(
+        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'color:{WINE};margin-bottom:12px;">HOW WE WILL WORK</div>',
+        unsafe_allow_html=True,
+    )
+    _how_draft = [{'principle': p, 'description': d} for p, d in _live_how]
+    for _hi, _hw in enumerate(_how_draft):
+        _icon = HOW_WE_WORK_ICONS[_hi] if _hi < len(HOW_WE_WORK_ICONS) else '•'
+        with st.expander(f'{_icon} {_hw["principle"]}', expanded=False):
+            _hw_p = st.text_input('Principle', value=_hw['principle'], key=f'ce_hw_p_{_hi}')
+            _hw_d = st.text_input('Description', value=_hw['description'], key=f'ce_hw_d_{_hi}')
+            _hb1, _hb2, _hb3, _hb4 = st.columns([2, 1, 1, 1])
+            with _hb1:
+                if st.button('Save', key=f'ce_hw_save_{_hi}', type='primary', use_container_width=True):
+                    _how_draft[_hi] = {'principle': _hw_p.strip() or _hw['principle'], 'description': _hw_d.strip()}
+                    save_cascade_content_section('how', _how_draft)
+                    st.toast('Saved ✓', icon='✅')
+                    st.rerun()
+            with _hb2:
+                if st.button('Delete', key=f'ce_hw_del_{_hi}', use_container_width=True):
+                    _how_draft.pop(_hi)
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
+            with _hb3:
+                if _hi > 0 and st.button('↑', key=f'ce_hw_up_{_hi}', use_container_width=True):
+                    _how_draft[_hi-1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi-1]
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
+            with _hb4:
+                if _hi < len(_how_draft)-1 and st.button('↓', key=f'ce_hw_dn_{_hi}', use_container_width=True):
+                    _how_draft[_hi+1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi+1]
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
+
+    with st.expander('➕ Add new principle', expanded=False):
+        _nhw_p = st.text_input('Principle', key='ce_new_hw_p', placeholder='e.g. Act with purpose')
+        _nhw_d = st.text_input('Description', key='ce_new_hw_d', placeholder='One short sentence.')
+        if st.button('Add principle', key='ce_new_hw_add', type='primary') and _nhw_p.strip():
+            _how_draft.append({'principle': _nhw_p.strip(), 'description': _nhw_d.strip()})
+            save_cascade_content_section('how', _how_draft)
+            st.toast('Added ✓', icon='✅')
+            st.rerun()
+
+    st.divider()
+    if st.button('↩️ Reset all content to Python defaults', key='ce_reset_all'):
+        _sheets_svc = __import__('utils', fromlist=['_sheets'])._sheets()
+        _sheets_svc.spreadsheets().values().clear(
+            spreadsheetId='1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI',
+            range="'Cascade Content'!A2:B",
+        ).execute()
+        pull_cascade_content_overrides.clear()
+        st.toast('Reset to defaults ✓', icon='↩️')
+        st.rerun()
+
+    st.stop()  # prevent facilitate section from rendering when editing content
 
 # ── Stage selector ─────────────────────────────────────────────────────────────
 

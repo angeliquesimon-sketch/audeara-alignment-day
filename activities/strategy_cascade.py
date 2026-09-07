@@ -7,10 +7,11 @@ import streamlit as st
 from utils import inject_styles, PURPLE, TEAL, with_retry, _clear_sheets
 from strategy_cascade_shared import (
     ENGINES, OPERATING_SYSTEM, CHOICES, HOW_WE_WORK, DEPARTMENTS,
-    CHOICE_COLOURS, ENGINE_COLOURS,
+    CHOICE_COLOURS, ENGINE_COLOURS, HOW_WE_WORK_ICONS,
     _ensure_cascade_tabs,
     pull_cascade_session, pull_cascade_contributions, save_cascade_contribution,
     pull_cascade_confidence, save_cascade_confidence,
+    get_live_engines, get_live_os, get_live_choices, get_live_how,
 )
 from one_thing_shared import pull_one_thing_winners
 
@@ -71,7 +72,7 @@ def _collapsed_engines():
         f'<span style="background:{FOREST};color:white;font-size:0.84em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{e["title"]}</span>'
-        for i, e in enumerate(ENGINES)
+        for e in get_live_engines()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
@@ -82,13 +83,11 @@ def _collapsed_engines():
     )
 
 def _collapsed_choices():
-    _lookup = {c['id']: c for c in CHOICES}
-    _order  = [_lookup[i] for i in ['c2','c3','c4','c7','c1','c5','c6']]
     pills = ''.join([
         f'<span style="background:{WINE};color:white;font-size:0.84em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{c["title"]}</span>'
-        for c in _order
+        for c in get_live_choices()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
@@ -103,7 +102,7 @@ def _collapsed_working():
         f'<span style="background:{WINE};color:white;'
         f'font-size:0.84em;font-weight:600;padding:4px 11px;border-radius:14px;'
         f'margin-right:6px;display:inline-block;margin-bottom:5px;">{principle}</span>'
-        for i, (principle, _) in enumerate(HOW_WE_WORK)
+        for principle, _ in get_live_how()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
@@ -131,26 +130,30 @@ with tab_pres:
 
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
+            _live_engines = get_live_engines()
+            _live_os      = get_live_os()
             _section_label('Commercial Engines')
             _engine_cards = ''.join([
                 f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
                 f'border-radius:0 6px 6px 0;padding:14px 16px;">'
                 f'<div style="font-weight:700;font-size:1.05em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
-                f'<div style="font-size:0.75em;color:#999;font-style:italic;margin-bottom:6px;">{e["subtitle"]}</div>'
+                f'<div style="font-size:0.75em;color:#999;font-style:italic;margin-bottom:6px;">{e.get("subtitle","")}</div>'
                 f'<div style="font-size:0.95em;color:#555;line-height:1.55;">{e["description"]}</div>'
                 f'</div>'
-                for e in ENGINES
+                for e in _live_engines
             ])
             _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
             _os_pills = ''.join([
                 f'<span style="background:rgba(255,255,255,0.15);color:white;font-size:0.95em;'
                 f'font-weight:500;padding:6px 13px;border-radius:20px;'
                 f'display:inline-flex;align-items:center;gap:5px;margin:3px;">'
-                f'{icon}&nbsp;{item}</span>'
-                for icon, item in zip(_OS_ICONS, OPERATING_SYSTEM)
+                f'{_OS_ICONS[i] if i < len(_OS_ICONS) else "•"}&nbsp;{item}</span>'
+                for i, item in enumerate(_live_os)
             ])
+            n_engines = len(_live_engines)
+            _cols = f'repeat({n_engines}, 1fr)' if n_engines <= 5 else 'repeat(4,1fr)'
             st.markdown(
-                f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'
+                f'<div style="display:grid;grid-template-columns:{_cols};'
                 f'gap:8px;margin-bottom:0;">'
                 f'{_engine_cards}'
                 f'</div>',
@@ -158,134 +161,30 @@ with tab_pres:
             )
 
             # ── Engine detail accordions — stats chips + 2-col card grid ────────
-            _ENGINE_DETAIL = {
-                'wholesale': {
-                    'stats': [('1,500+', 'AU clinics'), ('12', 'countries stocked'), ('90%', 'of AU sites stocked')],
-                    'sections': [
-                        ('For clinics', [
-                            'Additional revenue stream for clinics.',
-                            'Solution for patients not yet ready for hearing aids.',
-                            'Products clinicians can confidently recommend.',
-                        ]),
-                        ('Where we are', [
-                            '1,500+ AU clinics. Network is built.',
-                            'FY27 = depth per clinic, not expansion.',
-                            'Major global chain relationships in place.',
-                        ]),
-                        ('Key channels', [
-                            'AU audiology clinics — major chains and independents.',
-                            'International: EU/US chains, Japan (growing), Taiwan (Clinico).',
-                        ]),
-                        ('FY27 priorities', [
-                            'Account depth and repeat ordering.',
-                            'Onboard incoming Clinical Business Managers.',
-                            'Simpler ordering, training and support.',
-                            'Stronger clinician feedback loops.',
-                        ]),
-                    ],
-                },
-                'aua_tech': {
-                    'stats': [('$1.68m', 'FY26 revenue'), ('+50%', 'YoY growth'), ('4', 'partners in market')],
-                    'sections': [
-                        ('How it works', [
-                            'Engineering services + white-label products + algorithm licensing.',
-                            'Three revenue streams: fees, licensing, white-label supply.',
-                            'Higher margin than hardware. Scales without proportional cost.',
-                        ]),
-                        ('Partners in market', [
-                            'Zildjian — Perfect Tune headphones, global.',
-                            'Eastech/China — NMPA certified, live on Tmall, JD.com.',
-                            'Clinico/Taiwan — white-label earbuds + Auracast range.',
-                            'Optek — AI algorithm licensing in consumer electronics chips.',
-                        ]),
-                        ('Pipeline', [
-                            'Rion and additional programs in development.',
-                            '7-gate framework: fund by readiness and strategic value.',
-                            'Reusable AUAI capability built once, deployed across partners.',
-                        ]),
-                        ('FY27 priorities', [
-                            'Progress programs to production revenue.',
-                            'Build reusable capability, not one-off engineering.',
-                            'Expand partner pipeline with disciplined selection.',
-                        ]),
-                    ],
-                },
-                'auracast': {
-                    'stats': [('∞', 'receivers per transmitter'), ('2', 'live deployments'), ('All', 'hearing abilities')],
-                    'sections': [
-                        ('What it is', [
-                            'Auracast is a Bluetooth LE broadcast standard for shared listening in venues.',
-                            'One transmitter → unlimited compatible receivers simultaneously.',
-                            'Complements hearing loops and hearing aids — works for all hearing abilities.',
-                        ]),
-                        ('Early wins', [
-                            'University of Queensland — classrooms and lectures.',
-                            'Bolton Clarke aged care — reference case for repeatable deployment.',
-                        ]),
-                        ('Priority environments', [
-                            'Senior living and aged care.',
-                            'Universities and classrooms.',
-                            'Healthcare and clinical settings.',
-                            'Public venues and AV partner installations.',
-                        ]),
-                        ('FY27 priorities', [
-                            'Formalise deployment offer, playbook and partner model.',
-                            'Convert Bolton Clarke into a repeatable package.',
-                            'Build AV sector pipeline. Grow Japan + Clinico Taiwan.',
-                        ]),
-                    ],
-                },
-                'shokzhear': {
-                    'stats': [('3-party', 'delivery model'), ('Exclusive AU', 'deployment rights'), ('FY27', 'first funded orders')],
-                    'sections': [
-                        ('The program', [
-                            'Audeara: program founder and device provider.',
-                            'Community delivery partners: charities who reach children.',
-                            'Funding partners: financial support in exchange for impact reporting.',
-                        ]),
-                        ('The product', [
-                            'OpenLearn Small by ShokzHear.',
-                            'Audeara sets specs. ShokzHear manufactures.',
-                            'Audeara holds exclusive Australian deployment rights.',
-                        ]),
-                        ('Path to scale', [
-                            'Schools and education systems.',
-                            'State and national programs + grants.',
-                            'Community delivery partners — no clinical intermediary needed.',
-                        ]),
-                        ('FY27 priorities', [
-                            'Initial customer orders.',
-                            'First funded deployments.',
-                            'Measurable evidence of impact.',
-                            'Repeatable partner model.',
-                        ]),
-                    ],
-                },
-            }
-
             st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
-            for _e in ENGINES:
-                _edetail = _ENGINE_DETAIL.get(_e['id'])
-                if not _edetail:
+            for _e in _live_engines:
+                _secs = _e.get('sections', [])
+                _stats = _e.get('stats', [])
+                if not _secs and not _stats:
                     continue
                 with st.expander(_e['title'], expanded=False):
-                    # Stats chips
-                    if _edetail.get('stats'):
+                    if _stats:
                         _chips = ''.join([
                             f'<div style="background:{FOREST};color:white;border-radius:8px;'
                             f'padding:10px 20px;text-align:center;min-width:90px;">'
-                            f'<div style="font-size:1.25em;font-weight:700;line-height:1.2;">{val}</div>'
-                            f'<div style="font-size:0.72em;opacity:0.75;margin-top:2px;">{label}</div>'
+                            f'<div style="font-size:1.25em;font-weight:700;line-height:1.2;">{s[0]}</div>'
+                            f'<div style="font-size:0.72em;opacity:0.75;margin-top:2px;">{s[1]}</div>'
                             f'</div>'
-                            for val, label in _edetail['stats']
+                            for s in _stats
                         ])
                         st.markdown(
                             f'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">{_chips}</div>',
                             unsafe_allow_html=True,
                         )
-                    # 2-col section cards
                     _cards = ''
-                    for _sec_title, _sec_content in _edetail.get('sections', []):
+                    for _sec in _secs:
+                        _sec_title   = _sec.get('title', '')
+                        _sec_content = _sec.get('content', [])
                         if isinstance(_sec_content, list):
                             _items = ''.join([f'<li style="margin-bottom:3px;">{item}</li>' for item in _sec_content])
                             _body  = f'<ul style="font-size:0.84em;color:#333;line-height:1.5;margin:0;padding-left:16px;">{_items}</ul>'
@@ -314,24 +213,9 @@ with tab_pres:
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
+            _live_choices = get_live_choices()
             st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
             _section_label('FY27 STRATEGIC CHOICES')
-            _ENGINE_ATTRIBUTION = {
-                'c2': 'Australian Wholesale',
-                'c3': 'AUA Technology',
-                'c4': 'Auracast Solutions',
-                'c7': 'ShokzHear / OpenLearn',
-            }
-            _choice_lookup = {c['id']: c for c in CHOICES}
-            _display_order = [
-                _choice_lookup['c2'],
-                _choice_lookup['c3'],
-                _choice_lookup['c4'],
-                _choice_lookup['c7'],
-                _choice_lookup['c1'],
-                _choice_lookup['c5'],
-                _choice_lookup['c6'],
-            ]
             _choice_cards = ''.join([
                 f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
                 f'border-radius:0 8px 8px 0;padding:14px 16px;">'
@@ -340,144 +224,38 @@ with tab_pres:
                     f'<div style="margin-bottom:8px;">'
                     f'<span style="background:{FOREST};color:white;font-size:0.75em;'
                     f'font-weight:600;padding:3px 9px;border-radius:10px;">'
-                    f'{_ENGINE_ATTRIBUTION[c["id"]]}</span></div>'
-                    if c['id'] in _ENGINE_ATTRIBUTION else ''
+                    f'{c["attribution"]}</span></div>'
+                    if c.get('attribution') else ''
                 ) +
                 f'<div style="font-size:0.95em;color:#555;line-height:1.55;">{c["description"]}</div>'
                 f'</div>'
-                for c in _display_order
+                for c in _live_choices
             ])
+            _n_choices = len(_live_choices)
+            _c_cols = f'repeat({min(_n_choices, 4)},1fr)'
             st.markdown(
-                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);'
+                f'<div style="display:grid;grid-template-columns:{_c_cols};'
                 f'gap:10px;">{_choice_cards}</div>',
                 unsafe_allow_html=True,
             )
 
-            # ── Detail accordions (collapsed by default — James opens as he speaks) ──
-            _CHOICE_DETAIL = {
-                'c2': {
-                    'intro': 'Australian Wholesale is both a growth engine and our closest day-to-day learning loop with clinicians, partners and end users.',
-                    'sections': [
-                        ('What we will do', [
-                            'Build on FY26 momentum through account depth, repeat ordering and a focused portfolio.',
-                            'Onboard and enable the expanded field team, including the incoming Clinical Business Managers.',
-                            'Make ordering, training, setup and support simpler and more dependable.',
-                            'Strengthen feedback loops between clinicians, customer care, marketing, operations and product teams.',
-                            'Use returns, support and sales data to remove recurring friction.',
-                        ]),
-                        ('Customer promise', 'Easy to understand. Easy to order. Easy to set up. Dependable when help is needed.'),
-                    ],
-                },
-                'c3': {
-                    'intro': 'AUA Technology turns Audeara\'s insight and engineering into capabilities that partners can deploy in products and platforms.',
-                    'sections': [
-                        ('Capability areas', [
-                            'Hearing insight, audio intelligence and clinical translation.',
-                            'Embedded systems, firmware, connectivity and device control.',
-                            'Applications, fitting tools, diagnostics and service interfaces.',
-                            'Platform implementation across supported chips, products and end-user environments.',
-                            'Evidence, validation, quality and controlled release.',
-                        ]),
-                        ('In market and scaling', [
-                            'A-02 TV Bundle and Audeara Buds.',
-                            'BT-03, BT-LE and the expanding Auracast solution set.',
-                            'Clinico and partner products moving toward repeatable revenue.',
-                        ]),
-                        ('Development and commercialisation', [
-                            'A-03 in development.',
-                            'OpenLearn Small by ShokzHear — initial orders and funded deployments.',
-                            'OPTEK.',
-                            'China hearing-aid programs.',
-                            'Rion and other prioritised partner opportunities.',
-                        ]),
-                        ('Portfolio discipline', 'We will describe products and programs honestly, fund them according to readiness and strategic value, and avoid turning possibility into an unvalidated promise.'),
-                    ],
-                },
-                'c4': {
-                    'intro': 'Auracast is becoming a distinct solutions business: not a single device or feature, but a complete system designed around a real environment and the people in it.',
-                    'sections': [
-                        ('The solution chain', [
-                            'Source — capture the right audio.',
-                            'Broadcast — distribute it reliably.',
-                            'Receive — connect compatible hearing and listening devices.',
-                            'Personalise — deliver the best useful experience for each listener.',
-                            'Deploy and support — make installation, training and ongoing use dependable.',
-                        ]),
-                        ('Priority environments', [
-                            'Senior living and care.',
-                            'Universities, classrooms and education.',
-                            'Healthcare and clinical settings.',
-                            'Public venues, events and partner-led installations.',
-                        ]),
-                        ('FY27 focus', 'The Bolton Clarke deployment gives us a reference point for turning technology into a repeatable, supportable solution. FY27 is about converting that learning into a clear offer, delivery playbook and partner model.'),
-                    ],
-                },
-                'c7': {
-                    'intro': 'A dedicated, partner-led commercial engine distinct from AUA Technology licensing and Auracast solutions.',
-                    'sections': [
-                        ('The product', 'OpenLearn Small by ShokzHear: Audeara sets functionality, size and audio-tuning requirements; ShokzHear customises and manufactures; Audeara holds exclusive Australian deployment rights.'),
-                        ('Path to scale', 'Institutional and community-led: schools and education systems, state and national programs, charities, grants and delivery partners. The Listen & Learn Community Impact Program is the delivery framework.'),
-                        ('FY27 focus', 'Initial customer orders, funded deployments, evidence of impact and a repeatable partner model.'),
-                    ],
-                },
-                'c1': {
-                    'intro': 'We start with the life being improved, not the feature being shipped.',
-                    'sections': [
-                        ('What this means in practice', [
-                            'Product quality, setup, support, connectivity and follow-through are all part of the outcome.',
-                            'Every function contributes to whether a customer\'s experience is good or not.',
-                            'Returns, support data and clinical feedback are signals — not just costs.',
-                        ]),
-                    ],
-                },
-                'c5': {
-                    'intro': 'The tender is exciting because it is a visible test of the company we are becoming. It is not a HALO project and it cannot be won by engineering, sales or leadership alone.',
-                    'sections': [
-                        ('Tender readiness is a whole-company capability', [
-                            'A compelling, dependable product portfolio.',
-                            'Clinical evidence and measurable customer outcomes.',
-                            'Quality, regulatory and risk discipline.',
-                            'National service, training, logistics and support.',
-                            'Supply, customisation and production partnerships.',
-                            'Financial capacity and working-capital planning.',
-                            'A coherent story about why Audeara and its partners can deliver.',
-                        ]),
-                        ('How each group contributes', [
-                            'Leadership: sets direction, makes trade-offs and creates internal and external cohesion.',
-                            'Market, Growth and Australian Wholesale: create demand, build trusted relationships and translate market learning into opportunity.',
-                            'Customer and Delivery: make promises real through operations, care, support, training and feedback.',
-                            'Technology and Product: turn insight into safe, useful, scalable products and platforms.',
-                            'Finance and Governance: protect sustainability, discipline, compliance and informed decision-making.',
-                        ]),
-                        ('Why it matters', 'Reaching the point where a tender is genuinely worth submitting will itself be an extraordinary achievement. It will show how far Audeara has progressed in one year.'),
-                    ],
-                },
-                'c6': {
-                    'intro': 'Opportunity is not the same as priority. FY27 requires deliberate trade-offs to protect cash and build what the strategy actually needs.',
-                    'sections': [
-                        ('What this means', [
-                            'Make trade-offs visibly — the whole team knows what we are not doing and why.',
-                            'Fund the work that best advances the strategy.',
-                            'Stop work that no longer earns its place.',
-                            'Revenue quality, gross margin, cash conversion and progress toward positive operating cash flow are the measures.',
-                        ]),
-                    ],
-                },
-            }
-
+            # ── Choice detail accordions ─────────────────────────────────────────
             st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
-            for _c in _display_order:
-                _detail = _CHOICE_DETAIL.get(_c['id'])
-                if not _detail:
+            for _c in _live_choices:
+                _intro = _c.get('intro', '')
+                _secs  = _c.get('sections', [])
+                if not _intro and not _secs:
                     continue
                 with st.expander(_c['title'], expanded=False):
-                    if _detail.get('intro'):
+                    if _intro:
                         st.markdown(
                             f'<div style="font-size:0.95em;color:#555;font-style:italic;'
-                            f'line-height:1.6;margin-bottom:14px;">{_detail["intro"]}</div>',
+                            f'line-height:1.6;margin-bottom:14px;">{_intro}</div>',
                             unsafe_allow_html=True,
                         )
-                    for _sec_title, _sec_content in _detail['sections']:
+                    for _sec in _secs:
+                        _sec_title   = _sec.get('title', '')
+                        _sec_content = _sec.get('content', [])
                         st.markdown(
                             f'<div style="font-size:0.84em;font-weight:700;color:{WINE};'
                             f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
@@ -503,14 +281,14 @@ with tab_pres:
 
         # HOW WE WORK ── show from stage_idx 3 onwards
         if stage_idx >= 3:
-            _HOW_ICONS = ['💡', '🤝', '✅', '🔬', '🔗', '🛡️', '🎯']
+            _live_how = get_live_how()
             _how_items = ''.join([
                 f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
                 f'<div style="font-size:0.95em;font-weight:600;color:white;margin-bottom:4px;">'
-                f'{icon}&nbsp;{principle}</div>'
+                f'{HOW_WE_WORK_ICONS[i] if i < len(HOW_WE_WORK_ICONS) else "•"}&nbsp;{principle}</div>'
                 f'<div style="font-size:0.84em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
                 f'</div>'
-                for icon, (principle, description) in zip(_HOW_ICONS, HOW_WE_WORK)
+                for i, (principle, description) in enumerate(_live_how)
             ])
             st.markdown(
                 f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
@@ -539,7 +317,8 @@ with tab_activity:
         st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
 
     if stage == 'cascade':
-        choice = CHOICES[min(cur_idx, len(CHOICES) - 1)]
+        _act_choices = get_live_choices()
+        choice = _act_choices[min(cur_idx, len(_act_choices) - 1)]
         bc     = WINE
 
         st.markdown(
@@ -723,7 +502,7 @@ with tab_activity:
             df_c    = pull_cascade_contributions()
             df_conf = pull_cascade_confidence()
 
-            for i, choice in enumerate(CHOICES):
+            for i, choice in enumerate(get_live_choices()):
                 bc = WINE
 
                 conf_badge = ''
@@ -808,7 +587,7 @@ with tab_results:
             )
             return
 
-        for choice in CHOICES:
+        for choice in get_live_choices():
             # ── Confidence scores for this choice ──────────────────────────────
             team_nums = []
             func_nums = []
