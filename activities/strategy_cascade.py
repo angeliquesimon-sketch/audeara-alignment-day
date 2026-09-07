@@ -164,18 +164,34 @@ with tab_pres:
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
             if stage_idx == 2:
-                _section_label('OUR SIX STRATEGIC CHOICES')
-                for i, choice in enumerate(CHOICES):
-                    bc = WINE
-                    st.markdown(
-                        f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
-                        f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:12px;">'
-                        f'<div style="font-size:0.65em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">{choice["number"]}</div>'
-                        f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;margin-bottom:6px;">{choice["title"]}</div>'
-                        f'<div style="font-size:0.84em;color:#555;line-height:1.6;">{choice["description"]}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+                _section_label('FY27 STRATEGIC CHOICES')
+                _ENGINE_ATTRIBUTION = {
+                    'c2': 'Australian Wholesale',
+                    'c3': 'AUA Technology',
+                    'c4': 'Auracast Solutions',
+                }
+                _choice_cards = ''.join([
+                    f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
+                    f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+                    f'<div style="font-size:0.62em;font-weight:700;color:{WINE};'
+                    f'letter-spacing:1px;margin-bottom:4px;">{c["number"]}</div>'
+                    f'<div style="font-weight:700;font-size:0.86em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
+                    + (
+                        f'<div style="margin-bottom:8px;">'
+                        f'<span style="background:{FOREST};color:white;font-size:0.65em;'
+                        f'font-weight:600;padding:3px 9px;border-radius:10px;">'
+                        f'{_ENGINE_ATTRIBUTION[c["id"]]}</span></div>'
+                        if c['id'] in _ENGINE_ATTRIBUTION else ''
+                    ) +
+                    f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{c["description"]}</div>'
+                    f'</div>'
+                    for c in CHOICES
+                ])
+                st.markdown(
+                    f'<div style="display:grid;grid-template-columns:repeat(3,1fr);'
+                    f'gap:10px;">{_choice_cards}</div>',
+                    unsafe_allow_html=True,
+                )
             else:
                 _collapsed_choices()
 
