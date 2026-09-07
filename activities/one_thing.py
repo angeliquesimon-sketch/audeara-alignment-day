@@ -304,36 +304,21 @@ with tab_personal:
 
             st.markdown('')
 
-            # Function tag — auto-select if one dept, selectbox if multiple
-            if len(my_depts) == 1:
-                function = my_depts[0]
-                st.markdown(
-                    f'<div style="font-size:0.8em;color:#888;margin-bottom:8px;">'
-                    f'Function: <strong style="color:#444;">{function}</strong></div>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                function = st.selectbox(
-                    'Which function does your One Thing sit under?',
-                    my_depts,
-                    key='ot_personal_fn',
-                )
-
             df_comm = pull_commitments()
-            has_submitted = (
-                not df_comm.empty and name in df_comm['Name'].values
-            )
+            my_rows = df_comm[df_comm['Name'] == name] if not df_comm.empty else df_comm
+            has_submitted = not my_rows.empty
 
             if has_submitted and not st.session_state.get(f'ot_edit_{name}'):
-                my_row = df_comm[df_comm['Name'] == name].iloc[0]
+                commitment_text = my_rows.iloc[0]['Commitment']
+                fn_labels = ' · '.join(my_rows['Function'].tolist())
                 st.markdown(
                     f'<div style="border-left:4px solid #3EAA6D;background:#E8F5EE;'
                     f'border-radius:0 8px 8px 0;padding:14px 16px;">'
                     f'<div style="font-weight:700;color:#2D7D4F;margin-bottom:8px;">✅  Submitted</div>'
                     f'<div style="font-size:0.84em;color:#444;margin-bottom:2px;">'
-                    f'<strong>Function:</strong> {my_row["Function"]}</div>'
+                    f'<strong>Function{"s" if len(my_depts) > 1 else ""}:</strong> {fn_labels}</div>'
                     f'<div style="font-size:0.84em;color:#444;">'
-                    f'<strong>One Thing:</strong> {my_row["Commitment"]}</div>'
+                    f'<strong>One Thing:</strong> {commitment_text}</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -342,15 +327,13 @@ with tab_personal:
                     st.rerun()
                 return
 
-            default_commitment = ''
-            if has_submitted:
-                default_commitment = df_comm[df_comm['Name'] == name].iloc[0].get('Commitment', '')
+            default_commitment = my_rows.iloc[0]['Commitment'] if has_submitted else ''
 
             commitment = st.text_area(
                 'My One Thing',
                 value=default_commitment,
                 height=100,
-                placeholder='What one action, if you committed to it, would have the most impact on your function\'s goal?',
+                placeholder='What one action, if you committed to it, would have the most impact?',
                 key=f'ot_comm_{name}',
                 label_visibility='collapsed',
             )
@@ -361,9 +344,10 @@ with tab_personal:
                     st.warning('Please write your One Thing before submitting.')
                     return
                 try:
-                    save_commitment(name, function, commitment.strip())
-                    st.session_state[f'ot_edit_{name}'] = False
+                    for dept in my_depts:
+                        save_commitment(name, dept, commitment.strip())
                     pull_commitments.clear()
+                    st.session_state[f'ot_edit_{name}'] = False
                     st.toast('Your One Thing has been saved ✓', icon='✅')
                     st.rerun()
                 except Exception as _e:

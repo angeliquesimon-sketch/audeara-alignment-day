@@ -308,14 +308,15 @@ def pull_commitments():
         return pd.DataFrame(columns=['Timestamp', 'Name', 'Function', 'Commitment'])
 
 def save_commitment(name, function, commitment):
+    """Upsert by (name, function) pair — allows one row per function for multi-dept people."""
     def _do():
         svc  = _sheets()
         rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_COMMITMENTS_TAB}'!A:B",
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_COMMITMENTS_TAB}'!A:D",
         ).execute().get('values', [])
         new  = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name, function, commitment]
         for i, row in enumerate(rows[1:], start=2):
-            if len(row) >= 2 and row[1] == name:
+            if len(row) >= 3 and row[1] == name and row[2] == function:
                 svc.spreadsheets().values().update(
                     spreadsheetId=SHEET_ID,
                     range=f"'{CASCADE_COMMITMENTS_TAB}'!A{i}:D{i}",
