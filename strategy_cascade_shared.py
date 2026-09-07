@@ -10,7 +10,7 @@ SHEET_ID = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 CASCADE_SESSION_TAB       = 'Cascade Session'
 CASCADE_COMMITMENTS_TAB   = 'Cascade Commitments'   # One Thing personal commitments (unchanged)
 CASCADE_CONTRIBUTIONS_TAB = 'Cascade Contributions'  # New: dept contributions per strategic choice
-CASCADE_CONFIDENCE_TAB    = 'Cascade Confidence'     # New schema: (Timestamp, ChoiceID, Score)
+CASCADE_CONFIDENCE_TAB    = 'Cascade Confidence'     # Schema: (Timestamp, ChoiceID, TeamScore, FunctionScore, Feedback)
 
 # ── Hardcoded content (from James's strategy doc) ─────────────────────────────
 
@@ -228,9 +228,9 @@ def _ensure_cascade_tabs():
             ).execute()
 
         # Confidence tab — seed header, reset if schema differs
-        conf_hdr = ['Timestamp', 'ChoiceID', 'Score']
+        conf_hdr = ['Timestamp', 'ChoiceID', 'TeamScore', 'FunctionScore', 'Feedback']
         rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:C1",
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A1:E1",
         ).execute().get('values', [])
         if not rows or rows[0] != conf_hdr:
             svc.spreadsheets().values().clear(
@@ -357,26 +357,30 @@ def set_contribution_status(choice_id, department, status, text=None):
 
 # ── Confidence (anonymous, append-only) ───────────────────────────────────────
 
+_CONF_COLS = ['Timestamp', 'ChoiceID', 'TeamScore', 'FunctionScore', 'Feedback']
+
 @st.cache_data(ttl=5, show_spinner=False)
 def pull_cascade_confidence():
     try:
         rows = _sheets().spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:C",
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:E",
         ).execute().get('values', [])
         if len(rows) <= 1:
-            return pd.DataFrame(columns=['Timestamp', 'ChoiceID', 'Score'])
-        return pd.DataFrame(rows[1:], columns=['Timestamp', 'ChoiceID', 'Score'])
+            return pd.DataFrame(columns=_CONF_COLS)
+        # Pad short rows so DataFrame construction doesn't fail
+        data = [r + [''] * (5 - len(r)) for r in rows[1:]]
+        return pd.DataFrame(data, columns=_CONF_COLS)
     except Exception:
-        return pd.DataFrame(columns=['Timestamp', 'ChoiceID', 'Score'])
+        return pd.DataFrame(columns=_CONF_COLS)
 
 
-def save_cascade_confidence(choice_id, score):
+def save_cascade_confidence(choice_id, team_score, function_score='', feedback=''):
     def _do():
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         _sheets().spreadsheets().values().append(
-            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:C",
+            spreadsheetId=SHEET_ID, range=f"'{CASCADE_CONFIDENCE_TAB}'!A:E",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
-            body={'values': [[now, choice_id, score]]},
+            body={'values': [[now, choice_id, team_score, function_score, feedback]]},
         ).execute()
         pull_cascade_confidence.clear()
     with_retry(_do, on_retry=_clear_sheets)

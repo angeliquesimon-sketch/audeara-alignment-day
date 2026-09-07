@@ -233,42 +233,108 @@ if stage == 'cascade':
         if not df_conf.empty:
             ch_conf = df_conf[df_conf['ChoiceID'] == choice['id']]
             if not ch_conf.empty:
-                nums = []
-                for v in ch_conf['Score'].tolist():
-                    try: nums.append(int(v))
+                team_nums = []
+                func_nums = []
+                feedbacks = []
+                for _, crow in ch_conf.iterrows():
+                    try: team_nums.append(int(crow['TeamScore']))
                     except: pass
-                if nums:
+                    try:
+                        fs = int(crow['FunctionScore'])
+                        func_nums.append(fs)
+                    except: pass
+                    fb = str(crow.get('Feedback', '')).strip()
+                    if fb:
+                        feedbacks.append(fb)
+
+                if team_nums:
                     st.divider()
-                    avg = sum(nums) / len(nums)
-                    n   = len(nums)
-                    fc  = '#2D7D4F' if avg >= 4 else ('#B7770D' if avg >= 3 else '#C0392B')
-                    bg  = '#E8F5EE' if avg >= 4 else ('#FEF5E7' if avg >= 3 else '#FDECEA')
+                    n    = len(team_nums)
+                    avg  = sum(team_nums) / n
+                    fc   = '#2D7D4F' if avg >= 4 else ('#B7770D' if avg >= 3 else '#C0392B')
+                    bg   = '#E8F5EE' if avg >= 4 else ('#FEF5E7' if avg >= 3 else '#FDECEA')
 
                     st.markdown(
                         f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
                         f'color:#888;margin-bottom:10px;">CONFIDENCE VOTES</div>',
                         unsafe_allow_html=True,
                     )
-                    st.markdown(
-                        f'<div style="background:{bg};border-radius:8px;padding:14px 18px;'
-                        f'text-align:center;margin-bottom:12px;">'
-                        f'<div style="font-size:2em;font-weight:700;color:{fc};">{avg:.1f}</div>'
-                        f'<div style="font-size:0.78em;color:{fc};">average · {n} vote{"s" if n!=1 else ""}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    for score in range(5, 0, -1):
-                        count = nums.count(score)
-                        pct   = count / n * 100 if n else 0
+
+                    col_t, col_f = st.columns(2)
+                    with col_t:
                         st.markdown(
-                            f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'
-                            f'<span style="font-size:0.76em;color:#888;width:14px;">{score}</span>'
-                            f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:9px;">'
-                            f'<div style="width:{pct:.0f}%;background:{fc};border-radius:4px;height:9px;"></div></div>'
-                            f'<span style="font-size:0.72em;color:#888;width:18px;">{count}</span>'
+                            f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                            f'letter-spacing:1px;margin-bottom:6px;">TEAM EXECUTION</div>'
+                            f'<div style="background:{bg};border-radius:8px;padding:12px 16px;'
+                            f'text-align:center;margin-bottom:10px;">'
+                            f'<div style="font-size:1.9em;font-weight:700;color:{fc};">{avg:.1f}</div>'
+                            f'<div style="font-size:0.74em;color:{fc};">avg · {n} vote{"s" if n!=1 else ""}</div>'
                             f'</div>',
                             unsafe_allow_html=True,
                         )
+                        for score in range(5, 0, -1):
+                            count = team_nums.count(score)
+                            pct   = count / n * 100
+                            st.markdown(
+                                f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+                                f'<span style="font-size:0.76em;color:#888;width:14px;">{score}</span>'
+                                f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:8px;">'
+                                f'<div style="width:{pct:.0f}%;background:{fc};border-radius:4px;height:8px;"></div></div>'
+                                f'<span style="font-size:0.72em;color:#888;width:18px;">{count}</span>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    with col_f:
+                        if func_nums:
+                            fa    = sum(func_nums) / len(func_nums)
+                            fn    = len(func_nums)
+                            ffc   = '#2D7D4F' if fa >= 4 else ('#B7770D' if fa >= 3 else '#C0392B')
+                            fbg   = '#E8F5EE' if fa >= 4 else ('#FEF5E7' if fa >= 3 else '#FDECEA')
+                            st.markdown(
+                                f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                                f'letter-spacing:1px;margin-bottom:6px;">FUNCTION CONFIDENCE</div>'
+                                f'<div style="background:{fbg};border-radius:8px;padding:12px 16px;'
+                                f'text-align:center;margin-bottom:10px;">'
+                                f'<div style="font-size:1.9em;font-weight:700;color:{ffc};">{fa:.1f}</div>'
+                                f'<div style="font-size:0.74em;color:{ffc};">avg · {fn} response{"s" if fn!=1 else ""}</div>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                            for score in range(5, 0, -1):
+                                count = func_nums.count(score)
+                                pct   = count / fn * 100
+                                st.markdown(
+                                    f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+                                    f'<span style="font-size:0.76em;color:#888;width:14px;">{score}</span>'
+                                    f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:8px;">'
+                                    f'<div style="width:{pct:.0f}%;background:{ffc};border-radius:4px;height:8px;"></div></div>'
+                                    f'<span style="font-size:0.72em;color:#888;width:18px;">{count}</span>'
+                                    f'</div>',
+                                    unsafe_allow_html=True,
+                                )
+                        else:
+                            st.markdown(
+                                f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                                f'letter-spacing:1px;margin-bottom:6px;">FUNCTION CONFIDENCE</div>'
+                                f'<div style="color:#BBBBBB;font-size:0.8em;font-style:italic;'
+                                f'padding:10px 0;">No function responses yet</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    if feedbacks:
+                        st.markdown(
+                            f'<div style="font-size:0.65em;font-weight:700;color:#888;'
+                            f'letter-spacing:1px;margin:10px 0 6px;">FEEDBACK</div>',
+                            unsafe_allow_html=True,
+                        )
+                        for fb in feedbacks:
+                            st.markdown(
+                                f'<div style="background:#F8F8F8;border-left:3px solid #DDDDDD;'
+                                f'padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.82em;'
+                                f'color:#444;margin-bottom:5px;">{fb}</div>',
+                                unsafe_allow_html=True,
+                            )
 
     _fac_contributions()
 
@@ -292,7 +358,7 @@ elif stage == 'reveal':
             conf_str = ''
             if not df_conf.empty:
                 nums = []
-                for v in df_conf[df_conf['ChoiceID'] == choice['id']]['Score'].tolist():
+                for v in df_conf[df_conf['ChoiceID'] == choice['id']]['TeamScore'].tolist():
                     try: nums.append(int(v))
                     except: pass
                 if nums:

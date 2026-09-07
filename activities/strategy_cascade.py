@@ -385,14 +385,28 @@ with tab_activity:
                 if st.session_state.get(f'casc_conf_voted_{choice["id"]}'):
                     st.success('Your vote has been recorded. Thank you.')
                 else:
-                    score = st.select_slider(
-                        'How confident are you that we will execute this choice well in FY27?',
+                    _fmt = lambda x: {1: '1 — Low', 2: '2', 3: '3 — Moderate', 4: '4', 5: '5 — High'}[x]
+                    team_score = st.select_slider(
+                        'How confident are you that we will execute this Strategic Choice well in FY27?',
                         options=[1, 2, 3, 4, 5],
                         value=3,
-                        format_func=lambda x: {
-                            1: '1 — Low', 2: '2', 3: '3 — Moderate', 4: '4', 5: '5 — High',
-                        }[x],
+                        format_func=_fmt,
                         key=f'casc_conf_slider_{choice["id"]}',
+                    )
+                    st.markdown('')
+                    func_score_raw = st.select_slider(
+                        'If your function is contributing above, how confident are you that you can help contribute to this Strategic Choice in FY27?',
+                        options=['N/A', 1, 2, 3, 4, 5],
+                        value='N/A',
+                        format_func=lambda x: x if x == 'N/A' else _fmt(x),
+                        key=f'casc_conf_func_{choice["id"]}',
+                    )
+                    st.markdown('')
+                    feedback = st.text_area(
+                        'Feedback (optional)',
+                        placeholder='Any thoughts on this choice — what would make it more likely to succeed?',
+                        key=f'casc_conf_fb_{choice["id"]}',
+                        height=80,
                     )
                     st.markdown('')
                     if st.button(
@@ -402,7 +416,8 @@ with tab_activity:
                         use_container_width=True,
                     ):
                         try:
-                            save_cascade_confidence(choice['id'], score)
+                            fs = '' if func_score_raw == 'N/A' else func_score_raw
+                            save_cascade_confidence(choice['id'], team_score, fs, feedback.strip())
                             st.session_state[f'casc_conf_voted_{choice["id"]}'] = True
                             st.rerun()
                         except Exception as _e:
@@ -425,7 +440,7 @@ with tab_activity:
                 if not df_conf.empty:
                     ch = df_conf[df_conf['ChoiceID'] == choice['id']]
                     nums = []
-                    for v in ch['Score'].tolist():
+                    for v in ch['TeamScore'].tolist():
                         try: nums.append(int(v))
                         except: pass
                     if nums:
