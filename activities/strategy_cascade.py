@@ -153,12 +153,6 @@ with tab_pres:
                 f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'
                 f'gap:8px;margin-bottom:0;">'
                 f'{_engine_cards}'
-                f'</div>'
-                f'<div style="background:{FOREST};border-radius:0 0 10px 10px;'
-                f'padding:16px 20px;margin-top:8px;">'
-                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.5);'
-                f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
-                f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -166,7 +160,7 @@ with tab_pres:
             # ── Engine detail accordions — stats chips + 2-col card grid ────────
             _ENGINE_DETAIL = {
                 'wholesale': {
-                    'stats': [('1,500+', 'AU clinics'), ('12', 'countries'), ('35%', 'leave without aids')],
+                    'stats': [('1,500+', 'AU clinics'), ('12', 'countries stocked'), ('90%', 'of AU sites stocked')],
                     'sections': [
                         ('For clinics', [
                             'Additional revenue stream for clinics.',
@@ -179,9 +173,8 @@ with tab_pres:
                             'Major global chain relationships in place.',
                         ]),
                         ('Key channels', [
-                            'AU audiology clinics — chains and independents.',
-                            'International: EU/US chains, Japan, Taiwan (Clinico).',
-                            'NDIS and e-commerce.',
+                            'AU audiology clinics — major chains and independents.',
+                            'International: EU/US chains, Japan (growing), Taiwan (Clinico).',
                         ]),
                         ('FY27 priorities', [
                             'Account depth and repeat ordering.',
@@ -218,12 +211,12 @@ with tab_pres:
                     ],
                 },
                 'auracast': {
-                    'stats': [('∞', 'receivers per transmitter'), ('2', 'live deployments'), ('Replaces', 'hearing loops')],
+                    'stats': [('∞', 'receivers per transmitter'), ('2', 'live deployments'), ('All', 'hearing abilities')],
                     'sections': [
                         ('What it is', [
-                            'Bluetooth standard replacing traditional hearing loops.',
+                            'Auracast is a Bluetooth LE broadcast standard for shared listening in venues.',
                             'One transmitter → unlimited compatible receivers simultaneously.',
-                            'Works for all hearing abilities, not just hearing aid users.',
+                            'Complements hearing loops and hearing aids — works for all hearing abilities.',
                         ]),
                         ('Early wins', [
                             'University of Queensland — classrooms and lectures.',
@@ -308,6 +301,16 @@ with tab_pres:
                         f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">{_cards}</div>',
                         unsafe_allow_html=True,
                     )
+
+            st.markdown(
+                f'<div style="background:{FOREST};border-radius:10px;'
+                f'padding:16px 20px;margin-top:12px;">'
+                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.5);'
+                f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
+                f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
