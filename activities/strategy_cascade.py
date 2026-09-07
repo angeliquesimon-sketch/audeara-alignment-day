@@ -81,16 +81,18 @@ def _collapsed_engines():
     )
 
 def _collapsed_choices():
+    _lookup = {c['id']: c for c in CHOICES}
+    _order  = [_lookup[i] for i in ['c2','c3','c4','c7','c1','c5','c6']]
     pills = ''.join([
         f'<span style="background:{WINE};color:white;font-size:0.72em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
-        f'display:inline-block;margin-bottom:5px;">{c["number"]}. {c["title"]}</span>'
-        for i, c in enumerate(CHOICES)
+        f'display:inline-block;margin-bottom:5px;">{c["title"]}</span>'
+        for c in _order
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
         f'<div style="font-size:0.62em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
-        f'margin-bottom:8px;">SIX STRATEGIC CHOICES</div>'
+        f'margin-bottom:8px;">FY27 STRATEGIC CHOICES</div>'
         f'{pills}</div>',
         unsafe_allow_html=True,
     )
