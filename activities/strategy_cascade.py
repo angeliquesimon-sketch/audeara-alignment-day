@@ -276,10 +276,11 @@ with tab_activity:
                 one_thing = winners.get(dept, '')
 
                 # Department heading + One Thing reference
+                ot_text = one_thing if one_thing else 'One Thing not yet agreed'
+                ot_colour = '#AAAAAA' if one_thing else '#DDDDDD'
                 ot_html = (
-                    f'<div style="font-size:0.68em;color:#AAAAAA;font-style:italic;'
-                    f'margin-top:2px;margin-bottom:8px;">Our One Thing: {one_thing}</div>'
-                    if one_thing else ''
+                    f'<div style="font-size:0.68em;color:{ot_colour};font-style:italic;'
+                    f'margin-top:2px;margin-bottom:8px;">Our One Thing: {ot_text}</div>'
                 )
                 st.markdown(
                     f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
