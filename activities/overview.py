@@ -8,6 +8,7 @@ import pandas as pd
 from utils import inject_styles, _sheets, PURPLE, TEAL
 from styles_shared import TEAM as STYLES_TEAM
 from strategy_cascade_shared import pull_cascade_session, pull_commitments as _pull_casc_comm
+from one_thing_shared import pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS
 
 inject_styles()
 
@@ -157,6 +158,10 @@ def _overview():
     casc_stage      = casc_session.get('stage', 'hidden')
     casc_df         = _pull_casc_comm()
     n_casc_comm     = len(casc_df) if not casc_df.empty else 0
+    ot_session      = pull_one_thing_session()
+    ot_stage        = ot_session.get('stage', 'hidden')
+    ot_winners      = pull_one_thing_winners()
+    n_ot_winners    = len(ot_winners)
 
     mission_done  = len(mission_top) == 4
     mission_alive = n_mission > 0
@@ -206,14 +211,42 @@ def _overview():
             (f'{n_styles} of {n_team} submitted so far.' if styles_alive
              else 'Map how the team approaches decisions, change, and collaboration.'),
     )
+    n_ot_depts    = len(OT_DEPARTMENTS)
+    ot_done       = n_ot_winners == n_ot_depts and n_casc_comm >= n_team
+    ot_alive      = ot_stage != 'hidden' or n_ot_winners > 0 or n_casc_comm > 0
+    if ot_done:
+        ot_detail = 'Complete.'
+    elif ot_stage == 'personal':
+        ot_detail = f'{n_casc_comm} of {n_team} personal One Things submitted.'
+    elif ot_stage == 'departments' or n_ot_winners > 0:
+        ot_detail = f'{n_ot_winners} of {n_ot_depts} departments agreed.'
+    elif ot_alive:
+        ot_detail = 'The One Thing activity is underway.'
+    else:
+        ot_detail = 'Each department agrees on their One Thing, then everyone commits to a personal One Thing.'
+    _step(
+        'The One Thing',
+        'done'   if ot_done  else ('active' if ot_alive else 'upcoming'),
+        ot_detail,
+    )
+
     casc_done  = casc_stage == 'complete'
-    casc_alive = casc_stage in ('functions', 'goals', 'confidence', 'commitment')
+    casc_alive = casc_stage in ('goals', 'contributions', 'confidence')
+    if casc_done:
+        casc_detail = 'Complete.'
+    elif casc_stage == 'confidence':
+        n_conf = _row_count('Cascade Confidence')
+        casc_detail = f'{n_conf} anonymous confidence response{"s" if n_conf != 1 else ""} in.'
+    elif casc_stage == 'contributions':
+        casc_detail = f'In progress — {n_casc_comm} of {n_team} contributed.'
+    elif casc_alive:
+        casc_detail = 'James is walking through the FY27 goals.'
+    else:
+        casc_detail = 'James walks through the FY27 goals. The team contributes how each function will help, then shares their confidence anonymously.'
     _step(
         'Strategy Cascade',
         'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
-        'Complete.' if casc_done else
-            (f'In progress — {n_casc_comm} of {n_team} responded.' if casc_alive else
-             'James walks through the FY27 goals and function priorities. The team commits to personal actions and surfaces execution risks.'),
+        casc_detail,
     )
 
     st.divider()
