@@ -117,6 +117,16 @@ CHOICES = [
             'that best advances the strategy and stop work that no longer earns its place.'
         ),
     },
+    {
+        'id': 'c7',
+        'number': '7',
+        'title': 'Build Listen & Learn into a scalable, funded partner model',
+        'description': (
+            'Secure the first funded deployments, prove impact with clinical evidence, '
+            'and establish a partner pathway that can be replicated. '
+            'FY27 is the year this goes from promising to proven.'
+        ),
+    },
 ]
 
 HOW_WE_WORK = [

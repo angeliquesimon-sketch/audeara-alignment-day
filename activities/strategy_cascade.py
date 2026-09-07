@@ -169,7 +169,20 @@ with tab_pres:
                     'c2': 'Australian Wholesale',
                     'c3': 'AUA Technology',
                     'c4': 'Auracast Solutions',
+                    'c7': 'ShokzHear / OpenLearn',
                 }
+                # Row 1: engine-aligned (same left-to-right order as the engines above)
+                # Row 2: cross-cutting choices
+                _choice_lookup = {c['id']: c for c in CHOICES}
+                _display_order = [
+                    _choice_lookup['c2'],
+                    _choice_lookup['c3'],
+                    _choice_lookup['c4'],
+                    _choice_lookup['c7'],
+                    _choice_lookup['c1'],
+                    _choice_lookup['c5'],
+                    _choice_lookup['c6'],
+                ]
                 _choice_cards = ''.join([
                     f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
                     f'border-radius:0 8px 8px 0;padding:14px 16px;">'
@@ -185,10 +198,10 @@ with tab_pres:
                     ) +
                     f'<div style="font-size:0.79em;color:#555;line-height:1.55;">{c["description"]}</div>'
                     f'</div>'
-                    for c in CHOICES
+                    for c in _display_order
                 ])
                 st.markdown(
-                    f'<div style="display:grid;grid-template-columns:repeat(3,1fr);'
+                    f'<div style="display:grid;grid-template-columns:repeat(4,1fr);'
                     f'gap:10px;">{_choice_cards}</div>',
                     unsafe_allow_html=True,
                 )
