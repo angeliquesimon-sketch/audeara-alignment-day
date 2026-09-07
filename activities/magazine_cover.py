@@ -99,6 +99,21 @@ if not st.session_state.get('_tabs_ensured_v2'):
 # ── Page header ────────────────────────────────────────────────────────────────
 
 st.markdown('### Vision Activity — Magazine Cover Story')
+
+st.markdown(
+    f'<div style="border-left:4px solid #005E63;background:#F0F7F7;'
+    f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;">'
+    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1.5px;'
+    f'color:#005E63;margin-bottom:6px;">JAMES\'S STARTING POINT</div>'
+    f'<div style="font-size:1.05em;font-style:italic;color:#1a1a1a;'
+    f'margin-bottom:8px;">"Enhancing people\'s lives through sound."</div>'
+    f'<div style="font-size:0.88em;color:#555;line-height:1.6;">'
+    f'This is the draft vision statement from James. As a team today, we\'re going to explore '
+    f'what that means, what inspires us, and decide together on words we all feel genuinely connected to.'
+    f'</div></div>',
+    unsafe_allow_html=True,
+)
+
 st.markdown(
     f'It\'s {COVER_YEAR}. Audeara has been named an Official Partner of the Brisbane 2032 Olympic Games '
     f'— and it just made the cover of a major publication. '
