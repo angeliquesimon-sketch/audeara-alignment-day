@@ -6,16 +6,24 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 import pandas as pd
 from utils import inject_styles, _sheets, PURPLE, TEAL
-from styles_shared import TEAM as STYLES_TEAM
-from strategy_cascade_shared import pull_cascade_session, pull_commitments as _pull_casc_comm
+from styles_shared import (
+    TEAM as STYLES_TEAM, pull_styles, compute_scores, top_two,
+    HEX as STYLE_HEX, TEXT as STYLE_TEXT,
+)
+from strategy_cascade_shared import (
+    pull_cascade_session, pull_commitments as _pull_casc_comm,
+    CHOICES as CASCADE_CHOICES, pull_cascade_contributions as _pull_casc_contribs,
+)
 from one_thing_shared import pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS
 
 inject_styles()
 
 SHEET_ID           = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
+WINE               = '#50144B'
+FOREST             = '#005E63'
 MISSION_CATEGORIES = ['Who', 'What', 'How', 'Makes Possible']
 VALUES             = 'Impact  ·  Quality  ·  Leadership  ·  Momentum'
-MOTTO              = 'Feel connected.'
+BRAND_PROMISE      = 'Feel connected.'
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -99,7 +107,6 @@ st.divider()
 # ── Why we're here ────────────────────────────────────────────────────────────
 
 WHY_HERE = [
-    'Reflect on where Audeara has come from',
     'Clarify why we exist and where we are going',
     'Agree on how we make strategic choices',
     'Strengthen how we work together',
@@ -108,9 +115,7 @@ WHY_HERE = [
 
 LEAVE_WITH = [
     'Shared mission and vision themes',
-    'A clearer picture of Audeara\'s future',
     'Greater understanding of our strategic choices',
-    'A common approach to prioritisation',
     'Better understanding of how different working styles affect communication',
     'Clear inputs for the FY27 strategy and beyond',
 ]
@@ -162,6 +167,9 @@ def _overview():
     ot_stage        = ot_session.get('stage', 'hidden')
     ot_winners      = pull_one_thing_winners()
     n_ot_winners    = len(ot_winners)
+    styles_df       = pull_styles()
+    casc_contribs   = _pull_casc_contribs()
+    submitted_set   = set(styles_df['Name'].tolist()) if not styles_df.empty else set()
 
     mission_done  = len(mission_top) == 4
     mission_alive = n_mission > 0
@@ -297,7 +305,7 @@ def _overview():
 
   <polygon points="51,291 249,291 232,383 68,383" fill="#005E63"/>
   <text x="150" y="321" text-anchor="middle" font-family="sans-serif"
-        font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">MOTTO</text>
+        font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">BRAND PROMISE</text>
   <text x="150" y="347" text-anchor="middle" font-family="sans-serif"
         font-size="13" font-weight="700" fill="white">Feel connected.</text>
 
@@ -373,14 +381,144 @@ def _overview():
             unsafe_allow_html=True,
         )
 
-        # Motto (always filled)
+        # Brand promise (always filled)
         st.markdown(
             f'<div style="border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:#005E63;">Motto</div>'
-            f'<div style="font-size:1.05em;color:#005E63;font-weight:700;margin-top:4px;">{MOTTO}</div>'
+            f'<div style="font-weight:700;font-size:1.05em;color:#005E63;">Brand promise</div>'
+            f'<div style="font-size:1.05em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
+
+    st.divider()
+    st.markdown(
+        f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
+        f"What we've built today</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Row 1: Styles (left) + One Things (right) ─────────────────────────────
+
+    col_styles, col_ot = st.columns(2)
+
+    with col_styles:
+        st.markdown(
+            f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+            f'color:#888;margin-bottom:8px;">DIFFERENT STYLES</div>',
+            unsafe_allow_html=True,
+        )
+        st.caption(f'{len(submitted_set)} of {n_team} submitted')
+        chips = ''
+        for name in STYLES_TEAM:
+            first = name.split()[0]
+            if name in submitted_set:
+                row    = styles_df[styles_df['Name'] == name].iloc[0]
+                scores = compute_scores(row)
+                pri, _ = top_two(scores)
+                bg     = STYLE_HEX[pri]
+                tc     = STYLE_TEXT[pri]
+                chips += (
+                    f'<div style="background:{bg};border-radius:8px;padding:8px 10px;text-align:center;">'
+                    f'<div style="font-size:0.82em;font-weight:700;color:{tc};line-height:1.2;">{first}</div>'
+                    f'<div style="font-size:0.7em;color:{tc};opacity:0.8;">{pri}</div>'
+                    f'</div>'
+                )
+            else:
+                chips += (
+                    f'<div style="background:#EBEBEB;border-radius:8px;padding:8px 10px;text-align:center;">'
+                    f'<div style="font-size:0.82em;font-weight:700;color:#BBBBBB;line-height:1.2;">{first}</div>'
+                    f'<div style="font-size:0.7em;color:#CCCCCC;">?</div>'
+                    f'</div>'
+                )
+        st.markdown(
+            f'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">{chips}</div>',
+            unsafe_allow_html=True,
+        )
+
+    with col_ot:
+        st.markdown(
+            f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+            f'color:#888;margin-bottom:8px;">THE ONE THING</div>',
+            unsafe_allow_html=True,
+        )
+        st.caption(f'{n_ot_winners} of {len(OT_DEPARTMENTS)} departments agreed')
+        for dept in OT_DEPARTMENTS:
+            winner = ot_winners.get(dept, '')
+            if winner:
+                bc, bg, tc = FOREST, '#F0F7F7', FOREST
+                body = f'<div style="font-size:0.88em;color:#333;line-height:1.5;margin-top:4px;">{winner}</div>'
+            else:
+                bc, bg, tc = '#CCCCCC', '#F5F5F5', '#AAAAAA'
+                body = f'<div style="font-size:0.88em;color:#CCCCCC;font-style:italic;margin-top:4px;">Not yet agreed</div>'
+            st.markdown(
+                f'<div style="border-left:4px solid {bc};background:{bg};'
+                f'border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:8px;">'
+                f'<div style="font-size:0.72em;font-weight:700;color:{tc};letter-spacing:1px;">{dept.upper()}</div>'
+                f'{body}</div>',
+                unsafe_allow_html=True,
+            )
+
+    # ── Row 2: Strategy Cascade (full width) ──────────────────────────────────
+
+    st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+        f'color:#888;margin-bottom:8px;">STRATEGY CASCADE</div>',
+        unsafe_allow_html=True,
+    )
+
+    if not casc_alive:
+        st.markdown(
+            f'<div style="background:#F5F5F5;border-radius:8px;padding:16px;'
+            f'text-align:center;font-size:0.9em;color:#AAAAAA;font-style:italic;">'
+            f'Strategic choices and departmental decisions will appear here as the cascade progresses.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        casc_cols = st.columns(2)
+        for i, choice in enumerate(CASCADE_CHOICES):
+            with casc_cols[i % 2]:
+                dept_rows_html = ''
+                for dept in OT_DEPARTMENTS:
+                    locked = (
+                        casc_contribs[
+                            (casc_contribs['ChoiceID'] == choice['id']) &
+                            (casc_contribs['Department'] == dept) &
+                            (casc_contribs['Status'] == 'locked')
+                        ]
+                        if not casc_contribs.empty else casc_contribs
+                    )
+                    is_last = dept == OT_DEPARTMENTS[-1]
+                    border  = '' if is_last else 'border-bottom:1px solid rgba(80,20,75,0.08);'
+                    if not locked.empty:
+                        text = ' · '.join(str(t) for t in locked['Text'].tolist() if str(t).strip())
+                        if len(text) > 130:
+                            text = text[:127] + '…'
+                        dept_rows_html += (
+                            f'<div style="padding:6px 0;{border}">'
+                            f'<div style="font-size:0.65em;font-weight:700;color:{WINE};'
+                            f'letter-spacing:0.8px;margin-bottom:2px;">{dept.upper()}</div>'
+                            f'<div style="font-size:0.82em;color:#333;line-height:1.45;">{text}</div>'
+                            f'</div>'
+                        )
+                    else:
+                        dept_rows_html += (
+                            f'<div style="padding:6px 0;{border}">'
+                            f'<div style="font-size:0.65em;font-weight:700;color:#CCCCCC;'
+                            f'letter-spacing:0.8px;margin-bottom:2px;">{dept.upper()}</div>'
+                            f'<div style="font-size:0.82em;color:#CCCCCC;font-style:italic;">Pending</div>'
+                            f'</div>'
+                        )
+                st.markdown(
+                    f'<div style="border:1px solid #E8E0E8;border-top:3px solid {WINE};'
+                    f'border-radius:0 0 8px 8px;padding:14px 16px;margin-bottom:12px;">'
+                    f'<div style="font-size:0.68em;font-weight:700;color:{WINE};'
+                    f'letter-spacing:1px;margin-bottom:4px;">CHOICE {choice["number"]}</div>'
+                    f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;'
+                    f'margin-bottom:10px;line-height:1.3;">{choice["title"]}</div>'
+                    f'{dept_rows_html}</div>',
+                    unsafe_allow_html=True,
+                )
 
 _overview()
