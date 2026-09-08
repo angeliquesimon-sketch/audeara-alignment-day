@@ -650,7 +650,7 @@ def _overview():
     st.divider()
     st.markdown(
         f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
-        f"What we've built today</div>",
+        f"Who we are and how we work</div>",
         unsafe_allow_html=True,
     )
 
