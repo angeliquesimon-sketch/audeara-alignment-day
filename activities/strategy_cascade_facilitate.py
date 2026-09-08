@@ -11,7 +11,7 @@ from strategy_cascade_shared import (
     pull_cascade_contributions, save_cascade_contribution,
     update_contribution, set_dept_opted_out, restore_dept,
     pull_cascade_confidence,
-    get_live_engines, get_live_os, get_live_choices, get_live_how,
+    get_live_engines, get_live_choices, get_live_how,
     save_cascade_content_section, pull_cascade_content_overrides,
 )
 
@@ -63,7 +63,6 @@ if _page_view == '📝 Edit Content':
             st.rerun()
 
     _live_eng = get_live_engines()
-    _live_os  = get_live_os()
     _live_cho = get_live_choices()
     _live_how = get_live_how()
 
@@ -157,41 +156,47 @@ if _page_view == '📝 Edit Content':
 
     st.divider()
 
-    # ── OPERATING SYSTEM ────────────────────────────────────────────────────────
+    # ── HOW WE OPERATE AS ONE COMPANY ──────────────────────────────────────────
     st.markdown(
         f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
-        f'color:{FOREST};margin-bottom:12px;">ONE COMPANY OPERATING SYSTEM</div>',
+        f'color:{WINE};margin-bottom:12px;">HOW WE OPERATE AS ONE COMPANY</div>',
         unsafe_allow_html=True,
     )
-    _os_draft = list(_live_os)
-    for _oi, _os_item in enumerate(_os_draft):
-        _oc1, _oc2, _oc3, _oc4 = st.columns([5, 1, 1, 1])
-        with _oc1:
-            _os_val = st.text_input(f'os_{_oi}', value=_os_item, key=f'ce_os_{_oi}', label_visibility='collapsed')
-        with _oc2:
-            if st.button('Save', key=f'ce_os_save_{_oi}', use_container_width=True):
-                _os_draft[_oi] = _os_val.strip() or _os_item
-                save_cascade_content_section('os', _os_draft)
-                st.toast('Saved ✓', icon='✅')
-                st.rerun()
-        with _oc3:
-            if st.button('✕', key=f'ce_os_del_{_oi}', use_container_width=True):
-                _os_draft.pop(_oi)
-                save_cascade_content_section('os', _os_draft)
-                st.rerun()
-        with _oc4:
-            if _oi > 0 and st.button('↑', key=f'ce_os_up_{_oi}', use_container_width=True):
-                _os_draft[_oi-1], _os_draft[_oi] = _os_draft[_oi], _os_draft[_oi-1]
-                save_cascade_content_section('os', _os_draft)
-                st.rerun()
+    _how_draft = [{'principle': p, 'description': d} for p, d in _live_how]
+    for _hi, _hw in enumerate(_how_draft):
+        _icon = HOW_WE_WORK_ICONS[_hi] if _hi < len(HOW_WE_WORK_ICONS) else '•'
+        with st.expander(f'{_icon} {_hw["principle"]}', expanded=False):
+            _hw_p = st.text_input('Principle', value=_hw['principle'], key=f'ce_hw_p_{_hi}')
+            _hw_d = st.text_input('Description', value=_hw['description'], key=f'ce_hw_d_{_hi}')
+            _hb1, _hb2, _hb3, _hb4 = st.columns([2, 1, 1, 1])
+            with _hb1:
+                if st.button('Save', key=f'ce_hw_save_{_hi}', type='primary', use_container_width=True):
+                    _how_draft[_hi] = {'principle': _hw_p.strip() or _hw['principle'], 'description': _hw_d.strip()}
+                    save_cascade_content_section('how', _how_draft)
+                    st.toast('Saved ✓', icon='✅')
+                    st.rerun()
+            with _hb2:
+                if st.button('Delete', key=f'ce_hw_del_{_hi}', use_container_width=True):
+                    _how_draft.pop(_hi)
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
+            with _hb3:
+                if _hi > 0 and st.button('↑', key=f'ce_hw_up_{_hi}', use_container_width=True):
+                    _how_draft[_hi-1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi-1]
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
+            with _hb4:
+                if _hi < len(_how_draft)-1 and st.button('↓', key=f'ce_hw_dn_{_hi}', use_container_width=True):
+                    _how_draft[_hi+1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi+1]
+                    save_cascade_content_section('how', _how_draft)
+                    st.rerun()
 
-    _oc_a1, _oc_a2 = st.columns([5, 1])
-    with _oc_a1:
-        _new_os = st.text_input('new_os', value='', key='ce_os_new', label_visibility='collapsed', placeholder='+ Add OS principle…')
-    with _oc_a2:
-        if st.button('Add', key='ce_os_add', use_container_width=True) and _new_os.strip():
-            _os_draft.append(_new_os.strip())
-            save_cascade_content_section('os', _os_draft)
+    with st.expander('➕ Add new principle', expanded=False):
+        _nhw_p = st.text_input('Principle', key='ce_new_hw_p', placeholder='e.g. Act with purpose')
+        _nhw_d = st.text_input('Description', key='ce_new_hw_d', placeholder='One short sentence.')
+        if st.button('Add principle', key='ce_new_hw_add', type='primary') and _nhw_p.strip():
+            _how_draft.append({'principle': _nhw_p.strip(), 'description': _nhw_d.strip()})
+            save_cascade_content_section('how', _how_draft)
             st.toast('Added ✓', icon='✅')
             st.rerun()
 
@@ -270,52 +275,6 @@ if _page_view == '📝 Edit Content':
             _cho_draft.append({'id': _nc_id, 'number': _nc_num.strip() or str(len(_cho_draft)+1), 'title': _nc_title.strip(), 'description': _nc_desc.strip(), 'attribution': _nc_attr.strip(), 'intro': '', 'sections': []})
             save_cascade_content_section('choices', _cho_draft)
             st.toast('Choice added ✓', icon='✅')
-            st.rerun()
-
-    st.divider()
-
-    # ── HOW WE WILL WORK ────────────────────────────────────────────────────────
-    st.markdown(
-        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
-        f'color:{WINE};margin-bottom:12px;">HOW WE WILL WORK</div>',
-        unsafe_allow_html=True,
-    )
-    _how_draft = [{'principle': p, 'description': d} for p, d in _live_how]
-    for _hi, _hw in enumerate(_how_draft):
-        _icon = HOW_WE_WORK_ICONS[_hi] if _hi < len(HOW_WE_WORK_ICONS) else '•'
-        with st.expander(f'{_icon} {_hw["principle"]}', expanded=False):
-            _hw_p = st.text_input('Principle', value=_hw['principle'], key=f'ce_hw_p_{_hi}')
-            _hw_d = st.text_input('Description', value=_hw['description'], key=f'ce_hw_d_{_hi}')
-            _hb1, _hb2, _hb3, _hb4 = st.columns([2, 1, 1, 1])
-            with _hb1:
-                if st.button('Save', key=f'ce_hw_save_{_hi}', type='primary', use_container_width=True):
-                    _how_draft[_hi] = {'principle': _hw_p.strip() or _hw['principle'], 'description': _hw_d.strip()}
-                    save_cascade_content_section('how', _how_draft)
-                    st.toast('Saved ✓', icon='✅')
-                    st.rerun()
-            with _hb2:
-                if st.button('Delete', key=f'ce_hw_del_{_hi}', use_container_width=True):
-                    _how_draft.pop(_hi)
-                    save_cascade_content_section('how', _how_draft)
-                    st.rerun()
-            with _hb3:
-                if _hi > 0 and st.button('↑', key=f'ce_hw_up_{_hi}', use_container_width=True):
-                    _how_draft[_hi-1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi-1]
-                    save_cascade_content_section('how', _how_draft)
-                    st.rerun()
-            with _hb4:
-                if _hi < len(_how_draft)-1 and st.button('↓', key=f'ce_hw_dn_{_hi}', use_container_width=True):
-                    _how_draft[_hi+1], _how_draft[_hi] = _how_draft[_hi], _how_draft[_hi+1]
-                    save_cascade_content_section('how', _how_draft)
-                    st.rerun()
-
-    with st.expander('➕ Add new principle', expanded=False):
-        _nhw_p = st.text_input('Principle', key='ce_new_hw_p', placeholder='e.g. Act with purpose')
-        _nhw_d = st.text_input('Description', key='ce_new_hw_d', placeholder='One short sentence.')
-        if st.button('Add principle', key='ce_new_hw_add', type='primary') and _nhw_p.strip():
-            _how_draft.append({'principle': _nhw_p.strip(), 'description': _nhw_d.strip()})
-            save_cascade_content_section('how', _how_draft)
-            st.toast('Added ✓', icon='✅')
             st.rerun()
 
     st.divider()
