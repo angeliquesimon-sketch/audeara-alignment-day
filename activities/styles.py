@@ -17,7 +17,7 @@ inject_styles()
 # ── Spectrum chart (pure SVG — no matplotlib) ─────────────────────────────────────
 
 def _render_spectrum(current, sc, df, started_at):
-    """Horizontal spectrum as inline SVG with collision-aware label placement."""
+    """Horizontal spectrum as inline SVG — initials inside dots, no labels."""
     col = f'S{current + 1}'
     lc  = HEX[sc['left_colour']]
     rc  = HEX[sc['right_colour']]
@@ -30,48 +30,53 @@ def _render_spectrum(current, sc, df, started_at):
 
     people = [(row['Name'], int(row[col])) for _, row in df_shown.iterrows()]
 
-    W        = 600
-    LINE_Y   = 110
-    H        = 150
-    LABEL_H  = 13
-    CHAR_W   = 5.1
+    W      = 600
+    LINE_Y = 75
+    H      = 100
+    DOT_R  = 9
 
-    # Compute positions and resolve label collisions
+    def _initials(name):
+        parts = name.strip().split()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return parts[0][0].upper() if parts else '?'
+
+    # Compute initial positions
     positioned = []
     for name, val in sorted(people, key=lambda x: x[1]):
-        x      = val * W / 100
-        half_w = len(name) * CHAR_W / 2
-        positioned.append({'name': name, 'val': val, 'x': x, 'half_w': half_w})
+        dot_color = lc if val < 50 else (rc if val > 50 else '#999999')
+        positioned.append({'name': name, 'val': val, 'x': float(val * W / 100), 'color': dot_color})
 
-    placed = []  # (x, ly, half_w) of already-placed labels
-    for p in positioned:
-        ly = LINE_Y - 16
-        for _ in range(25):
-            if not any(
-                abs(ly - py) < LABEL_H and abs(p['x'] - px) < p['half_w'] + pw + 4
-                for px, py, pw in placed
-            ):
-                break
-            ly -= LABEL_H
-        ly = max(10, ly)
-        placed.append((p['x'], ly, p['half_w']))
-        p['ly'] = ly
+    # Horizontal collision resolution — push along the line only
+    MIN_DIST = DOT_R * 2 + 2
+    for _ in range(150):
+        any_overlap = False
+        for i in range(len(positioned)):
+            for j in range(i + 1, len(positioned)):
+                a, b = positioned[i], positioned[j]
+                dx = b['x'] - a['x']
+                dist = abs(dx)
+                if dist < MIN_DIST:
+                    any_overlap = True
+                    push = (MIN_DIST - dist) / 2 + 0.5
+                    direction = 1 if dx >= 0 else -1
+                    a['x'] -= direction * push
+                    b['x'] += direction * push
+        for p in positioned:
+            p['x'] = max(DOT_R + 1, min(W - DOT_R - 1, p['x']))
+        if not any_overlap:
+            break
 
-    bg_svg = label_svg = dot_svg = ''
+    dot_svg = initial_svg = ''
     for p in positioned:
-        dot_color = lc if p['val'] < 50 else (rc if p['val'] > 50 else '#999999')
-        hw        = p['half_w']
-        bg_svg   += (
-            f'<rect x="{p["x"] - hw - 2:.1f}" y="{p["ly"] - 10:.0f}" '
-            f'width="{(hw + 2) * 2:.0f}" height="12" fill="white" opacity="0.8" rx="1"/>'
+        cx = round(p['x'])
+        dot_svg += (
+            f'<circle cx="{cx}" cy="{LINE_Y}" r="{DOT_R}" fill="{p["color"]}" opacity="0.92"/>'
         )
-        label_svg += (
-            f'<text x="{p["x"]:.1f}" y="{p["ly"]:.0f}" text-anchor="middle" '
-            f'font-size="5" fill="#333333" font-family="sans-serif">{p["name"]}</text>'
-        )
-        dot_svg  += (
-            f'<circle cx="{p["x"]:.1f}" cy="{LINE_Y}" r="6" fill="{dot_color}" '
-            f'stroke="white" stroke-width="1.5" opacity="0.92"/>'
+        initial_svg += (
+            f'<text x="{cx}" y="{LINE_Y}" text-anchor="middle" dominant-baseline="central" '
+            f'font-size="6" font-weight="700" fill="white" font-family="sans-serif">'
+            f'{_initials(p["name"])}</text>'
         )
 
     return (
@@ -82,7 +87,7 @@ def _render_spectrum(current, sc, df, started_at):
         f'<line x1="0" y1="{LINE_Y}" x2="{W}" y2="{LINE_Y}" '
         f'stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>'
         f'<line x1="300" y1="{LINE_Y-9}" x2="300" y2="{LINE_Y+9}" stroke="#E0E0E0" stroke-width="1"/>'
-        f'{bg_svg}{label_svg}{dot_svg}'
+        f'{dot_svg}{initial_svg}'
         f'<text x="5" y="{H-5}" font-size="5" fill="{lc}" font-weight="bold" '
         f'font-family="sans-serif">{sc["left_colour"]}</text>'
         f'<text x="{W-5}" y="{H-5}" text-anchor="end" font-size="5" fill="{rc}" '
