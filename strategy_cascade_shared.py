@@ -279,6 +279,12 @@ CHOICE_DETAIL = {
                 'Platform implementation across supported chips, products and end-user environments.',
                 'Evidence, validation, quality and controlled release.',
             ]},
+            {'title': 'HALO — the reusable capability layer', 'content': [
+                'H.A.L.O (Hearing Algorithm Library Optimisation) is the bounded technical capability that makes AUA Technology repeatable.',
+                'Modular, versioned hearing algorithms, plus the architecture, interfaces and implementation handles needed to configure, validate, release and deploy them across supported products and chip platforms.',
+                'HALO is what prevents partner programs becoming one-off engineering.',
+                'The app can expose HALO-enabled capabilities — but the app is not HALO. Customer success, CRM, sales, logistics and general AI are not HALO.',
+            ]},
             {'title': 'In market and scaling', 'content': [
                 'A-02 TV Bundle and Audeara Buds.',
                 'BT-03, BT-LE and the expanding Auracast solution set.',
