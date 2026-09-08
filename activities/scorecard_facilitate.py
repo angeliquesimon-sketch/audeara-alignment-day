@@ -123,7 +123,7 @@ for idx, choice in enumerate(choices):
     n_saved      = len(choice_entries)
     n_contribs   = len(dept_inputs)
 
-    label = f'Choice {choice["number"]} — {choice["title"]}'
+    label = f'Strategic Choice {choice["number"]} — {choice["title"]}'
     if n_saved > 0:
         label += f'  ✅ {n_saved} saved'
     elif n_contribs > 0:

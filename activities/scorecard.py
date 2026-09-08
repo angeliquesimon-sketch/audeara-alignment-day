@@ -116,7 +116,7 @@ def _scorecard():
                 f'border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;">'
                 f'<div style="font-size:0.68em;color:#CCCCCC;font-weight:700;'
                 f'letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">'
-                f'Choice {choice["number"]}</div>'
+                f'Strategic Choice {choice["number"]}</div>'
                 f'<div style="font-weight:700;font-size:0.92em;color:#CCCCCC;">{choice["title"]}</div>'
                 f'<div style="font-size:0.78em;color:#CCCCCC;margin-top:6px;">No cascade inputs yet</div>'
                 f'</div>',
@@ -145,7 +145,7 @@ def _scorecard():
             f'<div>'
             f'<div style="font-size:0.68em;color:{colour};font-weight:700;'
             f'letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">'
-            f'Choice {choice["number"]}</div>'
+            f'Strategic Choice {choice["number"]}</div>'
             f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;">{choice["title"]}</div>'
             f'</div>'
             f'<div style="font-size:0.72em;color:{status_colour};font-weight:600;">'

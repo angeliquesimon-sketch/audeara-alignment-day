@@ -246,7 +246,7 @@ if _page_view == '📝 Edit Content':
                 if st.button('Save choice', key=f'ce_cho_save_{_ci}', type='primary', use_container_width=True):
                     _cho_draft[_ci] = {'id': _cho['id'], 'number': _cho_num.strip() or str(_ci+1), 'title': _cho_title.strip() or _cho['title'], 'description': _cho_desc.strip(), 'attribution': _cho_attr.strip(), 'intro': _cho_intro.strip(), 'sections': _new_csecs}
                     save_cascade_content_section('choices', _cho_draft)
-                    st.toast('Choice saved ✓', icon='✅')
+                    st.toast('Strategic Choice saved ✓', icon='✅')
                     st.rerun()
             with _cb2:
                 if st.button('Delete', key=f'ce_cho_del_{_ci}', use_container_width=True):
@@ -266,7 +266,7 @@ if _page_view == '📝 Edit Content':
 
     with st.expander('➕ Add new choice', expanded=False):
         _nc_num   = st.text_input('Number', key='ce_new_cho_num', placeholder='8')
-        _nc_title = st.text_input('Title', key='ce_new_cho_title', placeholder='Choice title…')
+        _nc_title = st.text_input('Title', key='ce_new_cho_title', placeholder='Strategic Choice title…')
         _nc_desc  = st.text_area('Description', key='ce_new_cho_desc', height=56, placeholder='One sentence.')
         _nc_attr  = st.text_input('Engine tag (optional)', key='ce_new_cho_attr', placeholder='e.g. Retail')
         if st.button('Add choice', key='ce_new_cho_add', type='primary') and _nc_title.strip():
@@ -274,7 +274,7 @@ if _page_view == '📝 Edit Content':
             _nc_id = 'cx_' + _re2.sub(r'[^a-z0-9]', '_', _nc_title.strip().lower()[:12])
             _cho_draft.append({'id': _nc_id, 'number': _nc_num.strip() or str(len(_cho_draft)+1), 'title': _nc_title.strip(), 'description': _nc_desc.strip(), 'attribution': _nc_attr.strip(), 'intro': '', 'sections': []})
             save_cascade_content_section('choices', _cho_draft)
-            st.toast('Choice added ✓', icon='✅')
+            st.toast('Strategic Choice added ✓', icon='✅')
             st.rerun()
 
     st.divider()
