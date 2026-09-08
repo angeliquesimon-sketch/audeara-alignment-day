@@ -67,7 +67,7 @@ def _render_spectrum(current, sc, df, started_at):
         )
         label_svg += (
             f'<text x="{p["x"]:.1f}" y="{p["ly"]:.0f}" text-anchor="middle" '
-            f'font-size="9" fill="#333333" font-family="sans-serif">{p["name"]}</text>'
+            f'font-size="5" fill="#333333" font-family="sans-serif">{p["name"]}</text>'
         )
         dot_svg  += (
             f'<circle cx="{p["x"]:.1f}" cy="{LINE_Y}" r="6" fill="{dot_color}" '
@@ -83,9 +83,9 @@ def _render_spectrum(current, sc, df, started_at):
         f'stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>'
         f'<line x1="300" y1="{LINE_Y-9}" x2="300" y2="{LINE_Y+9}" stroke="#E0E0E0" stroke-width="1"/>'
         f'{bg_svg}{label_svg}{dot_svg}'
-        f'<text x="5" y="{H-5}" font-size="9" fill="{lc}" font-weight="bold" '
+        f'<text x="5" y="{H-5}" font-size="5" fill="{lc}" font-weight="bold" '
         f'font-family="sans-serif">{sc["left_colour"]}</text>'
-        f'<text x="{W-5}" y="{H-5}" text-anchor="end" font-size="9" fill="{rc}" '
+        f'<text x="{W-5}" y="{H-5}" text-anchor="end" font-size="5" fill="{rc}" '
         f'font-weight="bold" font-family="sans-serif">{sc["right_colour"]}</text>'
         f'</svg></div>'
     )
@@ -153,7 +153,7 @@ def _team_map_svg(profiles, width=700, height=500):
         )
         label_svg += (
             f'<text x="{pos["lx"]}" y="{pos["ly"]}" text-anchor="middle" '
-            f'font-size="10" fill="#333333" font-family="sans-serif">{pos["name"]}</text>'
+            f'font-size="6" fill="#333333" font-family="sans-serif">{pos["name"]}</text>'
         )
 
     return (
@@ -165,13 +165,13 @@ def _team_map_svg(profiles, width=700, height=500):
         f'<rect x="{hw}" y="{hh}" width="{hw}" height="{hh}" fill="#3EAA6D" opacity="0.05"/>'
         f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
         f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
-        f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="11" '
+        f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="7" '
         f'fill="#4285C8" font-weight="bold" font-family="sans-serif">Blue</text>'
         f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" '
-        f'font-size="11" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
-        f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="11" '
+        f'font-size="7" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
+        f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="7" '
         f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
-        f'<text x="{hw}" y="16" text-anchor="middle" font-size="11" '
+        f'<text x="{hw}" y="16" text-anchor="middle" font-size="7" '
         f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
         f'{leader_svg}{dot_svg}{bg_svg}{label_svg}'
         f'</svg></div>'
