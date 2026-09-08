@@ -313,6 +313,43 @@ with tab_activity:
             unsafe_allow_html=True,
         )
 
+        # ── Choice detail accordion (same data source as Presentation tab) ──────
+        _act_intro = choice.get('intro', '')
+        _act_secs  = choice.get('sections', [])
+        if _act_intro or _act_secs:
+            with st.expander(choice['title'], expanded=False):
+                if _act_intro:
+                    st.markdown(
+                        f'<div style="font-size:0.95em;color:#555;font-style:italic;'
+                        f'line-height:1.6;margin-bottom:14px;">{_act_intro}</div>',
+                        unsafe_allow_html=True,
+                    )
+                for _act_sec in _act_secs:
+                    _act_sec_title   = _act_sec.get('title', '')
+                    _act_sec_content = _act_sec.get('content', [])
+                    st.markdown(
+                        f'<div style="font-size:0.84em;font-weight:700;color:{WINE};'
+                        f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
+                        f'{_act_sec_title.upper()}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if isinstance(_act_sec_content, list):
+                        _act_items = ''.join([
+                            f'<li style="margin-bottom:4px;">{item}</li>'
+                            for item in _act_sec_content
+                        ])
+                        st.markdown(
+                            f'<ul style="font-size:0.95em;color:#333;line-height:1.6;'
+                            f'margin:0;padding-left:18px;">{_act_items}</ul>',
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            f'<div style="font-size:0.95em;color:#333;line-height:1.6;">'
+                            f'{_act_sec_content}</div>',
+                            unsafe_allow_html=True,
+                        )
+
         _section_label('HOW EACH FUNCTION CONTRIBUTES')
 
         @st.fragment(run_every=8)
