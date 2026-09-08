@@ -28,20 +28,28 @@ BRAND_PROMISE      = 'Feel connected.'
 # ── Organogram SVG ─────────────────────────────────────────────────────────────
 
 def _org_svg() -> str:
-    W, H    = 940, 494
-    c1, c2, c3, c4 = 110, 320, 580, 830
-    james_cx = (c1 + c4) // 2   # 470
-
-    james_y, james_w, james_h = 20,  200, 60
-    hod_y,   hod_w,   hod_h   = 128, 155, 52
-    team_y0, team_w,  team_h  = 232, 148, 44
-    team_gap = 52
-    bar_y    = 112
+    W, H = 1020, 520
 
     WINE_C   = '#50144B'
     PURPLE_C = '#781E73'
     FOREST_C = '#005E63'
     TEAL_C   = '#188383'
+    GREY_BG  = '#EFEFEF'
+    GREY_FG  = '#999999'
+
+    james_y, james_h = 20, 68
+    bar_y            = 112
+    l1_y,  l1_h     = 126, 58
+    l2_y,  l2_h     = l1_y + l1_h + 20, 52   # 204, 52
+    l3_y,  l3_h     = l2_y + l2_h + 20, 48   # 276, 48
+    james_w, l1_w, l2_w, l3_w = 200, 155, 148, 140
+    eng_gap = 10
+
+    c_ops   = 165
+    c_sales = 490
+    c_prod  = 750
+    c_fin   = 920
+    james_cx = (c_ops + c_fin) // 2  # 542
 
     L = []
     a = L.append
@@ -49,81 +57,120 @@ def _org_svg() -> str:
     a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
       f'style="width:100%;max-width:{W}px;display:block;margin:0 auto;">')
 
-    # James
-    jx = james_cx - james_w // 2
-    a(f'<rect x="{jx}" y="{james_y}" width="{james_w}" height="{james_h}" rx="10" fill="{WINE_C}"/>')
-    a(f'<text x="{james_cx}" y="{james_y+25}" text-anchor="middle" font-family="sans-serif" '
-      f'font-size="13" font-weight="700" fill="white">James Fielding</text>')
-    a(f'<text x="{james_cx}" y="{james_y+43}" text-anchor="middle" font-family="sans-serif" '
-      f'font-size="10" fill="white" opacity="0.75">CEO &amp; Managing Director</text>')
+    def _box(cx, y, w, h, name, titles, fill,
+             nc='white', tc='white', to=0.75, stroke=None, rx=8):
+        bx = cx - w // 2
+        s = f'stroke="{stroke}" stroke-width="0.8"' if stroke else ''
+        a(f'<rect x="{bx}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" {s}/>')
+        mid = y + h // 2
+        n = len(titles)
+        if n == 0:
+            a(f'<text x="{cx}" y="{mid+5}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="11" font-weight="700" fill="{nc}">{name}</text>')
+        elif n == 1:
+            a(f'<text x="{cx}" y="{mid-4}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="11" font-weight="700" fill="{nc}">{name}</text>')
+            a(f'<text x="{cx}" y="{mid+10}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="8.5" fill="{tc}" opacity="{to}">{titles[0]}</text>')
+        else:
+            a(f'<text x="{cx}" y="{mid-9}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="11" font-weight="700" fill="{nc}">{name}</text>')
+            a(f'<text x="{cx}" y="{mid+5}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="8.5" fill="{tc}" opacity="{to}">{titles[0]}</text>')
+            a(f'<text x="{cx}" y="{mid+16}" text-anchor="middle" font-family="sans-serif" '
+              f'font-size="8.5" fill="{tc}" opacity="{to}">{titles[1]}</text>')
 
-    # James → horizontal bar
-    james_bottom = james_y + james_h  # 80
-    a(f'<line x1="{james_cx}" y1="{james_bottom}" x2="{james_cx}" y2="{bar_y}" '
-      f'stroke="{WINE_C}" stroke-width="1.5"/>')
-    a(f'<line x1="{c1}" y1="{bar_y}" x2="{c4}" y2="{bar_y}" stroke="#BBBBBB" stroke-width="1.5"/>')
+    def _vl(x, y1, y2, col='#CCCCCC', w=1.5, dash=''):
+        d = f'stroke-dasharray="{dash}"' if dash else ''
+        a(f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{col}" stroke-width="{w}" {d}/>')
 
-    # Droplines to HoDs (c1, c2, c3)
-    for cx, col in [(c1, FOREST_C), (c2, PURPLE_C), (c3, TEAL_C)]:
-        a(f'<line x1="{cx}" y1="{bar_y}" x2="{cx}" y2="{hod_y}" stroke="{col}" stroke-width="1.5"/>')
+    def _hl(x1, x2, y, col='#CCCCCC', w=1.5):
+        a(f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="{col}" stroke-width="{w}"/>')
 
-    # Finance — dashed line direct to team level
-    a(f'<line x1="{c4}" y1="{bar_y}" x2="{c4}" y2="{team_y0}" stroke="{WINE_C}" '
-      f'stroke-width="1.5" stroke-dasharray="4,3"/>')
+    def _conn(pcx, pb, cxs, ct, col='#CCCCCC', dash=''):
+        jy = (pb + ct) // 2
+        _vl(pcx, pb, jy, col, dash=dash)
+        if len(cxs) == 1 and cxs[0] == pcx:
+            _vl(cxs[0], jy, ct, col, dash=dash)
+        else:
+            _hl(min(cxs), max(cxs), jy, col)
+            for cx in cxs:
+                _vl(cx, jy, ct, col, dash=dash)
 
-    # Finance label at HoD level (James heads Finance directly)
-    a(f'<text x="{c4}" y="{hod_y+14}" text-anchor="middle" font-family="sans-serif" '
-      f'font-size="10" font-weight="700" letter-spacing="1" fill="{WINE_C}" opacity="0.5">FINANCE</text>')
-    a(f'<text x="{c4}" y="{hod_y+30}" text-anchor="middle" font-family="sans-serif" '
-      f'font-size="9" fill="{WINE_C}" opacity="0.4">James Fielding</text>')
+    # ── James ──────────────────────────────────────────────────────────────────
+    _box(james_cx, james_y, james_w, james_h, 'James Fielding',
+         ['CEO &amp; Managing Director'], WINE_C)
+    _vl(james_cx, james_y + james_h, bar_y, WINE_C)
+    _hl(c_ops, c_fin, bar_y, '#BBBBBB')
+    for cx, col in [(c_ops, FOREST_C), (c_sales, PURPLE_C), (c_prod, TEAL_C)]:
+        _vl(cx, bar_y, l1_y, col)
+    _vl(c_fin, bar_y, l1_y, GREY_FG, dash='4,3')
 
-    # HoD boxes
-    hod_bottom = hod_y + hod_h  # 180
+    l1_bottom = l1_y + l1_h  # 184
 
-    def hod(cx, name, sub, bg):
-        bx = cx - hod_w // 2
-        a(f'<rect x="{bx}" y="{hod_y}" width="{hod_w}" height="{hod_h}" rx="8" fill="{bg}"/>')
-        a(f'<text x="{cx}" y="{hod_y+22}" text-anchor="middle" font-family="sans-serif" '
-          f'font-size="12" font-weight="700" fill="white">{name}</text>')
-        a(f'<text x="{cx}" y="{hod_y+39}" text-anchor="middle" font-family="sans-serif" '
-          f'font-size="9" fill="white" opacity="0.75">{sub}</text>')
+    # ── Level 1 ────────────────────────────────────────────────────────────────
+    _box(c_ops,   l1_y, l1_w, l1_h, 'Bill Peng',
+         ['COO &amp; Executive Director'], FOREST_C)
+    _box(c_sales, l1_y, l1_w, l1_h, 'John Krajewski',
+         ['Head of International', 'Sales &amp; Marketing'], PURPLE_C)
+    _box(c_prod,  l1_y, l1_w, l1_h, 'Louise Heller',
+         ['Engineering Program Manager'], TEAL_C)
+    _box(c_fin,   l1_y, l1_w, l1_h, 'Kavi Bekarma',
+         ['Chief Financial Officer'], GREY_BG,
+         nc=GREY_FG, tc=GREY_FG, to=0.85)
 
-    hod(c1, 'Bill Peng',      'Operations &amp; Customer Service', FOREST_C)
-    hod(c2, 'John Krajewski', 'Marketing &amp; Sales',             PURPLE_C)
-    hod(c3, 'Louise Heller',  'Product / R&amp;D',                 TEAL_C)
+    # ── Ops: Bill → Rebekah → Ellissa + Charli ─────────────────────────────────
+    _conn(c_ops, l1_bottom, [c_ops], l2_y, FOREST_C)
+    _box(c_ops, l2_y, l2_w, l2_h, 'Rebekah Davidson',
+         ['Head of Operations'], FOREST_C)
 
-    # Team columns
-    def team(cx, members, dept_col, bg_light, text_col):
-        a(f'<line x1="{cx}" y1="{hod_bottom}" x2="{cx}" y2="{team_y0}" '
-          f'stroke="{dept_col}" stroke-width="1.5"/>')
-        for i, name in enumerate(members):
-            ty = team_y0 + i * team_gap
-            tx = cx - team_w // 2
-            if i > 0:
-                prev_bot = team_y0 + (i - 1) * team_gap + team_h
-                a(f'<line x1="{cx}" y1="{prev_bot}" x2="{cx}" y2="{ty}" '
-                  f'stroke="#DDDDDD" stroke-width="1"/>')
-            a(f'<rect x="{tx}" y="{ty}" width="{team_w}" height="{team_h}" '
-              f'rx="6" fill="{bg_light}" stroke="{dept_col}" stroke-width="0.8"/>')
-            a(f'<text x="{cx}" y="{ty + team_h // 2 + 4}" text-anchor="middle" '
-              f'font-family="sans-serif" font-size="10.5" font-weight="600" fill="{text_col}">'
-              f'{name}</text>')
+    c_ellissa = c_ops - 74   # 91
+    c_charli  = c_ops + 74   # 239
+    _conn(c_ops, l2_y + l2_h, [c_ellissa, c_charli], l3_y, FOREST_C)
+    _box(c_ellissa, l3_y, l3_w, l3_h, 'Ellissa Waters',
+         ['Customer Support &amp;', 'Technical Specialist'],
+         '#E8F5F0', nc='#0D3328', tc='#0D3328', to=0.85, stroke=FOREST_C)
+    _box(c_charli, l3_y, l3_w, l3_h, 'Charli Every',
+         ['Customer Care &amp;', 'Sales Assistant'],
+         '#E8F5F0', nc='#0D3328', tc='#0D3328', to=0.85, stroke=FOREST_C)
 
-    team(c1, ['Charli Every', 'Ellissa Waters', 'Rebekah Davidson'],
-         FOREST_C, '#E8F5F0', '#0D3328')
-    team(c2, ['Angelique Simon', 'Misaki Kawashima', 'Robert Poulsen'],
-         PURPLE_C, '#F5EEF5', '#3A0D3A')
-    team(c3, ['Alex Bartlett', 'Andrew Morton', 'Bonar Dickson', 'Dylan Whitehouse', "Ian O'Brien"],
-         TEAL_C,   '#EAF5F5', '#0D3333')
+    # ── Sales: JK → Angelique + Rob → Misaki ───────────────────────────────────
+    c_ang = c_sales - 80   # 410
+    c_rob = c_sales + 80   # 570
+    _conn(c_sales, l1_bottom, [c_ang, c_rob], l2_y, PURPLE_C)
+    _box(c_ang, l2_y, l2_w, l2_h, 'Angelique Simon',
+         ['Marketing Specialist'],
+         '#F5EEF5', nc='#3A0D3A', tc='#3A0D3A', to=0.85, stroke=PURPLE_C)
+    _box(c_rob, l2_y, l2_w, l2_h, 'Robert Poulsen',
+         ['Business Development &amp;', 'Relationship Manager'],
+         '#F5EEF5', nc='#3A0D3A', tc='#3A0D3A', to=0.85, stroke=PURPLE_C)
+    _conn(c_rob, l2_y + l2_h, [c_rob], l3_y, PURPLE_C)
+    _box(c_rob, l3_y, l3_w, l3_h, 'Misaki Kawashima',
+         ['Business Development Intern'],
+         '#F5EEF5', nc='#3A0D3A', tc='#3A0D3A', to=0.85, stroke=PURPLE_C)
 
-    # Sayaka — direct Finance report to James
-    ty4 = team_y0
-    tx4 = c4 - team_w // 2
-    a(f'<rect x="{tx4}" y="{ty4}" width="{team_w}" height="{team_h}" '
-      f'rx="6" fill="#F5EDF5" stroke="{WINE_C}" stroke-width="0.8"/>')
-    a(f'<text x="{c4}" y="{ty4 + team_h // 2 + 4}" text-anchor="middle" '
-      f'font-family="sans-serif" font-size="10.5" font-weight="600" fill="#3D0F3A">'
-      f'Sayaka Smith</text>')
+    # ── Product: Louise → 5 engineers stacked ──────────────────────────────────
+    engineers = [
+        ('Andrew Morton',    ['Head of Software', 'Design &amp; Development']),
+        ("Dr Ian O'Brien",   ['Research Audiologist']),
+        ('Alex Bartlett',    ['Firmware Engineer']),
+        ('Dylan Whitehouse', ['Electronic &amp;', 'Software Engineer']),
+        ('Bonar Dickson',    ['Engineering Consultant']),
+    ]
+    prev_bot = l1_bottom
+    for i, (eng_name, eng_title) in enumerate(engineers):
+        ey = l2_y + i * (l2_h + eng_gap)
+        _vl(c_prod, prev_bot, ey, TEAL_C if i == 0 else '#DDDDDD',
+            w=1.5 if i == 0 else 1.0)
+        _box(c_prod, ey, l2_w, l2_h, eng_name, eng_title,
+             '#EAF5F5', nc='#0D3333', tc='#0D3333', to=0.85, stroke=TEAL_C)
+        prev_bot = ey + l2_h
+
+    # ── Finance: Kavi → Sayaka ─────────────────────────────────────────────────
+    _conn(c_fin, l1_bottom, [c_fin], l2_y, GREY_FG, dash='4,3')
+    _box(c_fin, l2_y, l2_w, l2_h, 'Sayaka Smith',
+         ['Accounting Manager'],
+         '#F5EDF5', nc='#3D0F3A', tc='#3D0F3A', to=0.85, stroke=WINE_C)
 
     a('</svg>')
     return '\n'.join(L)
