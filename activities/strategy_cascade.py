@@ -107,7 +107,7 @@ def _collapsed_working():
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
         f'<div style="font-size:0.75em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
-        f'margin-bottom:8px;">HOW WE WILL WORK</div>'
+        f'margin-bottom:8px;">HOW WE OPERATE AS ONE COMPANY</div>'
         f'{pills}</div>',
         unsafe_allow_html=True,
     )
@@ -131,7 +131,6 @@ with tab_pres:
         # ENGINES ── show from stage_idx 1 onwards
         if stage_idx >= 1:
             _live_engines = get_live_engines()
-            _live_os      = get_live_os()
             _section_label('Commercial Engines')
             _engine_cards = ''.join([
                 f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
@@ -141,14 +140,6 @@ with tab_pres:
                 f'<div style="font-size:0.95em;color:#555;line-height:1.55;">{e["description"]}</div>'
                 f'</div>'
                 for e in _live_engines
-            ])
-            _OS_ICONS = ['🔬', '🛡️', '⚡', '🤝', '🎯']
-            _os_pills = ''.join([
-                f'<span style="background:rgba(255,255,255,0.15);color:white;font-size:0.95em;'
-                f'font-weight:500;padding:6px 13px;border-radius:20px;'
-                f'display:inline-flex;align-items:center;gap:5px;margin:3px;">'
-                f'{_OS_ICONS[i] if i < len(_OS_ICONS) else "•"}&nbsp;{item}</span>'
-                for i, item in enumerate(_live_os)
             ])
             n_engines = len(_live_engines)
             _cols = f'repeat({n_engines}, 1fr)' if n_engines <= 5 else 'repeat(4,1fr)'
@@ -201,15 +192,6 @@ with tab_pres:
                         unsafe_allow_html=True,
                     )
 
-            st.markdown(
-                f'<div style="background:{FOREST};border-radius:10px;'
-                f'padding:16px 20px;margin-top:12px;">'
-                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.5);'
-                f'letter-spacing:1.5px;margin-bottom:10px;">ONE COMPANY OPERATING SYSTEM</div>'
-                f'<div style="display:flex;flex-wrap:wrap;">{_os_pills}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
 
         # CHOICES ── show from stage_idx 2 onwards
         if stage_idx >= 2:
@@ -293,7 +275,10 @@ with tab_pres:
             st.markdown(
                 f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
                 f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.4);'
-                f'letter-spacing:1.5px;margin-bottom:12px;">HOW WE WILL WORK</div>'
+                f'letter-spacing:1.5px;margin-bottom:6px;">HOW WE OPERATE AS ONE COMPANY</div>'
+                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">'
+                f'All engines run on the same foundation: customer insight, quality and regulatory discipline, '
+                f'software and product capability, and commercial and governance functions.</div>'
                 f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
                 f'{_how_items}</div>'
                 f'</div>',
