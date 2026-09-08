@@ -29,7 +29,7 @@ TEXT = {
 
 TEAM = sorted([
     'Alex Bartlett', 'Andrew Morton',
-    'Angelique Simon', 'Bill Peng', 'Charli Every', 'Sayaka Smith',
+    'Angelique Simon', 'Bill Peng', 'Bonar Dickson', 'Charli Every', 'Sayaka Smith',
     'Dylan Whitehouse', 'Ellissa Waters',
     "Ian O'Brien", 'James Fielding', 'John Krajewski',
     'Louise Heller', 'Misaki Kawashima', 'Rebekah Davidson', 'Robert Poulsen',

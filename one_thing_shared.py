@@ -26,6 +26,7 @@ DEPARTMENT_MAP = {
     'Andrew Morton':    ['Product / R&D'],
     'Angelique Simon':  ['Marketing'],
     'Bill Peng':        ['Operations & Customer Service'],
+    'Bonar Dickson':    ['Product / R&D'],
     'Charli Every':     ['Operations & Customer Service'],
     'Dylan Whitehouse': ['Product / R&D'],
     'Ellissa Waters':   ['Operations & Customer Service'],
