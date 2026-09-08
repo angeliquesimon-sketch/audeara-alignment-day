@@ -91,7 +91,7 @@ def _render_spectrum(current, sc, df, started_at):
     )
 
 
-def _team_map_svg(profiles, width=700, height=250):
+def _team_map_svg(profiles, width=700, height=300):
     """Pure SVG team scatter map — initials inside each dot."""
     hw, hh = width // 2, height // 2
     DOT_R  = 14
