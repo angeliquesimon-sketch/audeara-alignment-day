@@ -368,15 +368,15 @@ with tab_results:
                         st.error(f'Could not generate — {_e}')
 
             if 'mission_generated' in st.session_state:
-                st.markdown(
-                    f'<div class="winning-box">'
-                    f'{st.session_state["mission_generated"]}'
-                    f'</div>',
-                    unsafe_allow_html=True,
+                edited = st.text_area(
+                    'Edit before locking',
+                    value=st.session_state['mission_generated'],
+                    height=100,
+                    key='mission_edit_area',
                 )
                 if st.button('Lock this statement', key='mission_lock_btn'):
                     try:
-                        save_mission_statement(st.session_state['mission_generated'])
+                        save_mission_statement(edited.strip())
                         del st.session_state['mission_generated']
                         st.cache_data.clear()
                         st.toast('Mission statement locked ✓', icon='✅')
