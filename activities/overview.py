@@ -600,65 +600,29 @@ def _overview():
     st.markdown(_org_svg(_org_styles or None), unsafe_allow_html=True)
     st.markdown('<div style="margin-bottom:16px;"></div>', unsafe_allow_html=True)
 
-    # ── Row 1: Styles (left) + One Things (right) ─────────────────────────────
+    # ── Row 1: One Thing (full width) ─────────────────────────────────────────
 
-    col_styles, col_ot = st.columns(2)
-
-    with col_styles:
+    st.markdown(
+        f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+        f'color:#888;margin-bottom:8px;">THE ONE THING</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(f'{n_ot_winners} of {len(OT_DEPARTMENTS)} departments agreed')
+    for dept in OT_DEPARTMENTS:
+        winner = ot_winners.get(dept, '')
+        if winner:
+            bc, bg, tc = FOREST, '#F0F7F7', FOREST
+            body = f'<div style="font-size:0.88em;color:#333;line-height:1.5;margin-top:4px;">{winner}</div>'
+        else:
+            bc, bg, tc = '#CCCCCC', '#F5F5F5', '#AAAAAA'
+            body = f'<div style="font-size:0.88em;color:#CCCCCC;font-style:italic;margin-top:4px;">Not yet agreed</div>'
         st.markdown(
-            f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
-            f'color:#888;margin-bottom:8px;">DIFFERENT STYLES</div>',
+            f'<div style="border-left:4px solid {bc};background:{bg};'
+            f'border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:8px;">'
+            f'<div style="font-size:0.72em;font-weight:700;color:{tc};letter-spacing:1px;">{dept.upper()}</div>'
+            f'{body}</div>',
             unsafe_allow_html=True,
         )
-        st.caption(f'{len(submitted_set)} of {n_team} submitted')
-        chips = ''
-        for name in STYLES_TEAM:
-            if name in submitted_set:
-                row    = styles_df[styles_df['Name'] == name].iloc[0]
-                scores = compute_scores(row)
-                pri, _ = top_two(scores)
-                bg     = STYLE_HEX[pri]
-                tc     = STYLE_TEXT[pri]
-                chips += (
-                    f'<div style="background:{bg};border-radius:8px;padding:8px 10px;text-align:center;">'
-                    f'<div style="font-size:0.72em;font-weight:700;color:{tc};line-height:1.3;">{name}</div>'
-                    f'<div style="font-size:0.68em;color:{tc};opacity:0.8;">{pri}</div>'
-                    f'</div>'
-                )
-            else:
-                chips += (
-                    f'<div style="background:#EBEBEB;border-radius:8px;padding:8px 10px;text-align:center;">'
-                    f'<div style="font-size:0.72em;font-weight:700;color:#BBBBBB;line-height:1.3;">{name}</div>'
-                    f'<div style="font-size:0.68em;color:#CCCCCC;">?</div>'
-                    f'</div>'
-                )
-        st.markdown(
-            f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">{chips}</div>',
-            unsafe_allow_html=True,
-        )
-
-    with col_ot:
-        st.markdown(
-            f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
-            f'color:#888;margin-bottom:8px;">THE ONE THING</div>',
-            unsafe_allow_html=True,
-        )
-        st.caption(f'{n_ot_winners} of {len(OT_DEPARTMENTS)} departments agreed')
-        for dept in OT_DEPARTMENTS:
-            winner = ot_winners.get(dept, '')
-            if winner:
-                bc, bg, tc = FOREST, '#F0F7F7', FOREST
-                body = f'<div style="font-size:0.88em;color:#333;line-height:1.5;margin-top:4px;">{winner}</div>'
-            else:
-                bc, bg, tc = '#CCCCCC', '#F5F5F5', '#AAAAAA'
-                body = f'<div style="font-size:0.88em;color:#CCCCCC;font-style:italic;margin-top:4px;">Not yet agreed</div>'
-            st.markdown(
-                f'<div style="border-left:4px solid {bc};background:{bg};'
-                f'border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:8px;">'
-                f'<div style="font-size:0.72em;font-weight:700;color:{tc};letter-spacing:1px;">{dept.upper()}</div>'
-                f'{body}</div>',
-                unsafe_allow_html=True,
-            )
 
     # ── Row 2: Strategy Cascade (full width) ──────────────────────────────────
 
