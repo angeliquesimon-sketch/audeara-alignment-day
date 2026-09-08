@@ -193,6 +193,30 @@ with tab_pres:
                     )
 
 
+        # HOW WE OPERATE ── show from stage_idx 2 onwards (before choices)
+        if stage_idx >= 2:
+            _live_how = get_live_how()
+            _how_items = ''.join([
+                f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
+                f'<div style="font-size:0.95em;font-weight:600;color:white;margin-bottom:4px;">'
+                f'{HOW_WE_WORK_ICONS[i] if i < len(HOW_WE_WORK_ICONS) else "•"}&nbsp;{principle}</div>'
+                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
+                f'</div>'
+                for i, (principle, description) in enumerate(_live_how)
+            ])
+            st.markdown(
+                f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
+                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.4);'
+                f'letter-spacing:1.5px;margin-bottom:6px;">HOW WE OPERATE AS ONE COMPANY</div>'
+                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">'
+                f'All engines run on the same foundation: customer insight, quality and regulatory discipline, '
+                f'software and product capability, and commercial and governance functions.</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+                f'{_how_items}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
         # CHOICES ── show from stage_idx 3 onwards
         if stage_idx >= 3:
             _live_choices = get_live_choices()
@@ -260,30 +284,6 @@ with tab_pres:
                                 f'{_sec_content}</div>',
                                 unsafe_allow_html=True,
                             )
-
-        # HOW WE OPERATE ── show from stage_idx 2 onwards (before choices)
-        if stage_idx >= 2:
-            _live_how = get_live_how()
-            _how_items = ''.join([
-                f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
-                f'<div style="font-size:0.95em;font-weight:600;color:white;margin-bottom:4px;">'
-                f'{HOW_WE_WORK_ICONS[i] if i < len(HOW_WE_WORK_ICONS) else "•"}&nbsp;{principle}</div>'
-                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
-                f'</div>'
-                for i, (principle, description) in enumerate(_live_how)
-            ])
-            st.markdown(
-                f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
-                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.4);'
-                f'letter-spacing:1.5px;margin-bottom:6px;">HOW WE OPERATE AS ONE COMPANY</div>'
-                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">'
-                f'All engines run on the same foundation: customer insight, quality and regulatory discipline, '
-                f'software and product capability, and commercial and governance functions.</div>'
-                f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
-                f'{_how_items}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — ACTIVITY / REVEAL
