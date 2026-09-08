@@ -139,7 +139,7 @@ def _org_svg() -> str:
     c_rob = c_sales + 80   # 570
     _conn(c_sales, l1_bottom, [c_ang, c_rob], l2_y, PURPLE_C)
     _box(c_ang, l2_y, l2_w, l2_h, 'Angelique Simon',
-         ['Marketing Specialist'],
+         ['Marketing Manager'],
          '#F5EEF5', nc='#3A0D3A', tc='#3A0D3A', to=0.85, stroke=PURPLE_C)
     _box(c_rob, l2_y, l2_w, l2_h, 'Robert Poulsen',
          ['Business Development &amp;', 'Relationship Manager'],
