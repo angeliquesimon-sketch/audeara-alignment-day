@@ -431,7 +431,7 @@ def _overview():
                     f'</div>'
                 )
         st.markdown(
-            f'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">{chips}</div>',
+            f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">{chips}</div>',
             unsafe_allow_html=True,
         )
 
