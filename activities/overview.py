@@ -27,10 +27,14 @@ BRAND_PROMISE      = 'Feel connected.'
 
 # ── Organogram SVG ─────────────────────────────────────────────────────────────
 
-def _org_svg() -> str:
-    W, H = 1200, 440
+def _org_svg(styles=None) -> str:
+    # L3 row holds 11 boxes side by side (Rebekah×2, JK×4, Louise×5).
+    # l3_w=100, gap=10 → each slot is 110px wide.
+    W, H = 1700, 420
 
-    DARK    = '#50144B'
+    DARK      = '#50144B'   # Wine — James, Bill
+    KAVI_WINE = '#73436F'   # 80% tint of Wine — Kavi
+    FOREST_D  = '#005E63'   # Forest — JK, Louise, Rebekah
     LIGHT   = '#F9F9F9'
     GREY_BG = '#EEEEEE'
     GREY_FG = '#AAAAAA'
@@ -38,21 +42,27 @@ def _org_svg() -> str:
     LINE_D  = '#CCCCCC'
 
     james_y, james_h = 20, 58
-    l1_y,   l1_h    = 100, 50
-    l2_y,   l2_h    = 175, 44
-    l3_y,   l3_h    = 244, 38
-    l4_y,   l4_h    = 300, 34
+    l1_y,   l1_h    = 100, 58
+    l2_y,   l2_h    = 180, 58
+    l3_y,   l3_h    = 260, 58
+    l4_y,   l4_h    = 340, 58
 
-    james_w, l1_w, l2_w, l3_w, l4_w = 178, 145, 128, 114, 106
+    james_w, l1_w, l2_w, l3_w, l4_w = 128, 128, 128, 128, 128
 
-    c_ang   = 70;  c_rob  = 196;  c_vac1 = 322;  c_vac2 = 448
-    c_jk    = (c_ang + c_vac2) // 2                            # 259
-    c_louise  = 580;  c_andrew  = 720
-    c_ellissa = 856;  c_charli  = 982
-    c_rebekah = (c_ellissa + c_charli) // 2                    # 919
-    c_kavi    = 1090
-    c_bill    = (c_jk + c_louise + c_andrew + c_rebekah) // 4  # 619
-    james_cx  = (c_bill + c_kavi) // 2                         # 854
+    # L3 column centers — 11 boxes, gap=10, l3_w=128 (step=138)
+    # Order left→right: Rebekah's 2 | JK's 4 | Louise's 5
+    # Start at 220 so c_ellissa left-edge (156) clears Sayaka right-edge (144)
+    c_ellissa = 220; c_charli = 358                                              # Rebekah's 2
+    c_ang     = 496; c_rob   = 634; c_vac1 = 772; c_vac2 = 910                  # JK's 4
+    c_andrew  = 1048; c_ian   = 1186; c_alex = 1324; c_dylan = 1462; c_bonar = 1600  # Louise's 5
+
+    c_rebekah = (c_ellissa + c_charli) // 2  # 289
+    c_jk      = (c_ang     + c_vac2)   // 2  # 703
+    c_louise  = (c_andrew  + c_bonar)  // 2  # 1324
+
+    c_kavi   = 80                                      # left of the main tree
+    c_bill   = (c_rebekah + c_louise)  // 2            # 806 — midpoint of L2 span
+    james_cx = c_bill                                  # James directly above Bill
 
     james_bot = james_y + james_h
     l1_bot    = l1_y + l1_h
@@ -69,7 +79,7 @@ def _org_svg() -> str:
         bx = cx - w // 2
         s = f'stroke="{stroke}" stroke-width="0.8"' if stroke else ''
         a(f'<rect x="{bx}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" {s}/>')
-        mid = y + h // 2
+        mid = y + (h - 5) // 2   # shift up to clear the 5px bottom stripe
         n = len(titles)
         if n == 0:
             a(f'<text x="{cx}" y="{mid+5}" text-anchor="middle" font-family="sans-serif" '
@@ -87,11 +97,22 @@ def _org_svg() -> str:
             a(f'<text x="{cx}" y="{mid+15}" text-anchor="middle" font-family="sans-serif" '
               f'font-size="7.5" fill="{tc}" opacity="{to}">{titles[1]}</text>')
 
-    def mgmt(cx, y, w, h, name, titles):
-        _box(cx, y, w, h, name, titles, DARK, 'white', 'white', to=0.85)
+    def _stripe(cx, y, w, h, name, rx=7):
+        sc = (styles or {}).get(name)
+        if not sc:
+            return
+        bx = cx - w // 2
+        cid = f's{abs(hash((cx, y))) % 99991}'
+        a(f'<clipPath id="{cid}"><rect x="{bx}" y="{y}" width="{w}" height="{h}" rx="{rx}"/></clipPath>')
+        a(f'<rect x="{bx}" y="{y+h-5}" width="{w}" height="5" fill="{sc}" clip-path="url(#{cid})"/>')
+
+    def mgmt(cx, y, w, h, name, titles, fill=DARK):
+        _box(cx, y, w, h, name, titles, fill, 'white', 'white', to=0.85)
+        _stripe(cx, y, w, h, name)
 
     def team(cx, y, w, h, name, titles):
         _box(cx, y, w, h, name, titles, LIGHT, '#1A1A1A', '#555555', to=1.0, stroke=DARK)
+        _stripe(cx, y, w, h, name)
 
     def grey_b(cx, y, w, h, name, titles):
         _box(cx, y, w, h, name, titles, GREY_BG, GREY_FG, GREY_FG, to=0.9)
@@ -115,27 +136,33 @@ def _org_svg() -> str:
 
     # ── Connectors (drawn first, below boxes) ─────────────────────────────────
 
-    # James → Bill (solid) + Kavi (dashed)
     jy0 = (james_bot + l1_y) // 2
     _vl(james_cx, james_bot, jy0)
-    _hl(c_bill, c_kavi, jy0)
+    _hl(c_kavi, c_bill, jy0)             # bar from Kavi (left) to Bill/James
     _vl(c_bill, jy0, l1_y)
     _vl(c_kavi, jy0, l1_y, LINE_D, dash='4,3')
 
-    # Bill → JK, Louise, Andrew, Rebekah
-    _conn(c_bill, l1_bot, [c_jk, c_louise, c_andrew, c_rebekah], l2_y)
+    _conn(c_bill, l1_bot, [c_rebekah, c_jk, c_louise], l2_y)
+    _conn(c_kavi, l1_bot, [c_kavi], l3_y, LINE_D, dash='4,3')
+    # Sayaka ↔ Bill dotted-line — exits Sayaka right, up the gap, right to Bill left edge
+    rm      = (c_kavi + l3_w // 2 + c_ellissa - l3_w // 2) // 2  # midpoint of 12px gap (≈150)
+    s_right = c_kavi + l3_w // 2          # Sayaka right edge (144)
+    s_mid_y = l3_y  + l3_h // 2           # Sayaka vertical centre (289)
+    b_left  = c_bill - l1_w // 2          # Bill left edge (742)
+    b_mid_y = l1_y  + l1_h // 2           # Bill mid-height (129)
+    for x1, y1, x2, y2 in [
+        (s_right, s_mid_y, rm,     s_mid_y),  # right from Sayaka
+        (rm,      s_mid_y, rm,     b_mid_y),  # up the gap (x=150 clears all boxes)
+        (rm,      b_mid_y, b_left, b_mid_y),  # right to Bill's left edge at mid-height
+    ]:
+        a(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+          f'stroke="{LINE_D}" stroke-width="1.5" stroke-dasharray="4,3"/>')
 
-    # Kavi → Sayaka (dashed)
-    _conn(c_kavi, l1_bot, [c_kavi], l2_y, LINE_D, dash='4,3')
+    _conn(c_jk,      l2_bot, [c_ang, c_rob, c_vac1, c_vac2],              l3_y)
+    _conn(c_louise,  l2_bot, [c_andrew, c_ian, c_alex, c_dylan, c_bonar], l3_y)
+    _conn(c_rebekah, l2_bot, [c_ellissa, c_charli],                        l3_y)
 
-    # JK → Angelique, Rob, Vac1, Vac2
-    _conn(c_jk, l2_bot, [c_ang, c_rob, c_vac1, c_vac2], l3_y)
-
-    # Rob → Misaki
     _conn(c_rob, l3_bot, [c_rob], l4_y)
-
-    # Rebekah → Ellissa, Charli
-    _conn(c_rebekah, l2_bot, [c_ellissa, c_charli], l3_y)
 
     # ── Boxes ─────────────────────────────────────────────────────────────────
 
@@ -143,44 +170,37 @@ def _org_svg() -> str:
          ['Chief Executive Officer'])
 
     mgmt(c_bill, l1_y, l1_w, l1_h, 'Bill Peng', ['Chief Operating Officer'])
-    grey_b(c_kavi, l1_y, l1_w, l1_h, 'Kavi Bekarma', ['Chief Financial Officer'])
+    mgmt(c_kavi, l1_y, l1_w, l1_h, 'Kavi Bekarma', ['Effective Chief', 'Financial Officer'],
+         fill=KAVI_WINE)
 
-    mgmt(c_jk,      l2_y, l2_w, l2_h, 'John Krajewski',
-         ['Head of International', 'Sales &amp; Marketing'])
-    mgmt(c_louise,  l2_y, l2_w, l2_h, 'Louise Heller',
-         ['Engineering Program Manager'])
-    mgmt(c_andrew,  l2_y, l2_w, l2_h, 'Andrew Morton',
-         ['Head of Software', 'Design &amp; Development'])
     mgmt(c_rebekah, l2_y, l2_w, l2_h, 'Rebekah Davidson',
-         ['Head of Operations'])
-    team(c_kavi,    l2_y, l2_w, l2_h, 'Sayaka Smith', ['Accounting Manager'])
-
-    team(c_ang,  l3_y, l3_w, l3_h, 'Angelique Simon', ['Marketing Manager'])
-    team(c_rob,  l3_y, l3_w, l3_h, 'Robert Poulsen',
-         ['Business Dev.', '&amp; Relationships'])
-    grey_b(c_vac1, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
-    grey_b(c_vac2, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
+         ['Head of Operations'], fill=FOREST_D)
+    mgmt(c_jk,      l2_y, l2_w, l2_h, 'John Krajewski',
+         ['Head of International', 'Sales &amp; Marketing'], fill=FOREST_D)
+    mgmt(c_louise,  l2_y, l2_w, l2_h, 'Louise Heller',
+         ['Engineering Program Manager'], fill=FOREST_D)
+    team(c_kavi,    l3_y, l3_w, l3_h, 'Sayaka Smith', ['Accounting Manager'])
 
     team(c_ellissa, l3_y, l3_w, l3_h, 'Ellissa Waters',
          ['Customer Support &amp;', 'Technical Specialist'])
     team(c_charli,  l3_y, l3_w, l3_h, 'Charli Every',
          ['Customer Care &amp;', 'Sales Assistant'])
 
-    team(c_rob, l4_y, l4_w, l4_h, 'Misaki Kawashima', ['BD Intern'])
+    team(c_ang,  l3_y, l3_w, l3_h, 'Angelique Simon', ['Marketing Manager'])
+    team(c_rob,  l3_y, l3_w, l3_h, 'Robert Poulsen',
+         ['Business Development', '&amp; Relationships'])
+    grey_b(c_vac1, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
+    grey_b(c_vac2, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
 
-    # ── Louise's stacked engineers ─────────────────────────────────────────────
-    engineers = [
-        ("Dr Ian O'Brien",   ['Research Audiologist']),
-        ('Alex Bartlett',    ['Firmware Engineer']),
-        ('Dylan Whitehouse', ['Electronic &amp;', 'Software Engineer']),
-        ('Bonar Dickson',    ['Engineering Consultant']),
-    ]
-    eng_h = 38; eng_gap = 8; prev_b = l2_bot
-    for i, (ename, etitles) in enumerate(engineers):
-        ey = l2_bot + 14 + i * (eng_h + eng_gap)
-        _vl(c_louise, prev_b, ey)
-        team(c_louise, ey, l2_w, eng_h, ename, etitles)
-        prev_b = ey + eng_h
+    team(c_andrew, l3_y, l3_w, l3_h, 'Andrew Morton',
+         ['Head of Software', 'Development'])
+    team(c_ian,   l3_y, l3_w, l3_h, "Dr Ian O'Brien",  ['Research Audiologist'])
+    team(c_alex,  l3_y, l3_w, l3_h, 'Alex Bartlett',   ['Firmware Engineer'])
+    team(c_dylan, l3_y, l3_w, l3_h, 'Dylan Whitehouse',
+         ['Electronic &amp;', 'Software Engineer'])
+    team(c_bonar, l3_y, l3_w, l3_h, 'Bonar Dickson',   ['Engineering Consultant'])
+
+    team(c_rob, l4_y, l4_w, l4_h, 'Misaki Kawashima', ['Business Development Intern'])
 
     a('</svg>')
     return '\n'.join(L)
@@ -567,7 +587,17 @@ def _overview():
         'color:#888;margin-bottom:10px;">THE TEAM</div>',
         unsafe_allow_html=True,
     )
-    st.markdown(_org_svg(), unsafe_allow_html=True)
+    # Build style colour map — primary colour per person drives the bottom stripe on each box
+    _NAME_MAP = {"Ian O'Brien": "Dr Ian O'Brien"}
+    _org_styles = {}
+    if not styles_df.empty:
+        for _, row in styles_df.iterrows():
+            scores   = compute_scores(row)
+            pri, _   = top_two(scores)
+            svg_name = _NAME_MAP.get(row['Name'], row['Name'])
+            _org_styles[svg_name] = STYLE_HEX[pri]
+
+    st.markdown(_org_svg(_org_styles or None), unsafe_allow_html=True)
     st.markdown('<div style="margin-bottom:16px;"></div>', unsafe_allow_html=True)
 
     # ── Row 1: Styles (left) + One Things (right) ─────────────────────────────
