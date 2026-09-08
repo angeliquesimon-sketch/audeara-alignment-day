@@ -295,11 +295,7 @@ with tab_activity:
         _waiting('The cascade discussion will open here when James is ready.')
 
     elif stage in ('cascade', 'reveal'):
-        # Compact strategy reference — full detail stays on the Presentation tab
-        _collapsed_engines()
-        _collapsed_choices()
-        _collapsed_working()
-        st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+        pass
 
     if stage == 'cascade':
         _act_choices = get_live_choices()
