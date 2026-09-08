@@ -102,20 +102,50 @@ def _team_map_svg(profiles, width=700, height=300):
             return (parts[0][0] + parts[-1][0]).upper()
         return parts[0][0].upper() if parts else '?'
 
-    dot_svg = initial_svg = ''
+    # Compute initial positions
+    positioned = []
     for p in profiles:
         s  = p['scores']
         xn = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
         yn = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
-        cx = int(xn * width)
-        cy = int((1 - yn) * height)
+        positioned.append({
+            'name': p['name'], 'color': HEX[p['primary']],
+            'cx': xn * width, 'cy': (1 - yn) * height,
+        })
+
+    # Iterative collision resolution — push overlapping circles apart
+    MIN_DIST = DOT_R * 2 + 2
+    for _ in range(150):
+        any_overlap = False
+        for i in range(len(positioned)):
+            for j in range(i + 1, len(positioned)):
+                a, b = positioned[i], positioned[j]
+                dx, dy = b['cx'] - a['cx'], b['cy'] - a['cy']
+                dist = (dx ** 2 + dy ** 2) ** 0.5
+                if dist < MIN_DIST:
+                    any_overlap = True
+                    if dist == 0:
+                        dx, dy, dist = 1, 0, 1
+                    push = (MIN_DIST - dist) / 2 + 0.5
+                    nx, ny = dx / dist, dy / dist
+                    a['cx'] -= nx * push; a['cy'] -= ny * push
+                    b['cx'] += nx * push; b['cy'] += ny * push
+        for pos in positioned:
+            pos['cx'] = max(DOT_R + 2, min(width  - DOT_R - 2, pos['cx']))
+            pos['cy'] = max(DOT_R + 2, min(height - DOT_R - 2, pos['cy']))
+        if not any_overlap:
+            break
+
+    dot_svg = initial_svg = ''
+    for pos in positioned:
+        cx, cy = round(pos['cx']), round(pos['cy'])
         dot_svg += (
-            f'<circle cx="{cx}" cy="{cy}" r="{DOT_R}" fill="{HEX[p["primary"]]}" opacity="0.92"/>'
+            f'<circle cx="{cx}" cy="{cy}" r="{DOT_R}" fill="{pos["color"]}" opacity="0.92"/>'
         )
         initial_svg += (
             f'<text x="{cx}" y="{cy}" text-anchor="middle" dominant-baseline="central" '
             f'font-size="8" font-weight="700" fill="white" font-family="sans-serif">'
-            f'{_initials(p["name"])}</text>'
+            f'{_initials(pos["name"])}</text>'
         )
 
     return (
