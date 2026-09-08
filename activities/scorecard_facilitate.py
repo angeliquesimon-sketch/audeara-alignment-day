@@ -49,8 +49,8 @@ if not st.session_state.get('_sc_fac_tab_ready'):
 
 st.markdown('### 🎛️ Facilitate — FY27 Scorecard')
 st.caption(
-    'For each strategic choice, the department contributions from the cascade are shown as reference. '
-    'Capture the agreed metric, target, and owner for each department.'
+    'Admin override — edit or correct any department entry. '
+    'Primary input is via the FY27 Scorecard page where department groups work directly.'
 )
 
 # ── Load data ──────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ for idx, choice in enumerate(choices):
                     owner  = st.session_state.get(owner_key, '').strip()
                     if metric or target or owner:
                         try:
-                            save_scorecard_entry(cid, dept, metric, target, owner)
+                            save_scorecard_entry(cid, dept, metric, target, owner, locked_by='Facilitator')
                             st.session_state.pop('_sc_entries_loaded', None)
                             st.toast(f'{dept} saved ✓', icon='✅')
                             st.rerun()
