@@ -108,7 +108,7 @@ st.divider()
 
 WHY_HERE = [
     'Clarify why we exist and where we are going',
-    'Agree on how we make strategic choices',
+    'Understand how strategic choices are made and how I can contribute to them',
     'Strengthen how we work together',
     'Build a clearer link between company strategy and everyday decisions',
 ]
