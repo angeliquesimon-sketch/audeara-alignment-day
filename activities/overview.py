@@ -25,6 +25,110 @@ MISSION_CATEGORIES = ['Who', 'What', 'How', 'Makes Possible']
 VALUES             = 'Impact  ·  Quality  ·  Leadership  ·  Momentum'
 BRAND_PROMISE      = 'Feel connected.'
 
+# ── Organogram SVG ─────────────────────────────────────────────────────────────
+
+def _org_svg() -> str:
+    W, H    = 940, 494
+    c1, c2, c3, c4 = 110, 320, 580, 830
+    james_cx = (c1 + c4) // 2   # 470
+
+    james_y, james_w, james_h = 20,  200, 60
+    hod_y,   hod_w,   hod_h   = 128, 155, 52
+    team_y0, team_w,  team_h  = 232, 148, 44
+    team_gap = 52
+    bar_y    = 112
+
+    WINE_C   = '#50144B'
+    PURPLE_C = '#781E73'
+    FOREST_C = '#005E63'
+    TEAL_C   = '#188383'
+
+    L = []
+    a = L.append
+
+    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
+      f'style="width:100%;max-width:{W}px;display:block;margin:0 auto;">')
+
+    # James
+    jx = james_cx - james_w // 2
+    a(f'<rect x="{jx}" y="{james_y}" width="{james_w}" height="{james_h}" rx="10" fill="{WINE_C}"/>')
+    a(f'<text x="{james_cx}" y="{james_y+25}" text-anchor="middle" font-family="sans-serif" '
+      f'font-size="13" font-weight="700" fill="white">James Fielding</text>')
+    a(f'<text x="{james_cx}" y="{james_y+43}" text-anchor="middle" font-family="sans-serif" '
+      f'font-size="10" fill="white" opacity="0.75">CEO &amp; Managing Director</text>')
+
+    # James → horizontal bar
+    james_bottom = james_y + james_h  # 80
+    a(f'<line x1="{james_cx}" y1="{james_bottom}" x2="{james_cx}" y2="{bar_y}" '
+      f'stroke="{WINE_C}" stroke-width="1.5"/>')
+    a(f'<line x1="{c1}" y1="{bar_y}" x2="{c4}" y2="{bar_y}" stroke="#BBBBBB" stroke-width="1.5"/>')
+
+    # Droplines to HoDs (c1, c2, c3)
+    for cx, col in [(c1, FOREST_C), (c2, PURPLE_C), (c3, TEAL_C)]:
+        a(f'<line x1="{cx}" y1="{bar_y}" x2="{cx}" y2="{hod_y}" stroke="{col}" stroke-width="1.5"/>')
+
+    # Finance — dashed line direct to team level
+    a(f'<line x1="{c4}" y1="{bar_y}" x2="{c4}" y2="{team_y0}" stroke="{WINE_C}" '
+      f'stroke-width="1.5" stroke-dasharray="4,3"/>')
+
+    # Finance label at HoD level (James heads Finance directly)
+    a(f'<text x="{c4}" y="{hod_y+14}" text-anchor="middle" font-family="sans-serif" '
+      f'font-size="10" font-weight="700" letter-spacing="1" fill="{WINE_C}" opacity="0.5">FINANCE</text>')
+    a(f'<text x="{c4}" y="{hod_y+30}" text-anchor="middle" font-family="sans-serif" '
+      f'font-size="9" fill="{WINE_C}" opacity="0.4">James Fielding</text>')
+
+    # HoD boxes
+    hod_bottom = hod_y + hod_h  # 180
+
+    def hod(cx, name, sub, bg):
+        bx = cx - hod_w // 2
+        a(f'<rect x="{bx}" y="{hod_y}" width="{hod_w}" height="{hod_h}" rx="8" fill="{bg}"/>')
+        a(f'<text x="{cx}" y="{hod_y+22}" text-anchor="middle" font-family="sans-serif" '
+          f'font-size="12" font-weight="700" fill="white">{name}</text>')
+        a(f'<text x="{cx}" y="{hod_y+39}" text-anchor="middle" font-family="sans-serif" '
+          f'font-size="9" fill="white" opacity="0.75">{sub}</text>')
+
+    hod(c1, 'Bill Peng',      'Operations &amp; Customer Service', FOREST_C)
+    hod(c2, 'John Krajewski', 'Marketing &amp; Sales',             PURPLE_C)
+    hod(c3, 'Louise Heller',  'Product / R&amp;D',                 TEAL_C)
+
+    # Team columns
+    def team(cx, members, dept_col, bg_light, text_col):
+        a(f'<line x1="{cx}" y1="{hod_bottom}" x2="{cx}" y2="{team_y0}" '
+          f'stroke="{dept_col}" stroke-width="1.5"/>')
+        for i, name in enumerate(members):
+            ty = team_y0 + i * team_gap
+            tx = cx - team_w // 2
+            if i > 0:
+                prev_bot = team_y0 + (i - 1) * team_gap + team_h
+                a(f'<line x1="{cx}" y1="{prev_bot}" x2="{cx}" y2="{ty}" '
+                  f'stroke="#DDDDDD" stroke-width="1"/>')
+            a(f'<rect x="{tx}" y="{ty}" width="{team_w}" height="{team_h}" '
+              f'rx="6" fill="{bg_light}" stroke="{dept_col}" stroke-width="0.8"/>')
+            a(f'<text x="{cx}" y="{ty + team_h // 2 + 4}" text-anchor="middle" '
+              f'font-family="sans-serif" font-size="10.5" font-weight="600" fill="{text_col}">'
+              f'{name}</text>')
+
+    team(c1, ['Charli Every', 'Ellissa Waters', 'Rebekah Davidson'],
+         FOREST_C, '#E8F5F0', '#0D3328')
+    team(c2, ['Angelique Simon', 'Misaki Kawashima', 'Robert Poulsen'],
+         PURPLE_C, '#F5EEF5', '#3A0D3A')
+    team(c3, ['Alex Bartlett', 'Andrew Morton', 'Bonar Dickson', 'Dylan Whitehouse', "Ian O'Brien"],
+         TEAL_C,   '#EAF5F5', '#0D3333')
+
+    # Sayaka — direct Finance report to James
+    ty4 = team_y0
+    tx4 = c4 - team_w // 2
+    a(f'<rect x="{tx4}" y="{ty4}" width="{team_w}" height="{team_h}" '
+      f'rx="6" fill="#F5EDF5" stroke="{WINE_C}" stroke-width="0.8"/>')
+    a(f'<text x="{c4}" y="{ty4 + team_h // 2 + 4}" text-anchor="middle" '
+      f'font-family="sans-serif" font-size="10.5" font-weight="600" fill="#3D0F3A">'
+      f'Sayaka Smith</text>')
+
+    a('</svg>')
+    return '\n'.join(L)
+
+
 # ── Data ──────────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=20, show_spinner=False)
@@ -149,6 +253,17 @@ with col_leave:
         )
 
 st.markdown('')
+
+# ── Organogram ────────────────────────────────────────────────────────────────
+
+st.markdown(
+    '<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+    'color:#888;margin-bottom:10px;">THE TEAM</div>',
+    unsafe_allow_html=True,
+)
+st.markdown(_org_svg(), unsafe_allow_html=True)
+st.markdown('')
+
 st.divider()
 
 @st.fragment(run_every=20)
