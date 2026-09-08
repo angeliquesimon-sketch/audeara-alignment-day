@@ -8,6 +8,7 @@ from utils import inject_styles, PURPLE, TEAL, with_retry, _clear_sheets
 from one_thing_shared import (
     DEPARTMENTS, DEPARTMENT_MAP, DEPARTMENT_HEADS,
     ONE_THING_STAGES, ONE_THING_STAGE_LABELS,
+    OPERATIONAL_FUNCTIONS, GOVERNANCE_FUNCTIONS, _fn_table_html,
     _ensure_one_thing_tabs,
     pull_one_thing_session, pull_one_thing_drafts,
     pull_one_thing_suggestions, save_one_thing_suggestion,
@@ -75,12 +76,17 @@ with tab_intro:
         )
     else:
         st.markdown(
-            f'<div style="font-weight:700;font-size:1.15em;color:{PURPLE};margin-bottom:6px;">'
+            f'<div style="font-size:0.82em;color:#888;margin-bottom:6px;">'
+            f'You\'ve seen what each function is responsible for. Now the question is:'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div style="font-weight:700;font-size:1.15em;color:{PURPLE};margin-bottom:16px;">'
             f'What\'s the one thing you can do, such that by doing it, everything else becomes easier or unnecessary?'
             f'</div>',
             unsafe_allow_html=True,
         )
-        st.markdown('')
 
         st.markdown(
             f'<div style="background:#F7F0F7;border-left:4px solid {PURPLE};'
@@ -96,7 +102,7 @@ with tab_intro:
 
         cols = st.columns(3)
         for col, (icon, heading, body) in zip(cols, [
-            ('🎯', 'Focus over volume', 'Doing many things at average is less valuable than doing one thing exceptionally well.'),
+            ('🎯', 'One lever, full reach', 'The right One Thing doesn\'t narrow what your function does — it\'s the action that moves all of it forward at once.'),
             ('🔗', 'Everything connects', 'The right One Thing at each level — company, team, individual — creates a chain of impact.'),
             ('📅', 'Today shapes tomorrow', 'Consistent daily focus on your One Thing compounds into results that scattered effort never reaches.'),
         ]):
@@ -113,13 +119,21 @@ with tab_intro:
         st.markdown('')
         st.markdown(
             f'<div style="background:#F0F8F8;border-left:4px solid {TEAL};'
-            f'border-radius:0 8px 8px 0;padding:14px 20px;">'
+            f'border-radius:0 8px 8px 0;padding:14px 20px;margin-bottom:20px;">'
             f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;color:{TEAL};margin-bottom:6px;">TODAY</div>'
             f'<div style="font-size:0.88em;color:#444;line-height:1.6;">'
-            f'We\'ll look at each department\'s One Thing — what James has drafted and what the team thinks. '
-            f'Then you\'ll each commit to your personal One Thing for the year ahead. '
+            f'The function tables below show what each function is responsible for. '
+            f'Today we\'ll agree on the single action that will move all of it forward — '
+            f'then you\'ll each commit to your personal One Thing for the year ahead. '
             f'These will be visible to the whole team.'
             f'</div></div>',
+            unsafe_allow_html=True,
+        )
+
+        ot_winners_intro = pull_one_thing_winners()
+        st.markdown(
+            _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners_intro) +
+            _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners_intro),
             unsafe_allow_html=True,
         )
 

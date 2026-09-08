@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 
 PURPLE = '#781E73'
 TEAL   = '#188383'
+WINE   = '#50144B'
+FOREST = '#005E63'
 
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',

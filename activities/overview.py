@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 import pandas as pd
-from utils import inject_styles, _sheets, PURPLE, TEAL
+from utils import inject_styles, _sheets, PURPLE, TEAL, WINE, FOREST
 from styles_shared import (
     TEAM as STYLES_TEAM, pull_styles, compute_scores, top_two,
     HEX as STYLE_HEX, TEXT as STYLE_TEXT,
@@ -14,49 +14,17 @@ from strategy_cascade_shared import (
     pull_cascade_session, pull_commitments as _pull_casc_comm,
     CHOICES as CASCADE_CHOICES, pull_cascade_contributions as _pull_casc_contribs,
 )
-from one_thing_shared import pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS
+from one_thing_shared import (
+    pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS,
+    OPERATIONAL_FUNCTIONS, GOVERNANCE_FUNCTIONS, _fn_table_html,
+)
 
 inject_styles()
 
 SHEET_ID           = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-WINE               = '#50144B'
-FOREST             = '#005E63'
 MISSION_CATEGORIES = ['Who', 'What', 'How', 'Makes Possible']
 VALUES             = 'Impact  ·  Quality  ·  Leadership  ·  Momentum'
 BRAND_PROMISE      = 'Feel connected.'
-
-OPERATIONAL_FUNCTIONS = [
-    dict(name='Marketing',
-         defn="Building brand awareness, driving demand, and communicating Audeara's value across all channels — shaping the customer journey from first discovery through to purchase and long-term engagement",
-         members='Angelique Simon, John Krajewski'),
-    dict(name='Sales',
-         defn='Converting commercial opportunities into revenue through wholesale clinic and international distributor channels',
-         members='John Krajewski, Robert Poulsen, Misaki Kawashima'),
-    dict(name='Engineering',
-         defn="Designing, building, and maintaining Audeara's hardware, firmware, and software products",
-         members="Louise Heller, Andrew Morton, Dr Ian O'Brien, Alex Bartlett, Dylan Whitehouse, Bonar Dickson"),
-    dict(name='Operations',
-         defn='Managing supply chain, logistics, inventory, and internal processes to keep the business running efficiently',
-         members='Bill Peng, Rebekah Davidson'),
-    dict(name='Customer Service',
-         defn='Supporting customers and clinics post-purchase through technical assistance, troubleshooting, and care — including the onboarding and ongoing administration of clinics as Audeara stockists',
-         members='Rebekah Davidson, Ellissa Waters, Charli Every'),
-    dict(name='Finance',
-         defn='Managing accounting, financial reporting, and commercial financial decisions including ASX obligations',
-         members='Bill Peng, James Fielding, Sayaka Smith'),
-]
-
-GOVERNANCE_FUNCTIONS = [
-    dict(name='Leadership & Strategy',
-         defn='Setting company direction, making major decisions, and holding accountability for performance, compliance, and growth',
-         members='Bill Peng, James Fielding'),
-    dict(name='Product Owners',
-         defn='Holding commercial and strategic ownership over specific product lines from launch through lifecycle',
-         members='Bill Peng, James Fielding, John Krajewski, Angelique Simon, Robert Poulsen'),
-    dict(name='R&D',
-         defn="Owning Audeara's scientific and clinical research agenda and setting the direction of the knowledge base that underpins product development, clinical credibility, and market differentiation",
-         members="Dr Ian O'Brien, James Fielding"),
-]
 
 # ── Organogram SVG ─────────────────────────────────────────────────────────────
 
@@ -365,46 +333,6 @@ with col_leave:
 st.markdown('')
 
 st.divider()
-
-
-def _fn_table_html(label, functions, winners):
-    TH = (
-        'text-align:left;font-size:0.7em;font-weight:700;letter-spacing:1px;'
-        f'color:{WINE};padding:8px 12px;'
-    )
-    rows = ''
-    for i, fn in enumerate(functions):
-        winner = winners.get(fn['name'], '')
-        border = '' if i == len(functions) - 1 else 'border-bottom:1px solid #F0EBF0;'
-        if winner:
-            ot = f'<span style="font-size:0.82em;color:{FOREST};line-height:1.45;">{winner}</span>'
-        else:
-            ot = '<span style="font-size:0.82em;color:#CCCCCC;font-style:italic;">Not yet agreed</span>'
-        rows += (
-            f'<tr style="{border}">'
-            f'<td style="font-weight:700;font-size:0.8em;color:{WINE};padding:10px 12px;'
-            f'vertical-align:top;white-space:nowrap;">{fn["name"]}</td>'
-            f'<td style="font-size:0.77em;color:#555;line-height:1.5;padding:10px 12px;'
-            f'vertical-align:top;">{fn["defn"]}</td>'
-            f'<td style="font-size:0.77em;color:#777;padding:10px 12px;'
-            f'vertical-align:top;">{fn["members"]}</td>'
-            f'<td style="padding:10px 12px;vertical-align:top;">{ot}</td>'
-            f'</tr>'
-        )
-    return (
-        f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;color:#888;'
-        f'margin-bottom:8px;">{label}</div>'
-        f'<div style="border:1px solid #E8E0E8;border-radius:8px;overflow:hidden;margin-bottom:24px;">'
-        f'<table style="width:100%;border-collapse:collapse;">'
-        f'<thead><tr style="background:#FAF6FA;border-bottom:2px solid #E0D0DF;">'
-        f'<th style="{TH}width:13%;">FUNCTION</th>'
-        f'<th style="{TH}width:37%;">DEFINITION</th>'
-        f'<th style="{TH}width:22%;">MEMBERS</th>'
-        f'<th style="{TH}width:28%;">THE ONE THING</th>'
-        f'</tr></thead>'
-        f'<tbody>{rows}</tbody>'
-        f'</table></div>'
-    )
 
 
 @st.fragment(run_every=20)
