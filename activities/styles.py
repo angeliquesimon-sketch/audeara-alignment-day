@@ -110,8 +110,7 @@ def _team_map_svg(profiles, width=700, height=500):
         cx = int(xn * width)
         cy = int((1 - yn) * height)
         dot_svg += (
-            f'<circle cx="{cx}" cy="{cy}" r="{DOT_R}" fill="{HEX[p["primary"]]}" '
-            f'stroke="white" stroke-width="2" opacity="0.92"/>'
+            f'<circle cx="{cx}" cy="{cy}" r="{DOT_R}" fill="{HEX[p["primary"]]}" opacity="0.92"/>'
         )
         initial_svg += (
             f'<text x="{cx}" y="{cy}" text-anchor="middle" dominant-baseline="central" '
