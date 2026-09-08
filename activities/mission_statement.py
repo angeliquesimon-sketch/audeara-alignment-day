@@ -54,6 +54,85 @@ def pull_votes():
     except Exception:
         return pd.DataFrame(columns=['Category', 'Answer', 'Votes'])
 
+MISSION_STMT_TAB = 'Mission Statement'
+
+def _ensure_mission_stmt_tab():
+    try:
+        svc      = _sheets()
+        existing = {
+            s['properties']['title']
+            for s in svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute().get('sheets', [])
+        }
+        if MISSION_STMT_TAB not in existing:
+            svc.spreadsheets().batchUpdate(
+                spreadsheetId=SHEET_ID,
+                body={'requests': [{'addSheet': {'properties': {'title': MISSION_STMT_TAB}}}]},
+            ).execute()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A1:B1",
+        ).execute().get('values', [])
+        if not rows:
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A1",
+                valueInputOption='RAW', body={'values': [['Type', 'Content']]},
+            ).execute()
+    except Exception:
+        pass
+
+@st.cache_data(ttl=5, show_spinner=False)
+def pull_mission_statement():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A2:B10",
+        ).execute().get('values', [])
+        for row in rows:
+            if len(row) >= 2 and row[0] == 'locked':
+                return row[1]
+        return ''
+    except Exception:
+        return ''
+
+def save_mission_statement(text):
+    svc  = _sheets()
+    rows = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A2:B10",
+    ).execute().get('values', [])
+    for i, row in enumerate(rows, start=2):
+        if len(row) >= 1 and row[0] == 'locked':
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A{i}:B{i}",
+                valueInputOption='RAW', body={'values': [['locked', text]]},
+            ).execute()
+            pull_mission_statement.clear()
+            return
+    svc.spreadsheets().values().append(
+        spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A:B",
+        valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+        body={'values': [['locked', text]]},
+    ).execute()
+    pull_mission_statement.clear()
+
+def generate_mission_polish(who, what, how, makes):
+    from openai import OpenAI
+    client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+    prompt = (
+        'The Audeara team has voted on four building blocks for their mission statement:\n\n'
+        f'- Who we serve: {who}\n'
+        f'- What we provide: {what}\n'
+        f'- How we do it: {how}\n'
+        f'- What that makes possible: {makes}\n\n'
+        'Rewrite these into a clean, natural mission statement that flows as proper English. '
+        'One to two sentences. Keep the meaning of each building block intact. '
+        'Do not add new ideas or change the intent. No hyphens or em dashes. British English. '
+        'Output only the mission statement text, nothing else.'
+    )
+    resp = client.chat.completions.create(
+        model='gpt-4o-mini',
+        messages=[{'role': 'user', 'content': prompt}],
+        max_tokens=200,
+    )
+    return resp.choices[0].message.content.strip()
+
 def upsert_vote(category, answer):
     svc  = _sheets()
     rows = svc.spreadsheets().values().get(
@@ -81,6 +160,10 @@ def upsert_vote(category, answer):
 # ── Page ───────────────────────────────────────────────────────────────────────
 
 inject_styles()
+
+if not st.session_state.get('_mission_tab_ready'):
+    _ensure_mission_stmt_tab()
+    st.session_state['_mission_tab_ready'] = True
 
 st.markdown('### Mission Statement Activity')
 
@@ -255,6 +338,55 @@ with tab_results:
             f'</div>',
             unsafe_allow_html=True,
         )
+
+        # ── AI polish ─────────────────────────────────────────────────────────────
+        st.markdown('')
+        all_four = all(k in top for k in ('Who', 'What', 'How', 'Makes Possible'))
+
+        locked_mission = pull_mission_statement()
+        if locked_mission:
+            st.markdown(
+                f'<div style="background:{TEAL};border-radius:10px;padding:18px 22px;margin-bottom:16px;">'
+                f'<div style="font-size:0.68em;color:rgba(255,255,255,0.7);font-weight:700;'
+                f'letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">'
+                f'Locked mission statement</div>'
+                f'<div style="font-size:1.05em;color:#fff;font-weight:600;line-height:1.6;">'
+                f'{locked_mission}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+        if all_four:
+            if st.button('✨ Polish with AI', type='primary', key='mission_polish_btn'):
+                with st.spinner('Rewriting…'):
+                    try:
+                        result = generate_mission_polish(
+                            top['Who'][0], top['What'][0],
+                            top['How'][0], top['Makes Possible'][0],
+                        )
+                        st.session_state['mission_generated'] = result
+                    except Exception as _e:
+                        st.error(f'Could not generate — {_e}')
+
+            if 'mission_generated' in st.session_state:
+                st.markdown(
+                    f'<div class="winning-box">'
+                    f'{st.session_state["mission_generated"]}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button('Lock this statement', key='mission_lock_btn'):
+                    try:
+                        save_mission_statement(st.session_state['mission_generated'])
+                        del st.session_state['mission_generated']
+                        st.cache_data.clear()
+                        st.toast('Mission statement locked ✓', icon='✅')
+                        st.rerun()
+                    except Exception as _e:
+                        st.error(f'Could not save — {_e}')
+        else:
+            st.caption('All four categories need at least one vote before AI can polish the statement.')
+
+        st.divider()
 
         if top:
             st.markdown('#### Top answer per category')
