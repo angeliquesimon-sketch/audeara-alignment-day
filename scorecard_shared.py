@@ -1,4 +1,4 @@
-"""Shared data layer — FY27 Scorecard."""
+"""Shared data layer — FY27 Scorecard (entries + proposals)."""
 
 import streamlit as st
 import pandas as pd
