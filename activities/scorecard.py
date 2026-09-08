@@ -460,11 +460,12 @@ with tab_all:
                     continue
                 entry = choice_entries[choice_entries['Department'] == d]
                 rows.append({
-                    'dept':   d,
-                    'metric': entry.iloc[0]['Metric'] if not entry.empty else '',
-                    'target': entry.iloc[0]['Target'] if not entry.empty else '',
-                    'owner':  entry.iloc[0]['Owner']  if not entry.empty else '',
-                    'saved':  not entry.empty,
+                    'dept':    d,
+                    'cascade': dept_inputs.get(d, ''),
+                    'metric':  entry.iloc[0]['Metric'] if not entry.empty else '',
+                    'target':  entry.iloc[0]['Target'] if not entry.empty else '',
+                    'owner':   entry.iloc[0]['Owner']  if not entry.empty else '',
+                    'saved':   not entry.empty,
                 })
 
             if not rows:
@@ -531,12 +532,18 @@ with tab_all:
                         '<div style="font-size:0.78em;color:#CCCCCC;">Pending</div>'
                     )
 
+                cascade_html = (
+                    f'<div style="font-size:0.75em;color:#888;margin-bottom:8px;'
+                    f'padding:6px 10px;background:#F7F7F7;border-radius:4px;'
+                    f'line-height:1.5;font-style:italic;">{row["cascade"]}</div>'
+                )
                 st.markdown(
                     f'<div style="border-left:2px solid #EEEEEE;padding:10px 14px 10px 16px;'
                     f'margin-left:4px;margin-bottom:2px;">'
                     f'<div style="font-size:0.72em;font-weight:700;color:{colour};'
                     f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
                     f'{row["dept"]}</div>'
+                    f'{cascade_html}'
                     f'{metric_html}'
                     f'</div>',
                     unsafe_allow_html=True,
