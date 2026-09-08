@@ -103,7 +103,7 @@ for dept in DEPARTMENTS:
         )
     with col_b:
         st.markdown('<br>', unsafe_allow_html=True)
-        st.caption(f'Head: {head.split()[0] if head else "—"}')
+        st.caption(f'Head: {head if head else "—"}')
         if st.button('Save', key=f'ot_save_draft_{dept}', use_container_width=True):
             if new_draft.strip():
                 try:
@@ -136,7 +136,7 @@ def _suggestions_view():
 
         bc = '#3EAA6D' if winner else PURPLE
         bg = '#E8F5EE' if winner else '#F7F0F7'
-        status_label = f'✅ Locked by {head.split()[0]}' if winner else '⏳ Awaiting agreement'
+        status_label = f'✅ Locked by {head}' if winner else '⏳ Awaiting agreement'
 
         st.markdown(
             f'<div style="border-left:4px solid {bc};background:{bg};'
@@ -218,7 +218,7 @@ def _personal_tracker():
             st.markdown(
                 f'<div style="background:{bg};border-radius:8px;padding:8px 10px;'
                 f'margin-bottom:8px;text-align:center;font-size:0.8em;color:{tc};font-weight:600;">'
-                f'{"✅" if done else "○"} {person.split()[0]}</div>',
+                f'{"✅" if done else "○"} {person}</div>',
                 unsafe_allow_html=True,
             )
 
@@ -236,7 +236,7 @@ def _personal_tracker():
             continue
         items = ''.join(
             f'<div style="padding:7px 0;border-bottom:1px solid #F0F0F0;font-size:0.84em;">'
-            f'<strong style="color:#444;min-width:72px;display:inline-block;">{row["Name"].split()[0]}</strong>'
+            f'<strong style="color:#444;min-width:100px;display:inline-block;">{row["Name"]}</strong>'
             f'<span style="color:#555;">{row["Commitment"]}</span>'
             f'</div>'
             for _, row in dept_rows.iterrows()

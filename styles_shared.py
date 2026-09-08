@@ -364,11 +364,10 @@ def card_html_large(name, scores):
 def card_html_small(name, scores):
     pri, sec = top_two(scores)
     pc, tc   = HEX[pri], TEXT[pri]
-    first    = name.split()[0]
     return (
         f'<div style="background:{pc};border-radius:10px;padding:16px 12px 12px;'
         f'text-align:center;margin-bottom:8px;">'
-        f'<div style="font-weight:700;color:{tc};font-size:0.95em;line-height:1.3;margin-bottom:6px;">{first}</div>'
+        f'<div style="font-weight:700;color:{tc};font-size:0.88em;line-height:1.3;margin-bottom:6px;">{name}</div>'
         f'<div style="font-size:1.5em;font-weight:800;color:{tc};line-height:1.1;">{pri}</div>'
         f'<div style="font-size:0.72em;color:{tc};opacity:0.75;margin-bottom:10px;">+ {sec}</div>'
         f'<div style="display:flex;border-radius:3px;overflow:hidden;height:6px;">{colour_bar(scores)}</div>'

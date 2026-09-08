@@ -411,7 +411,6 @@ def _overview():
         st.caption(f'{len(submitted_set)} of {n_team} submitted')
         chips = ''
         for name in STYLES_TEAM:
-            first = name.split()[0]
             if name in submitted_set:
                 row    = styles_df[styles_df['Name'] == name].iloc[0]
                 scores = compute_scores(row)
@@ -420,15 +419,15 @@ def _overview():
                 tc     = STYLE_TEXT[pri]
                 chips += (
                     f'<div style="background:{bg};border-radius:8px;padding:8px 10px;text-align:center;">'
-                    f'<div style="font-size:0.82em;font-weight:700;color:{tc};line-height:1.2;">{first}</div>'
-                    f'<div style="font-size:0.7em;color:{tc};opacity:0.8;">{pri}</div>'
+                    f'<div style="font-size:0.72em;font-weight:700;color:{tc};line-height:1.3;">{name}</div>'
+                    f'<div style="font-size:0.68em;color:{tc};opacity:0.8;">{pri}</div>'
                     f'</div>'
                 )
             else:
                 chips += (
                     f'<div style="background:#EBEBEB;border-radius:8px;padding:8px 10px;text-align:center;">'
-                    f'<div style="font-size:0.82em;font-weight:700;color:#BBBBBB;line-height:1.2;">{first}</div>'
-                    f'<div style="font-size:0.7em;color:#CCCCCC;">?</div>'
+                    f'<div style="font-size:0.72em;font-weight:700;color:#BBBBBB;line-height:1.3;">{name}</div>'
+                    f'<div style="font-size:0.68em;color:#CCCCCC;">?</div>'
                     f'</div>'
                 )
         st.markdown(

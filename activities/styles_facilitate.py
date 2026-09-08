@@ -28,7 +28,7 @@ def _team_map_svg(profiles, width=600, height=430):
         cx = int(xn * width)
         cy = int((1 - yn) * height)
         color = HEX[p['primary']]
-        name  = p['name'].split()[0]
+        name  = p['name']
         dots_svg += (
             f'<circle cx="{cx}" cy="{cy}" r="10" fill="{color}" '
             f'stroke="white" stroke-width="2" opacity="0.92"/>'
