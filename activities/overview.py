@@ -254,16 +254,6 @@ with col_leave:
 
 st.markdown('')
 
-# ── Organogram ────────────────────────────────────────────────────────────────
-
-st.markdown(
-    '<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
-    'color:#888;margin-bottom:10px;">THE TEAM</div>',
-    unsafe_allow_html=True,
-)
-st.markdown(_org_svg(), unsafe_allow_html=True)
-st.markdown('')
-
 st.divider()
 
 @st.fragment(run_every=20)
@@ -512,6 +502,16 @@ def _overview():
         f"What we've built today</div>",
         unsafe_allow_html=True,
     )
+
+    # ── Organogram ────────────────────────────────────────────────────────────
+
+    st.markdown(
+        '<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+        'color:#888;margin-bottom:10px;">THE TEAM</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(_org_svg(), unsafe_allow_html=True)
+    st.markdown('<div style="margin-bottom:16px;"></div>', unsafe_allow_html=True)
 
     # ── Row 1: Styles (left) + One Things (right) ─────────────────────────────
 
