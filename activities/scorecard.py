@@ -112,20 +112,19 @@ with tab_about:
 
 with tab_dept:
 
-    # Department selector for people in multiple departments
-    if len(my_depts) > 1:
-        dept = st.selectbox('Department', my_depts, key='sc_dept_select')
-    else:
-        dept = my_depts[0]
-
-    is_hod = DEPARTMENT_HEADS.get(dept) == name
-
-    # Dept role indicator
-    role_label = 'Department Head' if is_hod else 'Team Member'
-    role_colour = WINE if is_hod else '#888888'
+    # Role indicator — show all depts the user belongs to
+    role_parts = []
+    for d in my_depts:
+        role = 'Head of Department' if DEPARTMENT_HEADS.get(d) == name else 'Team Member'
+        role_colour = WINE if DEPARTMENT_HEADS.get(d) == name else '#888888'
+        role_parts.append(
+            f'<span style="color:{role_colour};font-weight:600;">{d}</span>'
+            f'<span style="color:#CCCCCC;"> ({role})</span>'
+        )
     st.markdown(
-        f'<div style="font-size:0.75em;color:{role_colour};font-weight:600;'
-        f'margin-bottom:16px;">{dept} · {role_label}</div>',
+        f'<div style="font-size:0.75em;margin-bottom:16px;">'
+        + ' &nbsp;·&nbsp; '.join(role_parts)
+        + '</div>',
         unsafe_allow_html=True,
     )
 
@@ -146,46 +145,45 @@ with tab_dept:
     proposals_df = pull_scorecard_proposals()
     entries_df   = pull_scorecard_entries()
 
-    # Helper: latest cascade text for this dept on a given choice
-    def _cascade_text(cid: str) -> str:
+    # Helper: latest cascade text for a given dept + choice
+    def _cascade_text(cid: str, d: str) -> str:
         if contribs_df.empty:
             return ''
         sub = contribs_df[
             (contribs_df['ChoiceID'] == cid) &
-            (contribs_df['Department'] == dept) &
+            (contribs_df['Department'] == d) &
             (~contribs_df['Status'].isin(['deleted', 'opted_out']))
         ].sort_values('Timestamp', ascending=False)
         return sub.iloc[0]['Text'].strip() if not sub.empty else ''
 
-    # Initialise session state from saved data — once per name+dept combo
-    load_flag = f'_sc_loaded_{name}_{dept}'
+    # Initialise session state for ALL the user's depts — once per name
+    load_flag = f'_sc_loaded_{name}'
     if not st.session_state.get(load_flag):
-        my_props  = proposals_df[
-            (proposals_df['Name'] == name) & (proposals_df['Department'] == dept)
-        ] if not proposals_df.empty else pd.DataFrame(columns=proposals_df.columns)
-        my_entries = entries_df[
-            entries_df['Department'] == dept
-        ] if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
-
-        for choice in choices:
-            cid = choice['id']
-            # My proposal fields
-            my_prop = my_props[my_props['ChoiceID'] == cid]
-            for fld in ['Metric', 'Target', 'Owner']:
-                k = f'sc_prop_{fld.lower()}_{cid}'
-                if k not in st.session_state:
-                    st.session_state[k] = my_prop.iloc[0][fld] if not my_prop.empty else ''
-            # HoD entry fields
-            if is_hod:
-                entry = my_entries[my_entries['ChoiceID'] == cid]
+        for d in my_depts:
+            is_hod_d  = DEPARTMENT_HEADS.get(d) == name
+            my_props  = proposals_df[
+                (proposals_df['Name'] == name) & (proposals_df['Department'] == d)
+            ] if not proposals_df.empty else pd.DataFrame(columns=proposals_df.columns)
+            my_entries = entries_df[
+                entries_df['Department'] == d
+            ] if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
+            for choice in choices:
+                cid = choice['id']
+                my_prop = my_props[my_props['ChoiceID'] == cid]
                 for fld in ['Metric', 'Target', 'Owner']:
-                    k = f'sc_entry_{fld.lower()}_{cid}_{dept}'
+                    k = f'sc_prop_{fld.lower()}_{cid}_{d}'
                     if k not in st.session_state:
-                        st.session_state[k] = entry.iloc[0][fld] if not entry.empty else ''
+                        st.session_state[k] = my_prop.iloc[0][fld] if not my_prop.empty else ''
+                if is_hod_d:
+                    entry = my_entries[my_entries['ChoiceID'] == cid]
+                    for fld in ['Metric', 'Target', 'Owner']:
+                        k = f'sc_entry_{fld.lower()}_{cid}_{d}'
+                        if k not in st.session_state:
+                            st.session_state[k] = entry.iloc[0][fld] if not entry.empty else ''
         st.session_state[load_flag] = True
 
-    # Check if dept has any cascade contributions at all
-    any_contribs = any(_cascade_text(c['id']) for c in choices)
+    # Check if any of the user's depts have contributed to any choice
+    any_contribs = any(_cascade_text(c['id'], d) for c in choices for d in my_depts)
     if not any_contribs:
         st.info(
             'Your department hasn\'t contributed to the Strategy Cascade yet. '
@@ -195,13 +193,16 @@ with tab_dept:
 
     # ── Per-choice sections ────────────────────────────────────────────────────
 
-    for idx, choice in enumerate(choices):
-        cid          = choice['id']
-        cascade_text = _cascade_text(cid)
-        if not cascade_text:
-            continue
+    multi_dept = len(my_depts) > 1
 
+    for idx, choice in enumerate(choices):
+        cid    = choice['id']
         colour = CHOICE_COLOURS[idx % len(CHOICE_COLOURS)]
+
+        # Only show this choice if at least one of the user's depts contributed
+        dept_texts = {d: _cascade_text(cid, d) for d in my_depts}
+        if not any(dept_texts.values()):
+            continue
 
         # Choice header
         st.markdown(
@@ -214,200 +215,216 @@ with tab_dept:
             unsafe_allow_html=True,
         )
 
-        # Cascade reference
-        st.markdown(
-            f'<div style="background:#F7F7F7;border-left:3px solid #DDDDDD;'
-            f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;'
-            f'font-size:0.82em;color:#444;line-height:1.5;">'
-            f'<span style="font-size:0.72em;color:#AAAAAA;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:0.5px;">Your cascade input</span><br>'
-            f'{cascade_text}</div>',
-            unsafe_allow_html=True,
-        )
+        # ── Per-dept sections within this choice ──────────────────────────────
 
-        # Department proposals for this choice
-        dept_props = (
-            proposals_df[
-                (proposals_df['ChoiceID'] == cid) & (proposals_df['Department'] == dept)
-            ]
-            if not proposals_df.empty else pd.DataFrame(columns=proposals_df.columns)
-        )
-        others = dept_props[dept_props['Name'] != name] if not dept_props.empty else pd.DataFrame()
+        for d in my_depts:
+            cascade_text = dept_texts[d]
+            if not cascade_text:
+                continue
 
-        # Team proposals — visible to HoD only, with "Use" button
-        if is_hod and not others.empty:
-            st.markdown(
-                f'<div style="font-size:0.72em;color:#888;font-weight:700;'
-                f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
-                f'Team proposals</div>',
-                unsafe_allow_html=True,
-            )
-            for _, prop in others.iterrows():
-                col_text, col_use = st.columns([5, 1])
-                with col_text:
-                    st.markdown(
-                        f'<div style="font-size:0.82em;padding:8px 12px;'
-                        f'background:#FAFAFA;border-radius:6px;border:1px solid #EEEEEE;'
-                        f'margin-bottom:4px;">'
-                        f'<strong style="font-size:0.8em;color:#888;">{prop["Name"]}</strong>'
-                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                        f'Metric: <strong>{prop["Metric"] or "—"}</strong>'
-                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                        f'Target: <strong>{prop["Target"] or "—"}</strong>'
-                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                        f'Owner: <strong>{prop["Owner"] or "—"}</strong>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                with col_use:
-                    if st.button('Use', key=f'sc_use_{cid}_{prop["Name"]}',
-                                 use_container_width=True):
-                        st.session_state[f'sc_entry_metric_{cid}_{dept}'] = prop['Metric']
-                        st.session_state[f'sc_entry_target_{cid}_{dept}'] = prop['Target']
-                        st.session_state[f'sc_entry_owner_{cid}_{dept}']  = prop['Owner']
-                        st.rerun()
-            st.markdown('<div style="margin-bottom:10px;"></div>', unsafe_allow_html=True)
+            is_hod = DEPARTMENT_HEADS.get(d) == name
 
-        # My proposal
-        my_prop_row = dept_props[dept_props['Name'] == name]
-        has_my_prop = not my_prop_row.empty
-
-        my_prop_label = (
-            'Your proposal (optional — for HoD to consider)'
-            if is_hod else
-            'Your proposal'
-        )
-        st.markdown(
-            f'<div style="font-size:0.72em;color:#888;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">'
-            f'{my_prop_label}'
-            + (' ✓' if has_my_prop else '')
-            + '</div>',
-            unsafe_allow_html=True,
-        )
-
-        col_m, col_t, col_o, col_btn = st.columns([3, 2, 2, 1])
-        with col_m:
-            st.text_input('Metric', key=f'sc_prop_metric_{cid}',
-                          placeholder='e.g. Repeat order rate',
-                          label_visibility='visible')
-        with col_t:
-            st.text_input('Target', key=f'sc_prop_target_{cid}',
-                          placeholder='e.g. 40% of clinics',
-                          label_visibility='visible')
-        with col_o:
-            st.text_input('Owner', key=f'sc_prop_owner_{cid}',
-                          placeholder='e.g. JK',
-                          label_visibility='visible')
-        with col_btn:
-            st.markdown('<br>', unsafe_allow_html=True)
-            btn_label = 'Update' if has_my_prop else 'Submit'
-            if st.button(btn_label, key=f'sc_submit_{cid}', use_container_width=True):
-                metric = st.session_state.get(f'sc_prop_metric_{cid}', '').strip()
-                target = st.session_state.get(f'sc_prop_target_{cid}', '').strip()
-                owner  = st.session_state.get(f'sc_prop_owner_{cid}', '').strip()
-                if metric or target or owner:
-                    try:
-                        save_scorecard_proposal(cid, dept, name, metric, target, owner)
-                        st.session_state.pop(load_flag, None)
-                        st.toast('Proposal submitted ✓', icon='✅')
-                        st.rerun()
-                    except Exception as _e:
-                        st.error(f'Could not save. ({_e})')
-                else:
-                    st.warning('Enter at least one field before submitting.')
-
-        # ── HoD: Department Answer ─────────────────────────────────────────────
-
-        if is_hod:
-            entry_row = (
-                entries_df[
-                    (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == dept)
-                ]
-                if not entries_df.empty else pd.DataFrame()
-            )
-            confirmed  = not entry_row.empty
-            edit_flag  = f'sc_entry_edit_{cid}_{dept}'
-            is_editing = st.session_state.get(edit_flag, False)
-
-            st.markdown(
-                f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
-                f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
-                f'margin-bottom:6px;">Department answer</div>',
-                unsafe_allow_html=True,
-            )
-
-            if confirmed and not is_editing:
-                # Green confirmed card + Edit button
-                row = entry_row.iloc[0]
+            # Dept subheading — only shown when the user has multiple depts
+            if multi_dept:
                 st.markdown(
-                    f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
-                    f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
-                    f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
-                    f'letter-spacing:1px;margin-bottom:8px;">CONFIRMED ✅</div>'
-                    f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Metric"] or "—"}</div></div>'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Target"] or "—"}</div></div>'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Owner"] or "—"}</div></div>'
-                    f'</div></div>',
+                    f'<div style="font-size:0.8em;font-weight:700;color:{colour};'
+                    f'text-transform:uppercase;letter-spacing:0.5px;'
+                    f'margin-top:14px;margin-bottom:6px;">{d}</div>',
                     unsafe_allow_html=True,
                 )
-                if st.button('Edit', key=f'sc_edit_btn_{cid}_{dept}'):
-                    st.session_state[edit_flag] = True
-                    st.rerun()
 
-            else:
-                # Editable fields
-                col_m2, col_t2, col_o2 = st.columns([3, 2, 2])
-                with col_m2:
-                    st.text_input('Metric ', key=f'sc_entry_metric_{cid}_{dept}',
-                                  placeholder='e.g. Repeat order rate')
-                with col_t2:
-                    st.text_input('Target ', key=f'sc_entry_target_{cid}_{dept}',
-                                  placeholder='e.g. 40% of clinics')
-                with col_o2:
-                    st.text_input('Owner ', key=f'sc_entry_owner_{cid}_{dept}',
-                                  placeholder='e.g. JK')
+            # Cascade reference
+            st.markdown(
+                f'<div style="background:#F7F7F7;border-left:3px solid #DDDDDD;'
+                f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;'
+                f'font-size:0.82em;color:#444;line-height:1.5;">'
+                f'<span style="font-size:0.72em;color:#AAAAAA;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:0.5px;">Your cascade input</span><br>'
+                f'{cascade_text}</div>',
+                unsafe_allow_html=True,
+            )
 
-                save_label = 'Update' if confirmed else 'Confirm'
-                btn_c1, btn_c2 = st.columns([1, 1])
-                with btn_c1:
-                    if confirmed:
-                        if st.button('Cancel', key=f'sc_cancel_{cid}_{dept}',
+            # Dept proposals for this choice + dept
+            dept_props = (
+                proposals_df[
+                    (proposals_df['ChoiceID'] == cid) & (proposals_df['Department'] == d)
+                ]
+                if not proposals_df.empty else pd.DataFrame(columns=proposals_df.columns)
+            )
+            others = dept_props[dept_props['Name'] != name] if not dept_props.empty else pd.DataFrame()
+
+            # Team proposals — HoD only
+            if is_hod and not others.empty:
+                st.markdown(
+                    f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
+                    f'Team proposals</div>',
+                    unsafe_allow_html=True,
+                )
+                for _, prop in others.iterrows():
+                    col_text, col_use = st.columns([5, 1])
+                    with col_text:
+                        st.markdown(
+                            f'<div style="font-size:0.82em;padding:8px 12px;'
+                            f'background:#FAFAFA;border-radius:6px;border:1px solid #EEEEEE;'
+                            f'margin-bottom:4px;">'
+                            f'<strong style="font-size:0.8em;color:#888;">{prop["Name"]}</strong>'
+                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                            f'Metric: <strong>{prop["Metric"] or "—"}</strong>'
+                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                            f'Target: <strong>{prop["Target"] or "—"}</strong>'
+                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                            f'Owner: <strong>{prop["Owner"] or "—"}</strong>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with col_use:
+                        if st.button('Use', key=f'sc_use_{cid}_{d}_{prop["Name"]}',
                                      use_container_width=True):
-                            st.session_state[edit_flag] = False
+                            st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
+                            st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
+                            st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
                             st.rerun()
-                with btn_c2:
-                    if st.button(save_label, key=f'sc_confirm_{cid}_{dept}',
-                                 type='primary', use_container_width=True):
-                        metric = st.session_state.get(
-                            f'sc_entry_metric_{cid}_{dept}', '').strip()
-                        target = st.session_state.get(
-                            f'sc_entry_target_{cid}_{dept}', '').strip()
-                        owner  = st.session_state.get(
-                            f'sc_entry_owner_{cid}_{dept}', '').strip()
-                        if metric or target or owner:
-                            try:
-                                save_scorecard_entry(
-                                    cid, dept, metric, target, owner, locked_by=name)
-                                pull_scorecard_entries.clear()
-                                st.session_state.pop(load_flag, None)
+                st.markdown('<div style="margin-bottom:10px;"></div>', unsafe_allow_html=True)
+
+            # My proposal
+            my_prop_row = dept_props[dept_props['Name'] == name]
+            has_my_prop = not my_prop_row.empty
+
+            my_prop_label = (
+                'Your proposal (optional — for HoD to consider)' if is_hod else 'Your proposal'
+            )
+            st.markdown(
+                f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">'
+                f'{my_prop_label}' + (' ✓' if has_my_prop else '') + '</div>',
+                unsafe_allow_html=True,
+            )
+
+            col_m, col_t, col_o, col_btn = st.columns([3, 2, 2, 1])
+            with col_m:
+                st.text_input('Metric', key=f'sc_prop_metric_{cid}_{d}',
+                              placeholder='e.g. Repeat order rate',
+                              label_visibility='visible')
+            with col_t:
+                st.text_input('Target', key=f'sc_prop_target_{cid}_{d}',
+                              placeholder='e.g. 40% of clinics',
+                              label_visibility='visible')
+            with col_o:
+                st.text_input('Owner', key=f'sc_prop_owner_{cid}_{d}',
+                              placeholder='e.g. JK',
+                              label_visibility='visible')
+            with col_btn:
+                st.markdown('<br>', unsafe_allow_html=True)
+                btn_label = 'Update' if has_my_prop else 'Submit'
+                if st.button(btn_label, key=f'sc_submit_{cid}_{d}', use_container_width=True):
+                    metric = st.session_state.get(f'sc_prop_metric_{cid}_{d}', '').strip()
+                    target = st.session_state.get(f'sc_prop_target_{cid}_{d}', '').strip()
+                    owner  = st.session_state.get(f'sc_prop_owner_{cid}_{d}', '').strip()
+                    if metric or target or owner:
+                        try:
+                            save_scorecard_proposal(cid, d, name, metric, target, owner)
+                            st.session_state.pop(load_flag, None)
+                            st.toast('Proposal submitted ✓', icon='✅')
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f'Could not save. ({_e})')
+                    else:
+                        st.warning('Enter at least one field before submitting.')
+
+            # HoD: Department Answer
+            if is_hod:
+                entry_row = (
+                    entries_df[
+                        (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
+                    ]
+                    if not entries_df.empty else pd.DataFrame()
+                )
+                confirmed  = not entry_row.empty
+                edit_flag  = f'sc_entry_edit_{cid}_{d}'
+                is_editing = st.session_state.get(edit_flag, False)
+
+                st.markdown(
+                    f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
+                    f'margin-bottom:6px;">Department answer</div>',
+                    unsafe_allow_html=True,
+                )
+
+                if confirmed and not is_editing:
+                    row = entry_row.iloc[0]
+                    st.markdown(
+                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
+                        f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
+                        f'letter-spacing:1px;margin-bottom:8px;">CONFIRMED ✅</div>'
+                        f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
+                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                        f'{row["Metric"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
+                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                        f'{row["Target"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
+                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                        f'{row["Owner"] or "—"}</div></div>'
+                        f'</div></div>',
+                        unsafe_allow_html=True,
+                    )
+                    if st.button('Edit', key=f'sc_edit_btn_{cid}_{d}'):
+                        st.session_state[edit_flag] = True
+                        st.rerun()
+                else:
+                    col_m2, col_t2, col_o2 = st.columns([3, 2, 2])
+                    with col_m2:
+                        st.text_input('Metric ', key=f'sc_entry_metric_{cid}_{d}',
+                                      placeholder='e.g. Repeat order rate')
+                    with col_t2:
+                        st.text_input('Target ', key=f'sc_entry_target_{cid}_{d}',
+                                      placeholder='e.g. 40% of clinics')
+                    with col_o2:
+                        st.text_input('Owner ', key=f'sc_entry_owner_{cid}_{d}',
+                                      placeholder='e.g. JK')
+                    save_label = 'Update' if confirmed else 'Confirm'
+                    btn_c1, btn_c2 = st.columns([1, 1])
+                    with btn_c1:
+                        if confirmed:
+                            if st.button('Cancel', key=f'sc_cancel_{cid}_{d}',
+                                         use_container_width=True):
                                 st.session_state[edit_flag] = False
-                                st.toast('Department answer saved ✓', icon='✅')
                                 st.rerun()
-                            except Exception as _e:
-                                st.error(f'Could not save. ({_e})')
-                        else:
-                            st.warning('Enter at least one field.')
+                    with btn_c2:
+                        if st.button(save_label, key=f'sc_confirm_{cid}_{d}',
+                                     type='primary', use_container_width=True):
+                            metric = st.session_state.get(
+                                f'sc_entry_metric_{cid}_{d}', '').strip()
+                            target = st.session_state.get(
+                                f'sc_entry_target_{cid}_{d}', '').strip()
+                            owner  = st.session_state.get(
+                                f'sc_entry_owner_{cid}_{d}', '').strip()
+                            if metric or target or owner:
+                                try:
+                                    save_scorecard_entry(
+                                        cid, d, metric, target, owner, locked_by=name)
+                                    pull_scorecard_entries.clear()
+                                    st.session_state.pop(load_flag, None)
+                                    st.session_state[edit_flag] = False
+                                    st.toast('Department answer saved ✓', icon='✅')
+                                    st.rerun()
+                                except Exception as _e:
+                                    st.error(f'Could not save. ({_e})')
+                            else:
+                                st.warning('Enter at least one field.')
+
+            # Separator between depts within a choice (not after the last one)
+            if multi_dept and d != my_depts[-1] and dept_texts.get(my_depts[my_depts.index(d) + 1], ''):
+                st.markdown(
+                    '<hr style="border:none;border-top:1px solid #F0F0F0;margin:12px 0;">',
+                    unsafe_allow_html=True,
+                )
 
         st.markdown(
             '<hr style="border:none;border-top:1px solid #EEEEEE;margin:16px 0;">',
