@@ -92,9 +92,9 @@ RULES = [
     'Stay curious when someone sees things differently',
 ]
 
-cols = st.columns(3)
+cols = st.columns(2)
 for i, rule in enumerate(RULES):
-    with cols[i % 3]:
+    with cols[i % 2]:
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
             f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
