@@ -15,45 +15,63 @@ ONE_THING_WINNERS_TAB     = 'One Thing Winners'
 DEPARTMENTS = [
     'Marketing',
     'Sales',
-    'Product / R&D',
-    'Operations & Customer Service',
+    'Engineering',
+    'Operations',
+    'Customer Service',
     'Finance',
     'Leadership & Strategy',
+    'Product Owners',
+    'R&D',
 ]
 
+FUNCTION_TIER = {
+    'Marketing':           'operational',
+    'Sales':               'operational',
+    'Engineering':         'operational',
+    'Operations':          'operational',
+    'Customer Service':    'operational',
+    'Finance':             'operational',
+    'Leadership & Strategy': 'governance',
+    'Product Owners':      'governance',
+    'R&D':                 'governance',
+}
+
 DEPARTMENT_MAP = {
-    'Alex Bartlett':    ['Product / R&D'],
-    'Andrew Morton':    ['Product / R&D'],
-    'Angelique Simon':  ['Marketing'],
-    'Bill Peng':        ['Operations & Customer Service'],
-    'Bonar Dickson':    ['Product / R&D'],
-    'Charli Every':     ['Operations & Customer Service'],
-    'Dylan Whitehouse': ['Product / R&D'],
-    'Ellissa Waters':   ['Operations & Customer Service'],
-    "Ian O'Brien":      ['Product / R&D'],
-    'James Fielding':   ['Finance', 'Leadership & Strategy'],
-    'John Krajewski':   ['Marketing', 'Sales'],
-    'Louise Heller':    ['Product / R&D'],
+    'Alex Bartlett':    ['Engineering'],
+    'Andrew Morton':    ['Engineering'],
+    'Angelique Simon':  ['Marketing', 'Product Owners'],
+    'Bill Peng':        ['Operations', 'Finance', 'Leadership & Strategy', 'Product Owners'],
+    'Bonar Dickson':    ['Engineering'],
+    'Charli Every':     ['Customer Service'],
+    'Dylan Whitehouse': ['Engineering'],
+    'Ellissa Waters':   ['Customer Service'],
+    "Ian O'Brien":      ['Engineering', 'R&D'],
+    'James Fielding':   ['Finance', 'Leadership & Strategy', 'Product Owners', 'R&D'],
+    'John Krajewski':   ['Marketing', 'Sales', 'Product Owners'],
+    'Louise Heller':    ['Engineering'],
     'Misaki Kawashima': ['Sales'],
-    'Rebekah Davidson': ['Operations & Customer Service'],
-    'Robert Poulsen':   ['Sales'],
+    'Rebekah Davidson': ['Operations', 'Customer Service'],
+    'Robert Poulsen':   ['Sales', 'Product Owners'],
     'Sayaka Smith':     ['Finance'],
 }
 
 DEPARTMENT_HEADS = {
-    'Marketing':                     'John Krajewski',
-    'Sales':                         'John Krajewski',
-    'Product / R&D':                 'Louise Heller',
-    'Operations & Customer Service': 'Bill Peng',
-    'Finance':                       'James Fielding',
-    'Leadership & Strategy':         'James Fielding',
+    'Marketing':           'Angelique Simon',
+    'Sales':               'John Krajewski',
+    'Engineering':         'Louise Heller',
+    'Operations':          'Bill Peng',
+    'Customer Service':    'Rebekah Davidson',
+    'Finance':             'James Fielding',
+    'Leadership & Strategy': 'James Fielding',
+    'Product Owners':      'James Fielding',
+    'R&D':                 "Ian O'Brien",
 }
 
 ONE_THING_STAGES = ['hidden', 'intro', 'departments', 'personal']
 ONE_THING_STAGE_LABELS = {
     'hidden':      'Not started',
     'intro':       'Introduction visible',
-    'departments': 'Departmental One Things open',
+    'departments': 'Function One Things open',
     'personal':    'Personal One Things open',
 }
 
