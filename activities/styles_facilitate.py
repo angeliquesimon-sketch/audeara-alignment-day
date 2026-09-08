@@ -18,23 +18,67 @@ inject_styles()
 
 # ── Pure-SVG team map (no matplotlib) ────────────────────────────────────────────
 
-def _team_map_svg(profiles, width=600, height=430):
-    hw, hh = width // 2, height // 2
-    dots_svg = ''
+def _team_map_svg(profiles, width=700, height=500):
+    """Pure SVG team scatter map with collision-aware label placement."""
+    hw, hh   = width // 2, height // 2
+    LABEL_H  = 13
+    CHAR_W   = 5.8
+    DOT_R    = 10
+
+    positioned = []
     for p in profiles:
-        s  = p['scores']
-        xn = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
-        yn = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
-        cx = int(xn * width)
-        cy = int((1 - yn) * height)
-        color = HEX[p['primary']]
-        name  = p['name']
-        dots_svg += (
-            f'<circle cx="{cx}" cy="{cy}" r="10" fill="{color}" '
+        s      = p['scores']
+        xn     = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
+        yn     = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
+        cx     = int(xn * width)
+        cy     = int((1 - yn) * height)
+        half_w = len(p['name']) * CHAR_W / 2
+        positioned.append({
+            'name': p['name'], 'color': HEX[p['primary']],
+            'cx': cx, 'cy': cy, 'half_w': half_w,
+        })
+
+    positioned.sort(key=lambda p: p['cy'])
+
+    placed = []
+    for pos in positioned:
+        lx, ly = pos['cx'], pos['cy'] - DOT_R - 6
+        for _ in range(30):
+            if not any(
+                abs(ly - py) < LABEL_H and abs(lx - px) < pos['half_w'] + pw + 4
+                for px, py, pw in placed
+            ):
+                break
+            ly -= LABEL_H
+        ly = max(10, min(height - 6, ly))
+        placed.append((lx, ly, pos['half_w']))
+        pos['lx'], pos['ly'] = lx, ly
+
+    leader_svg = bg_svg = dot_svg = label_svg = ''
+    for pos in positioned:
+        moved = pos['ly'] < pos['cy'] - DOT_R - 6 - LABEL_H
+        if moved:
+            leader_svg += (
+                f'<line x1="{pos["cx"]}" y1="{pos["cy"] - DOT_R - 2}" '
+                f'x2="{pos["lx"]}" y2="{pos["ly"] + 2}" '
+                f'stroke="#CCCCCC" stroke-width="0.8" stroke-dasharray="2,2"/>'
+            )
+        dot_svg += (
+            f'<circle cx="{pos["cx"]}" cy="{pos["cy"]}" r="{DOT_R}" fill="{pos["color"]}" '
             f'stroke="white" stroke-width="2" opacity="0.92"/>'
-            f'<text x="{cx}" y="{cy - 14}" text-anchor="middle" '
-            f'font-size="10" fill="#333333" font-family="sans-serif">{name}</text>'
         )
+        hw_l = pos['half_w']
+        pad  = 3
+        bg_svg += (
+            f'<rect x="{pos["lx"] - hw_l - pad:.0f}" y="{pos["ly"] - 10:.0f}" '
+            f'width="{(hw_l + pad) * 2:.0f}" height="13" '
+            f'fill="white" opacity="0.82" rx="2"/>'
+        )
+        label_svg += (
+            f'<text x="{pos["lx"]}" y="{pos["ly"]}" text-anchor="middle" '
+            f'font-size="10" fill="#333333" font-family="sans-serif">{pos["name"]}</text>'
+        )
+
     return (
         f'<div style="background:#F9F9F9;border-radius:8px;padding:8px 0;">'
         f'<svg viewBox="0 0 {width} {height}" style="width:100%;">'
@@ -52,7 +96,7 @@ def _team_map_svg(profiles, width=600, height=430):
         f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
         f'<text x="{hw}" y="16" text-anchor="middle" font-size="11" '
         f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
-        f'{dots_svg}'
+        f'{leader_svg}{dot_svg}{bg_svg}{label_svg}'
         f'</svg></div>'
     )
 
