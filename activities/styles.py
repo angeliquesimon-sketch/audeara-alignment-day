@@ -31,8 +31,8 @@ def _render_spectrum(current, sc, df, started_at):
     people = [(row['Name'], int(row[col])) for _, row in df_shown.iterrows()]
 
     W      = 600
-    H      = 50
-    LINE_Y = H // 2
+    H      = 32
+    LINE_Y = 16
     DOT_R  = 9
 
     def _initials(name):
@@ -80,7 +80,7 @@ def _render_spectrum(current, sc, df, started_at):
         )
 
     return (
-        f'<div style="background:#FAFAFA;border-radius:6px;padding:4px 0;margin:4px 0;">'
+        f'<div style="background:#FAFAFA;border-radius:6px;padding:0;margin:0;">'
         f'<svg viewBox="0 0 {W} {H}" style="width:100%;">'
         f'<rect x="0" y="{LINE_Y-8}" width="300" height="16" fill="{lc}" opacity="0.07"/>'
         f'<rect x="300" y="{LINE_Y-8}" width="300" height="16" fill="{rc}" opacity="0.07"/>'
