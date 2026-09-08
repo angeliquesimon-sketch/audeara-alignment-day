@@ -30,8 +30,8 @@ conf_open = session.get('confidence_open', '0') == '1'
 STAGE_LABELS = {
     'hidden':  'Hidden',
     'engines': 'Commercial Engines',
+    'working': 'How We Operate',
     'choices': 'Strategic Choices',
-    'working': 'How We Will Work',
     'cascade': 'Cascade',
     'reveal':  'Full Reveal',
 }

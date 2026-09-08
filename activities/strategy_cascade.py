@@ -48,7 +48,7 @@ stage     = session.get('stage', 'hidden')
 cur_idx   = int(session.get('current_choice', 0))
 conf_open = session.get('confidence_open', '0') == '1'
 
-STAGE_ORDER = ['hidden', 'engines', 'choices', 'working', 'cascade', 'reveal']
+STAGE_ORDER = ['hidden', 'engines', 'working', 'choices', 'cascade', 'reveal']
 stage_idx   = STAGE_ORDER.index(stage) if stage in STAGE_ORDER else 0
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -193,8 +193,8 @@ with tab_pres:
                     )
 
 
-        # CHOICES ── show from stage_idx 2 onwards
-        if stage_idx >= 2:
+        # CHOICES ── show from stage_idx 3 onwards
+        if stage_idx >= 3:
             _live_choices = get_live_choices()
             st.markdown('<div style="margin-top:28px;"></div>', unsafe_allow_html=True)
             _section_label('FY27 STRATEGIC CHOICES')
@@ -261,8 +261,8 @@ with tab_pres:
                                 unsafe_allow_html=True,
                             )
 
-        # HOW WE WORK ── show from stage_idx 3 onwards
-        if stage_idx >= 3:
+        # HOW WE OPERATE ── show from stage_idx 2 onwards (before choices)
+        if stage_idx >= 2:
             _live_how = get_live_how()
             _how_items = ''.join([
                 f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
