@@ -148,8 +148,8 @@ with tab_intro:
 
         ot_winners_intro = pull_one_thing_winners()
         st.markdown(
-            _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners_intro) +
-            _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners_intro),
+            _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners_intro, show_lead=True) +
+            _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners_intro, show_lead=True),
             unsafe_allow_html=True,
         )
 
