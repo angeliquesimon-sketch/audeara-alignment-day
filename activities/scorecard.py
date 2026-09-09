@@ -10,7 +10,8 @@ from strategy_cascade_shared import pull_cascade_contributions, get_live_choices
 from scorecard_shared import (
     _ensure_scorecard_tab, _ensure_scorecard_proposals_tab,
     pull_scorecard_entries, pull_scorecard_proposals,
-    save_scorecard_proposal, save_scorecard_entry, delete_scorecard_entry,
+    save_scorecard_proposal, save_scorecard_entry,
+    delete_scorecard_entry, delete_scorecard_proposal,
 )
 from one_thing_shared import DEPARTMENT_MAP, DEPARTMENT_HEADS, DEPARTMENTS
 from styles_shared import TEAM
@@ -332,7 +333,9 @@ with tab_dept:
                                     save_scorecard_entry(
                                         cid, d, prop['Metric'], prop['Target'],
                                         prop['Owner'], locked_by=name)
+                                    delete_scorecard_proposal(cid, d, prop['Timestamp'])
                                     pull_scorecard_entries.clear()
+                                    pull_scorecard_proposals.clear()
                                     st.toast('Confirmed ✓', icon='✅')
                                     st.rerun()
                                 except Exception as _e:

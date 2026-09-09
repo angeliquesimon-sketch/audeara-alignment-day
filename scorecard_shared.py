@@ -119,6 +119,38 @@ def save_scorecard_entry(choice_id: str, dept: str, metric: str, target: str,
     with_retry(_do, on_retry=_clear_sheets)
 
 
+def delete_scorecard_proposal(choice_id: str, dept: str, timestamp: str):
+    """Delete a proposal row by matching Timestamp + ChoiceID + Department."""
+    def _do():
+        svc  = _sheets()
+        meta = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+        sheet_gid = next(
+            (s['properties']['sheetId'] for s in meta.get('sheets', [])
+             if s['properties']['title'] == PROPOSALS_TAB),
+            None,
+        )
+        if sheet_gid is None:
+            return
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{PROPOSALS_TAB}'!A:G",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=1):
+            if (len(row) >= 3 and row[0] == timestamp
+                    and row[1] == choice_id and row[2] == dept):
+                svc.spreadsheets().batchUpdate(
+                    spreadsheetId=SHEET_ID,
+                    body={'requests': [{'deleteDimension': {'range': {
+                        'sheetId': sheet_gid,
+                        'dimension': 'ROWS',
+                        'startIndex': i,
+                        'endIndex': i + 1,
+                    }}}]},
+                ).execute()
+                pull_scorecard_proposals.clear()
+                return
+    with_retry(_do, on_retry=_clear_sheets)
+
+
 def delete_scorecard_entry(choice_id: str, dept: str, timestamp: str):
     """Delete a specific confirmed entry by matching Timestamp + ChoiceID + Department."""
     def _do():
