@@ -89,23 +89,11 @@ def pull_scorecard_proposals():
 
 def save_scorecard_proposal(choice_id: str, dept: str, name: str,
                              metric: str, target: str, owner: str):
-    """Upsert by (ChoiceID, Department, Name)."""
+    """Always append a new proposal row (multiple per person allowed)."""
     def _do():
-        svc  = _sheets()
-        rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{PROPOSALS_TAB}'!A:G",
-        ).execute().get('values', [])
-        new  = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                choice_id, dept, name, metric, target, owner]
-        for i, row in enumerate(rows[1:], start=2):
-            if len(row) >= 4 and row[1] == choice_id and row[2] == dept and row[3] == name:
-                svc.spreadsheets().values().update(
-                    spreadsheetId=SHEET_ID,
-                    range=f"'{PROPOSALS_TAB}'!A{i}:G{i}",
-                    valueInputOption='RAW', body={'values': [new]},
-                ).execute()
-                pull_scorecard_proposals.clear()
-                return
+        svc = _sheets()
+        new = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+               choice_id, dept, name, metric, target, owner]
         svc.spreadsheets().values().append(
             spreadsheetId=SHEET_ID, range=f"'{PROPOSALS_TAB}'!A:G",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
