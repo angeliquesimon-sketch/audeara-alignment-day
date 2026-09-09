@@ -262,7 +262,7 @@ st.markdown('')
 # ── Ground rules ──────────────────────────────────────────────────────────────
 
 st.markdown(
-    f'<div style="font-weight:700;font-size:1.05em;color:{TEAL};margin-bottom:14px;">'
+    f'<div style="font-weight:700;font-size:1.4em;color:{TEAL};margin-bottom:14px;">'
     f'Good times. Good vibes.</div>',
     unsafe_allow_html=True,
 )
@@ -281,7 +281,7 @@ for i, rule in enumerate(RULES):
     with cols[i % 2]:
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:1.0em;color:#444;line-height:1.5;">'
             f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{rule}</div>',
             unsafe_allow_html=True,
         )
@@ -308,26 +308,26 @@ col_why, col_leave = st.columns(2)
 
 with col_why:
     st.markdown(
-        f'<div style="font-weight:700;color:{PURPLE};margin-bottom:10px;">Why we\'re here</div>',
+        f'<div style="font-weight:700;font-size:1.15em;color:{PURPLE};margin-bottom:10px;">Why we\'re here</div>',
         unsafe_allow_html=True,
     )
     for item in WHY_HERE:
         st.markdown(
             f'<div style="background:#F7F0F7;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:1.0em;color:#444;line-height:1.5;">'
             f'<span style="color:{PURPLE};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
             unsafe_allow_html=True,
         )
 
 with col_leave:
     st.markdown(
-        f'<div style="font-weight:700;color:{TEAL};margin-bottom:10px;">What we want to leave with</div>',
+        f'<div style="font-weight:700;font-size:1.15em;color:{TEAL};margin-bottom:10px;">What we want to leave with</div>',
         unsafe_allow_html=True,
     )
     for item in LEAVE_WITH:
         st.markdown(
             f'<div style="background:#F0F8F8;border-radius:8px;padding:12px 14px;'
-            f'margin-bottom:10px;font-size:0.95em;color:#444;line-height:1.5;">'
+            f'margin-bottom:10px;font-size:1.0em;color:#444;line-height:1.5;">'
             f'<span style="color:{TEAL};font-weight:700;margin-right:6px;">✦</span>{item}</div>',
             unsafe_allow_html=True,
         )
@@ -384,8 +384,8 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid {bc};background:{bg};'
             f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:{tc};">{icon}&nbsp; {label}</div>'
-            f'<div style="font-size:0.95em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:{tc};">{icon}&nbsp; {label}</div>'
+            f'<div style="font-size:1.0em;color:{tc};opacity:0.85;margin-top:3px;">{detail}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -531,7 +531,7 @@ def _overview():
             m_bc, m_bg, m_icon = '#781E73', '#F7F0F7', '✅'
             m_heading = 'Mission Statement'
             m_body = (
-                f'<div style="font-size:0.95em;line-height:1.7;margin-top:6px;">'
+                f'<div style="font-size:1.0em;line-height:1.7;margin-top:6px;">'
                 f'We help <strong>{mission_top["Who"]}</strong> '
                 f'do <strong>{mission_top["What"]}</strong> '
                 f'by <strong>{mission_top["How"]}</strong>, '
@@ -541,16 +541,16 @@ def _overview():
         elif mission_alive:
             m_bc, m_bg, m_icon = '#C4A0C2', '#FAF5FA', '💬'
             m_heading = f'Mission Statement — {n_mission} idea{"s" if n_mission != 1 else ""} in'
-            m_body = '<div style="font-size:0.95em;color:#999;margin-top:4px;">Voting will surface the top answers.</div>'
+            m_body = '<div style="font-size:1.0em;color:#999;margin-top:4px;">Voting will surface the top answers.</div>'
         else:
             m_bc, m_bg, m_icon = '#CCCCCC', '#F5F5F5', '⏳'
             m_heading = 'Mission Statement'
-            m_body = '<div style="font-size:0.95em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
+            m_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
 
         st.markdown(
             f'<div style="border-left:4px solid {m_bc};background:{m_bg};'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:{m_bc};">{m_icon} {m_heading}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:{m_bc};">{m_icon} {m_heading}</div>'
             f'{m_body}</div>',
             unsafe_allow_html=True,
         )
@@ -559,20 +559,20 @@ def _overview():
         if vision_done:
             v_bc, v_bg, v_icon = '#188383', '#F0F8F8', '✅'
             v_heading = 'Vision Statement'
-            v_body = f'<div style="font-size:0.95em;line-height:1.7;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
+            v_body = f'<div style="font-size:1.0em;line-height:1.7;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
         elif vision_alive:
             v_bc, v_bg, v_icon = '#9BCFCF', '#F3FAFA', '🎨'
             v_heading = f'Vision — {n_vision} cover {"stories" if n_vision != 1 else "story"} in'
-            v_body = '<div style="font-size:0.95em;color:#999;margin-top:4px;">Voting will surface the top answers. Facilitator locks the final statement.</div>'
+            v_body = '<div style="font-size:1.0em;color:#999;margin-top:4px;">Voting will surface the top answers. Facilitator locks the final statement.</div>'
         else:
             v_bc, v_bg, v_icon = '#CCCCCC', '#F5F5F5', '⏳'
             v_heading = 'Vision Statement'
-            v_body = '<div style="font-size:0.95em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
+            v_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
 
         st.markdown(
             f'<div style="border-left:4px solid {v_bc};background:{v_bg};'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:{v_bc};">{v_icon} {v_heading}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:{v_bc};">{v_icon} {v_heading}</div>'
             f'{v_body}</div>',
             unsafe_allow_html=True,
         )
@@ -581,8 +581,8 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid #50144B;background:#F5EFF5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:#50144B;">Values</div>'
-            f'<div style="font-size:0.95em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#50144B;">Values</div>'
+            f'<div style="font-size:1.0em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -591,15 +591,15 @@ def _overview():
         st.markdown(
             f'<div style="border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.05em;color:#005E63;">Brand promise</div>'
-            f'<div style="font-size:1.05em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">Brand promise</div>'
+            f'<div style="font-size:1.15em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
     st.divider()
     st.markdown(
-        f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
+        f'<div style="font-weight:700;font-size:1.4em;color:#333;margin-bottom:16px;">'
         f"Who we are and how we work</div>",
         unsafe_allow_html=True,
     )
@@ -607,7 +607,7 @@ def _overview():
     # ── Organogram ────────────────────────────────────────────────────────────
 
     st.markdown(
-        '<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
+        '<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         'color:#888;margin-bottom:10px;">THE TEAM</div>',
         unsafe_allow_html=True,
     )
@@ -654,7 +654,7 @@ def _overview():
         unsafe_allow_html=True,
     )
     st.markdown(
-        f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
+        f'<div style="font-weight:700;font-size:1.4em;color:#333;margin-bottom:16px;">'
         f'FY27 Strategy</div>',
         unsafe_allow_html=True,
     )
@@ -662,7 +662,7 @@ def _overview():
     if not casc_alive:
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:16px;'
-            f'text-align:center;font-size:0.9em;color:#AAAAAA;font-style:italic;">'
+            f'text-align:center;font-size:1.0em;color:#AAAAAA;font-style:italic;">'
             f'Strategic choices and scorecard entries will appear here as the session progresses.</div>',
             unsafe_allow_html=True,
         )
@@ -710,13 +710,13 @@ def _overview():
                     metric_strip = ''.join(
                         f'<div style="display:flex;gap:8px;flex-wrap:wrap;'
                         f'margin-top:4px;{"padding-top:4px;border-top:1px solid #E8E0E8;" if ei > 0 else ""}">'
-                        f'<span style="font-size:0.7em;background:{colour}14;color:{colour};'
+                        f'<span style="font-size:0.85em;background:{colour}14;color:{colour};'
                         f'font-weight:600;padding:2px 7px;border-radius:10px;">'
                         f'{e["Metric"] or "—"}</span>'
-                        f'<span style="font-size:0.7em;background:#F0F0F0;color:#555;'
+                        f'<span style="font-size:0.85em;background:#F0F0F0;color:#555;'
                         f'padding:2px 7px;border-radius:10px;">'
                         f'Target: {e["Target"] or "—"}</span>'
-                        f'<span style="font-size:0.7em;background:#F0F0F0;color:#555;'
+                        f'<span style="font-size:0.85em;background:#F0F0F0;color:#555;'
                         f'padding:2px 7px;border-radius:10px;">'
                         f'{e["Owner"] or "—"}</span>'
                         f'</div>'
@@ -724,18 +724,18 @@ def _overview():
                     )
                 else:
                     metric_strip = (
-                        f'<div style="font-size:0.7em;color:#CCCCCC;margin-top:3px;">'
+                        f'<div style="font-size:0.85em;color:#CCCCCC;margin-top:3px;">'
                         f'Scorecard pending</div>'
                     )
-                tick = '<span style="font-size:0.65em;color:#3EAA6D;">✓</span>' if row['saved'] else ''
+                tick = '<span style="font-size:0.85em;color:#3EAA6D;">✓</span>' if row['saved'] else ''
                 dept_rows_html += (
                     f'<div style="padding:7px 0;border-top:1px solid #F0EBF0;">'
                     f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
-                    f'<span style="font-size:0.65em;font-weight:700;color:{colour};'
+                    f'<span style="font-size:0.85em;font-weight:700;color:{colour};'
                     f'text-transform:uppercase;letter-spacing:0.6px;">{row["dept"]}</span>'
                     f'{tick}'
                     f'</div>'
-                    f'<div style="font-size:0.76em;color:#666;line-height:1.4;margin-top:2px;'
+                    f'<div style="font-size:0.9em;color:#666;line-height:1.4;margin-top:2px;'
                     f'font-style:italic;">{cascade_text}</div>'
                     f'{metric_strip}'
                     f'</div>'
@@ -747,7 +747,7 @@ def _overview():
                     f'border-radius:0 0 10px 10px;padding:12px 14px;margin-bottom:12px;">'
                     f'<div style="display:flex;justify-content:flex-end;align-items:baseline;'
                     f'margin-bottom:2px;">'
-                    f'<div style="font-size:0.65em;color:{status_colour};font-weight:600;">'
+                    f'<div style="font-size:0.85em;color:{status_colour};font-weight:600;">'
                     f'{status_label}</div>'
                     f'</div>'
                     f'<div style="font-weight:700;font-size:0.9em;color:#1a1a1a;'

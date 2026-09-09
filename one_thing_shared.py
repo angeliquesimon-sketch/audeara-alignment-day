@@ -111,7 +111,7 @@ GOVERNANCE_FUNCTIONS = [
 
 def _fn_table_html(label, functions, winners):
     TH = (
-        'text-align:left;font-size:0.7em;font-weight:700;letter-spacing:1px;'
+        'text-align:left;font-size:0.85em;font-weight:700;letter-spacing:1px;'
         f'color:{WINE};padding:8px 12px;'
     )
     rows = ''
@@ -119,22 +119,22 @@ def _fn_table_html(label, functions, winners):
         winner = winners.get(fn['name'], '')
         border = '' if i == len(functions) - 1 else 'border-bottom:1px solid #F0EBF0;'
         if winner:
-            ot = f'<span style="font-size:0.82em;color:{FOREST};line-height:1.45;">{winner}</span>'
+            ot = f'<span style="font-size:0.9em;color:{FOREST};line-height:1.45;">{winner}</span>'
         else:
-            ot = '<span style="font-size:0.82em;color:#CCCCCC;font-style:italic;">Not yet agreed</span>'
+            ot = '<span style="font-size:0.9em;color:#CCCCCC;font-style:italic;">Not yet agreed</span>'
         rows += (
             f'<tr style="{border}">'
-            f'<td style="font-weight:700;font-size:0.8em;color:{WINE};padding:10px 12px;'
+            f'<td style="font-weight:700;font-size:0.9em;color:{WINE};padding:10px 12px;'
             f'vertical-align:top;white-space:nowrap;">{fn["name"]}</td>'
-            f'<td style="font-size:0.77em;color:#555;line-height:1.5;padding:10px 12px;'
+            f'<td style="font-size:0.9em;color:#555;line-height:1.5;padding:10px 12px;'
             f'vertical-align:top;">{fn["defn"]}</td>'
-            f'<td style="font-size:0.77em;color:#777;padding:10px 12px;'
+            f'<td style="font-size:0.9em;color:#777;padding:10px 12px;'
             f'vertical-align:top;">{fn["members"]}</td>'
             f'<td style="padding:10px 12px;vertical-align:top;">{ot}</td>'
             f'</tr>'
         )
     return (
-        f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;color:#888;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;color:#888;'
         f'margin-bottom:8px;">{label}</div>'
         f'<div style="border:1px solid #E8E0E8;border-radius:8px;overflow:hidden;margin-bottom:24px;">'
         f'<table style="width:100%;border-collapse:collapse;">'
