@@ -10,7 +10,7 @@ from strategy_cascade_shared import pull_cascade_contributions, get_live_choices
 from scorecard_shared import (
     _ensure_scorecard_tab, _ensure_scorecard_proposals_tab,
     pull_scorecard_entries, pull_scorecard_proposals,
-    save_scorecard_proposal, save_scorecard_entry,
+    save_scorecard_proposal, save_scorecard_entry, delete_scorecard_entry,
 )
 from one_thing_shared import DEPARTMENT_MAP, DEPARTMENT_HEADS, DEPARTMENTS
 from styles_shared import TEAM
@@ -163,9 +163,6 @@ with tab_dept:
             pull_scorecard_proposals.clear()
             pull_scorecard_entries.clear()
             pull_cascade_contributions.clear()
-            for key in list(st.session_state.keys()):
-                if key.startswith('_sc_loaded_'):
-                    del st.session_state[key]
             st.rerun()
 
     choices      = get_live_choices()
@@ -183,24 +180,6 @@ with tab_dept:
             (~contribs_df['Status'].isin(['deleted', 'opted_out']))
         ].sort_values('Timestamp', ascending=False)
         return sub.iloc[0]['Text'].strip() if not sub.empty else ''
-
-    # Initialise HOD entry fields from saved sheet data — once per name
-    load_flag = f'_sc_loaded_{name}'
-    if not st.session_state.get(load_flag):
-        for d in my_depts:
-            if DEPARTMENT_HEADS.get(d) != name:
-                continue
-            my_entries = entries_df[
-                entries_df['Department'] == d
-            ] if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
-            for choice in choices:
-                cid   = choice['id']
-                entry = my_entries[my_entries['ChoiceID'] == cid]
-                for fld in ['Metric', 'Target', 'Owner']:
-                    k = f'sc_entry_{fld.lower()}_{cid}_{d}'
-                    if k not in st.session_state:
-                        st.session_state[k] = entry.iloc[0][fld] if not entry.empty else ''
-        st.session_state[load_flag] = True
 
     # Check if any of the user's depts have contributed to any choice
     any_contribs = any(_cascade_text(c['id'], d) for c in choices for d in my_depts)
@@ -315,7 +294,6 @@ with tab_dept:
                                 st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
                                 st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
                                 st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
-                                st.session_state[f'sc_entry_edit_{cid}_{d}']   = True
                                 st.rerun()
                     else:
                         st.markdown(prop_card, unsafe_allow_html=True)
@@ -350,7 +328,6 @@ with tab_dept:
                     if m or t or o:
                         try:
                             save_scorecard_proposal(cid, d, name, m, t, o)
-                            st.session_state.pop(load_flag, None)
                             st.toast('Metric added ✓', icon='✅')
                             st.rerun()
                         except Exception as _e:
@@ -358,16 +335,14 @@ with tab_dept:
                     else:
                         st.warning('Enter at least one field.')
 
-            # Function answer — confirmed visible to all; entry/edit for Function Lead only
-            entry_row = (
+            # Function answer — multiple confirmed entries; all see green cards;
+            # Function Lead has remove buttons and a confirm form
+            dept_entries = (
                 entries_df[
                     (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
                 ]
-                if not entries_df.empty else pd.DataFrame()
+                if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
             )
-            confirmed  = not entry_row.empty
-            edit_flag  = f'sc_entry_edit_{cid}_{d}'
-            is_editing = st.session_state.get(edit_flag, False)
 
             st.markdown(
                 f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
@@ -376,35 +351,59 @@ with tab_dept:
                 unsafe_allow_html=True,
             )
 
-            if confirmed and not is_editing:
-                row = entry_row.iloc[0]
+            if dept_entries.empty:
                 st.markdown(
-                    f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
-                    f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
-                    f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
-                    f'letter-spacing:1px;margin-bottom:8px;">CONFIRMED ✅</div>'
-                    f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Metric"] or "—"}</div></div>'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Target"] or "—"}</div></div>'
-                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                    f'{row["Owner"] or "—"}</div></div>'
-                    f'</div></div>',
+                    '<div style="font-size:0.82em;color:#BBBBBB;font-style:italic;'
+                    'margin-bottom:8px;">Nothing confirmed yet.</div>',
                     unsafe_allow_html=True,
                 )
-                if is_hod:
-                    if st.button('Edit', key=f'sc_edit_btn_{cid}_{d}'):
-                        st.session_state[edit_flag] = True
-                        st.rerun()
-            elif is_hod:
-                col_m2, col_t2, col_o2 = st.columns([3, 2, 2])
+            else:
+                for ei, (_, erow) in enumerate(dept_entries.iterrows()):
+                    entry_card = (
+                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                        f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:6px;">'
+                        f'<div style="font-size:0.68em;font-weight:700;color:#2D7D4F;'
+                        f'letter-spacing:1px;margin-bottom:6px;">CONFIRMED ✅</div>'
+                        f'<div style="display:flex;gap:20px;flex-wrap:wrap;">'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
+                        f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                        f'{erow["Metric"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
+                        f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                        f'{erow["Target"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
+                        f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                        f'{erow["Owner"] or "—"}</div></div>'
+                        f'</div></div>'
+                    )
+                    if is_hod:
+                        col_card, col_del = st.columns([5, 1])
+                        with col_card:
+                            st.markdown(entry_card, unsafe_allow_html=True)
+                        with col_del:
+                            if st.button('✕', key=f'sc_del_{cid}_{d}_{ei}',
+                                         use_container_width=True,
+                                         help='Remove this confirmed metric'):
+                                try:
+                                    delete_scorecard_entry(cid, d, erow['Timestamp'])
+                                    st.toast('Metric removed', icon='🗑️')
+                                    st.rerun()
+                                except Exception as _e:
+                                    st.error(f'Could not remove. ({_e})')
+                    else:
+                        st.markdown(entry_card, unsafe_allow_html=True)
+
+            if is_hod:
+                st.markdown(
+                    f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;'
+                    f'margin-top:10px;margin-bottom:4px;">Confirm a metric</div>',
+                    unsafe_allow_html=True,
+                )
+                col_m2, col_t2, col_o2, col_btn2 = st.columns([3, 2, 2, 1])
                 with col_m2:
                     st.text_input('Metric ', key=f'sc_entry_metric_{cid}_{d}',
                                   placeholder='e.g. Repeat order rate')
@@ -414,16 +413,9 @@ with tab_dept:
                 with col_o2:
                     st.text_input('Owner ', key=f'sc_entry_owner_{cid}_{d}',
                                   placeholder='e.g. JK')
-                save_label = 'Update' if confirmed else 'Confirm'
-                btn_c1, btn_c2 = st.columns([1, 1])
-                with btn_c1:
-                    if confirmed:
-                        if st.button('Cancel', key=f'sc_cancel_{cid}_{d}',
-                                     use_container_width=True):
-                            st.session_state[edit_flag] = False
-                            st.rerun()
-                with btn_c2:
-                    if st.button(save_label, key=f'sc_confirm_{cid}_{d}',
+                with col_btn2:
+                    st.markdown('<br>', unsafe_allow_html=True)
+                    if st.button('Confirm', key=f'sc_confirm_{cid}_{d}',
                                  type='primary', use_container_width=True):
                         metric = st.session_state.get(
                             f'sc_entry_metric_{cid}_{d}', '').strip()
@@ -436,15 +428,16 @@ with tab_dept:
                                 save_scorecard_entry(
                                     cid, d, metric, target, owner, locked_by=name)
                                 pull_scorecard_entries.clear()
-                                st.session_state.pop(load_flag, None)
-                                st.session_state[edit_flag] = False
-                                st.toast('Function answer saved ✓', icon='✅')
+                                st.session_state[f'sc_entry_metric_{cid}_{d}'] = ''
+                                st.session_state[f'sc_entry_target_{cid}_{d}'] = ''
+                                st.session_state[f'sc_entry_owner_{cid}_{d}']  = ''
+                                st.toast('Metric confirmed ✓', icon='✅')
                                 st.rerun()
                             except Exception as _e:
                                 st.error(f'Could not save. ({_e})')
                         else:
                             st.warning('Enter at least one field.')
-            else:
+            elif dept_entries.empty:
                 st.markdown(
                     '<div style="font-size:0.82em;color:#AAAAAA;font-style:italic;">'
                     'Pending — Function Lead will confirm.</div>',
@@ -511,9 +504,7 @@ with tab_all:
                 rows.append({
                     'dept':    d,
                     'cascade': dept_inputs.get(d, ''),
-                    'metric':  entry.iloc[0]['Metric'] if not entry.empty else '',
-                    'target':  entry.iloc[0]['Target'] if not entry.empty else '',
-                    'owner':   entry.iloc[0]['Owner']  if not entry.empty else '',
+                    'entries': entry.to_dict('records') if not entry.empty else [],
                     'saved':   not entry.empty,
                 })
 
@@ -558,23 +549,24 @@ with tab_all:
             )
 
             for row in rows:
-                text_col = '#1a1a1a' if row['saved'] else '#AAAAAA'
-                if row['saved']:
-                    metric_html = (
-                        f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
+                if row['entries']:
+                    metric_html = ''.join(
+                        f'<div style="display:flex;gap:24px;flex-wrap:wrap;'
+                        f'{"margin-top:6px;padding-top:6px;border-top:1px solid #D5EDDF;" if ei > 0 else ""}">'
                         f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                        f'<div style="font-size:0.85em;color:{text_col};font-weight:600;">'
-                        f'{row["metric"] or "—"}</div></div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Metric"] or "—"}</div></div>'
                         f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                        f'<div style="font-size:0.85em;color:{text_col};font-weight:600;">'
-                        f'{row["target"] or "—"}</div></div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Target"] or "—"}</div></div>'
                         f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                        f'<div style="font-size:0.85em;color:{text_col};font-weight:600;">'
-                        f'{row["owner"] or "—"}</div></div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Owner"] or "—"}</div></div>'
                         f'</div>'
+                        for ei, e in enumerate(row['entries'])
                     )
                 else:
                     metric_html = (

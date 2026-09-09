@@ -67,18 +67,6 @@ contribs_df = pull_cascade_contributions()
 entries_df  = pull_scorecard_entries()
 choices     = get_live_choices()
 
-# ── Initialise session state from saved entries (once per session) ─────────────
-
-if not st.session_state.get('_sc_entries_loaded'):
-    for _, row in entries_df.iterrows():
-        cid  = row['ChoiceID']
-        dept = row['Department']
-        for fld in ['Metric', 'Target', 'Owner']:
-            k = f'sc_{fld.lower()}_{cid}_{dept}'
-            if k not in st.session_state:
-                st.session_state[k] = row[fld]
-    st.session_state['_sc_entries_loaded'] = True
-
 # ── Helper: latest contribution per dept for a choice ─────────────────────────
 
 def _dept_contribs(choice_id: str) -> dict:
@@ -214,7 +202,6 @@ for idx, choice in enumerate(choices):
                     if metric or target or owner:
                         try:
                             save_scorecard_entry(cid, dept, metric, target, owner, locked_by='Facilitator')
-                            st.session_state.pop('_sc_entries_loaded', None)
                             st.toast(f'{dept} saved ✓', icon='✅')
                             st.rerun()
                         except Exception as _e:

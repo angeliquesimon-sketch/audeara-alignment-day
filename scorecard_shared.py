@@ -105,27 +105,47 @@ def save_scorecard_proposal(choice_id: str, dept: str, name: str,
 
 def save_scorecard_entry(choice_id: str, dept: str, metric: str, target: str,
                          owner: str, locked_by: str = ''):
-    """Upsert by (ChoiceID, Department)."""
+    """Always append a new confirmed entry (multiple allowed per function per choice)."""
     def _do():
-        svc  = _sheets()
-        rows = svc.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID, range=f"'{SCORECARD_TAB}'!A:G",
-        ).execute().get('values', [])
-        new  = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                choice_id, dept, metric, target, owner, locked_by]
-        for i, row in enumerate(rows[1:], start=2):
-            if len(row) >= 3 and row[1] == choice_id and row[2] == dept:
-                svc.spreadsheets().values().update(
-                    spreadsheetId=SHEET_ID,
-                    range=f"'{SCORECARD_TAB}'!A{i}:G{i}",
-                    valueInputOption='RAW', body={'values': [new]},
-                ).execute()
-                pull_scorecard_entries.clear()
-                return
+        svc = _sheets()
+        new = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+               choice_id, dept, metric, target, owner, locked_by]
         svc.spreadsheets().values().append(
             spreadsheetId=SHEET_ID, range=f"'{SCORECARD_TAB}'!A:G",
             valueInputOption='RAW', insertDataOption='INSERT_ROWS',
             body={'values': [new]},
         ).execute()
         pull_scorecard_entries.clear()
+    with_retry(_do, on_retry=_clear_sheets)
+
+
+def delete_scorecard_entry(choice_id: str, dept: str, timestamp: str):
+    """Delete a specific confirmed entry by matching Timestamp + ChoiceID + Department."""
+    def _do():
+        svc  = _sheets()
+        meta = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+        sheet_gid = next(
+            (s['properties']['sheetId'] for s in meta.get('sheets', [])
+             if s['properties']['title'] == SCORECARD_TAB),
+            None,
+        )
+        if sheet_gid is None:
+            return
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{SCORECARD_TAB}'!A:G",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=1):
+            if (len(row) >= 3 and row[0] == timestamp
+                    and row[1] == choice_id and row[2] == dept):
+                svc.spreadsheets().batchUpdate(
+                    spreadsheetId=SHEET_ID,
+                    body={'requests': [{'deleteDimension': {'range': {
+                        'sheetId': sheet_gid,
+                        'dimension': 'ROWS',
+                        'startIndex': i,
+                        'endIndex': i + 1,
+                    }}}]},
+                ).execute()
+                pull_scorecard_entries.clear()
+                return
     with_retry(_do, on_retry=_clear_sheets)
