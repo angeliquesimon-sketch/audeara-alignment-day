@@ -281,47 +281,54 @@ with tab_dept:
             )
             others = dept_props[dept_props['Name'] != name] if not dept_props.empty else pd.DataFrame()
 
-            # Team proposals — HoD only
-            if is_hod and not others.empty:
+            # Team proposals — visible to everyone in the function
+            st.markdown(
+                f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
+                f'Team proposals</div>',
+                unsafe_allow_html=True,
+            )
+            if others.empty:
                 st.markdown(
-                    f'<div style="font-size:0.72em;color:#888;font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
-                    f'Team proposals</div>',
+                    '<div style="font-size:0.82em;color:#BBBBBB;font-style:italic;'
+                    'margin-bottom:12px;">No proposals yet.</div>',
                     unsafe_allow_html=True,
                 )
+            else:
                 for _, prop in others.iterrows():
-                    col_text, col_use = st.columns([5, 1])
-                    with col_text:
-                        st.markdown(
-                            f'<div style="font-size:0.82em;padding:8px 12px;'
-                            f'background:#FAFAFA;border-radius:6px;border:1px solid #EEEEEE;'
-                            f'margin-bottom:4px;">'
-                            f'<strong style="font-size:0.8em;color:#888;">{prop["Name"]}</strong>'
-                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                            f'Metric: <strong>{prop["Metric"] or "—"}</strong>'
-                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                            f'Target: <strong>{prop["Target"] or "—"}</strong>'
-                            f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
-                            f'Owner: <strong>{prop["Owner"] or "—"}</strong>'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                    with col_use:
-                        if st.button('Use', key=f'sc_use_{cid}_{d}_{prop["Name"]}',
-                                     use_container_width=True):
-                            st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
-                            st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
-                            st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
-                            st.rerun()
+                    prop_card = (
+                        f'<div style="font-size:0.82em;padding:8px 12px;'
+                        f'background:#FAFAFA;border-radius:6px;border:1px solid #EEEEEE;'
+                        f'margin-bottom:4px;">'
+                        f'<strong style="font-size:0.8em;color:#888;">{prop["Name"]}</strong>'
+                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                        f'Metric: <strong>{prop["Metric"] or "—"}</strong>'
+                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                        f'Target: <strong>{prop["Target"] or "—"}</strong>'
+                        f'<span style="color:#CCCCCC;margin:0 6px;">·</span>'
+                        f'Owner: <strong>{prop["Owner"] or "—"}</strong>'
+                        f'</div>'
+                    )
+                    if is_hod:
+                        col_text, col_use = st.columns([5, 1])
+                        with col_text:
+                            st.markdown(prop_card, unsafe_allow_html=True)
+                        with col_use:
+                            if st.button('Use', key=f'sc_use_{cid}_{d}_{prop["Name"]}',
+                                         use_container_width=True):
+                                st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
+                                st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
+                                st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
+                                st.rerun()
+                    else:
+                        st.markdown(prop_card, unsafe_allow_html=True)
                 st.markdown('<div style="margin-bottom:10px;"></div>', unsafe_allow_html=True)
 
             # My proposal
             my_prop_row = dept_props[dept_props['Name'] == name]
             has_my_prop = not my_prop_row.empty
 
-            my_prop_label = (
-                'Your proposal (optional — for Function Lead to consider)' if is_hod else 'Your proposal'
-            )
+            my_prop_label = 'Your proposal'
             st.markdown(
                 f'<div style="font-size:0.72em;color:#888;font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">'
@@ -360,92 +367,98 @@ with tab_dept:
                     else:
                         st.warning('Enter at least one field before submitting.')
 
-            # HoD: Department Answer
-            if is_hod:
-                entry_row = (
-                    entries_df[
-                        (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
-                    ]
-                    if not entries_df.empty else pd.DataFrame()
-                )
-                confirmed  = not entry_row.empty
-                edit_flag  = f'sc_entry_edit_{cid}_{d}'
-                is_editing = st.session_state.get(edit_flag, False)
+            # Function answer — confirmed visible to all; entry/edit for Function Lead only
+            entry_row = (
+                entries_df[
+                    (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
+                ]
+                if not entries_df.empty else pd.DataFrame()
+            )
+            confirmed  = not entry_row.empty
+            edit_flag  = f'sc_entry_edit_{cid}_{d}'
+            is_editing = st.session_state.get(edit_flag, False)
 
+            st.markdown(
+                f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
+                f'margin-bottom:6px;">Function answer</div>',
+                unsafe_allow_html=True,
+            )
+
+            if confirmed and not is_editing:
+                row = entry_row.iloc[0]
                 st.markdown(
-                    f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
-                    f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
-                    f'margin-bottom:6px;">Function answer</div>',
+                    f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
+                    f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
+                    f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
+                    f'letter-spacing:1px;margin-bottom:8px;">CONFIRMED ✅</div>'
+                    f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
+                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
+                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                    f'{row["Metric"] or "—"}</div></div>'
+                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
+                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                    f'{row["Target"] or "—"}</div></div>'
+                    f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                    f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
+                    f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
+                    f'{row["Owner"] or "—"}</div></div>'
+                    f'</div></div>',
                     unsafe_allow_html=True,
                 )
-
-                if confirmed and not is_editing:
-                    row = entry_row.iloc[0]
-                    st.markdown(
-                        f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
-                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
-                        f'<div style="font-size:0.7em;font-weight:700;color:#2D7D4F;'
-                        f'letter-spacing:1px;margin-bottom:8px;">CONFIRMED ✅</div>'
-                        f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
-                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                        f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                        f'{row["Metric"] or "—"}</div></div>'
-                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                        f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                        f'{row["Target"] or "—"}</div></div>'
-                        f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
-                        f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                        f'<div style="font-size:0.88em;color:#1a1a1a;font-weight:600;">'
-                        f'{row["Owner"] or "—"}</div></div>'
-                        f'</div></div>',
-                        unsafe_allow_html=True,
-                    )
+                if is_hod:
                     if st.button('Edit', key=f'sc_edit_btn_{cid}_{d}'):
                         st.session_state[edit_flag] = True
                         st.rerun()
-                else:
-                    col_m2, col_t2, col_o2 = st.columns([3, 2, 2])
-                    with col_m2:
-                        st.text_input('Metric ', key=f'sc_entry_metric_{cid}_{d}',
-                                      placeholder='e.g. Repeat order rate')
-                    with col_t2:
-                        st.text_input('Target ', key=f'sc_entry_target_{cid}_{d}',
-                                      placeholder='e.g. 40% of clinics')
-                    with col_o2:
-                        st.text_input('Owner ', key=f'sc_entry_owner_{cid}_{d}',
-                                      placeholder='e.g. JK')
-                    save_label = 'Update' if confirmed else 'Confirm'
-                    btn_c1, btn_c2 = st.columns([1, 1])
-                    with btn_c1:
-                        if confirmed:
-                            if st.button('Cancel', key=f'sc_cancel_{cid}_{d}',
-                                         use_container_width=True):
+            elif is_hod:
+                col_m2, col_t2, col_o2 = st.columns([3, 2, 2])
+                with col_m2:
+                    st.text_input('Metric ', key=f'sc_entry_metric_{cid}_{d}',
+                                  placeholder='e.g. Repeat order rate')
+                with col_t2:
+                    st.text_input('Target ', key=f'sc_entry_target_{cid}_{d}',
+                                  placeholder='e.g. 40% of clinics')
+                with col_o2:
+                    st.text_input('Owner ', key=f'sc_entry_owner_{cid}_{d}',
+                                  placeholder='e.g. JK')
+                save_label = 'Update' if confirmed else 'Confirm'
+                btn_c1, btn_c2 = st.columns([1, 1])
+                with btn_c1:
+                    if confirmed:
+                        if st.button('Cancel', key=f'sc_cancel_{cid}_{d}',
+                                     use_container_width=True):
+                            st.session_state[edit_flag] = False
+                            st.rerun()
+                with btn_c2:
+                    if st.button(save_label, key=f'sc_confirm_{cid}_{d}',
+                                 type='primary', use_container_width=True):
+                        metric = st.session_state.get(
+                            f'sc_entry_metric_{cid}_{d}', '').strip()
+                        target = st.session_state.get(
+                            f'sc_entry_target_{cid}_{d}', '').strip()
+                        owner  = st.session_state.get(
+                            f'sc_entry_owner_{cid}_{d}', '').strip()
+                        if metric or target or owner:
+                            try:
+                                save_scorecard_entry(
+                                    cid, d, metric, target, owner, locked_by=name)
+                                pull_scorecard_entries.clear()
+                                st.session_state.pop(load_flag, None)
                                 st.session_state[edit_flag] = False
+                                st.toast('Function answer saved ✓', icon='✅')
                                 st.rerun()
-                    with btn_c2:
-                        if st.button(save_label, key=f'sc_confirm_{cid}_{d}',
-                                     type='primary', use_container_width=True):
-                            metric = st.session_state.get(
-                                f'sc_entry_metric_{cid}_{d}', '').strip()
-                            target = st.session_state.get(
-                                f'sc_entry_target_{cid}_{d}', '').strip()
-                            owner  = st.session_state.get(
-                                f'sc_entry_owner_{cid}_{d}', '').strip()
-                            if metric or target or owner:
-                                try:
-                                    save_scorecard_entry(
-                                        cid, d, metric, target, owner, locked_by=name)
-                                    pull_scorecard_entries.clear()
-                                    st.session_state.pop(load_flag, None)
-                                    st.session_state[edit_flag] = False
-                                    st.toast('Function answer saved ✓', icon='✅')
-                                    st.rerun()
-                                except Exception as _e:
-                                    st.error(f'Could not save. ({_e})')
-                            else:
-                                st.warning('Enter at least one field.')
+                            except Exception as _e:
+                                st.error(f'Could not save. ({_e})')
+                        else:
+                            st.warning('Enter at least one field.')
+            else:
+                st.markdown(
+                    '<div style="font-size:0.82em;color:#AAAAAA;font-style:italic;">'
+                    'Pending — Function Lead will confirm.</div>',
+                    unsafe_allow_html=True,
+                )
 
             # Separator between depts within a choice (not after the last one)
             if multi_dept and d != my_depts[-1] and dept_texts.get(my_depts[my_depts.index(d) + 1], ''):
