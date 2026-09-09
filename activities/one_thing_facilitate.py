@@ -82,10 +82,10 @@ st.divider()
 # ── Department draft editor ────────────────────────────────────────────────────
 
 st.markdown(
-    f'<div style="font-weight:700;font-size:1em;color:{PURPLE};margin-bottom:4px;">Department draft One Things</div>',
+    f'<div style="font-weight:700;font-size:1em;color:{PURPLE};margin-bottom:4px;">Draft suggestions</div>',
     unsafe_allow_html=True,
 )
-st.caption('Enter James\'s draft for each department. These appear on participants\' screens when the Departmental stage opens.')
+st.caption('Enter a draft suggestion for each function. These appear on participants\' screens when the departmental stage opens.')
 
 drafts = pull_one_thing_drafts()
 
@@ -99,7 +99,7 @@ for dept in DEPARTMENTS:
             value=current_draft,
             height=68,
             key=f'ot_draft_{dept}',
-            placeholder=f'Draft One Thing for {dept}…',
+            placeholder=f'Draft suggestion for {dept}…',
         )
     with col_b:
         st.markdown('<br>', unsafe_allow_html=True)

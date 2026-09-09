@@ -240,7 +240,7 @@ with tab_depts:
                         unsafe_allow_html=True,
                     )
                 else:
-                    st.info('James is still drafting the One Thing for this department.')
+                    st.info('No draft suggestion yet for this function.')
 
                 # Suggestions from this dept
                 dept_suggs = all_suggs[all_suggs['Department'] == dept] if not all_suggs.empty else all_suggs
