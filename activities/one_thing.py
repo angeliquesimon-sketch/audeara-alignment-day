@@ -43,7 +43,7 @@ is_dept_head = any(DEPARTMENT_HEADS.get(d) == name for d in my_depts)
 
 tab_intro, tab_depts, tab_all, tab_personal = st.tabs([
     '💡 What is The One Thing?',
-    '🏢 Departmental One Things',
+    '🏢 Functional One Things',
     '🌟 Our One Things',
     '✋ Your One Thing',
 ])
@@ -153,7 +153,7 @@ with tab_intro:
             unsafe_allow_html=True,
         )
 
-# ── Tab 2: Departmental One Things ────────────────────────────────────────────
+# ── Tab 2: Functional One Things ────────────────────────────────────────────
 
 with tab_depts:
     if stage in ('hidden', 'intro'):
@@ -444,7 +444,7 @@ with tab_all:
                 st.markdown(
                     f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
                     f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
-                    f'Departmental One Things will appear here as they\'re agreed.</div>',
+                    f'Functional One Things will appear here as they\'re agreed.</div>',
                     unsafe_allow_html=True,
                 )
                 return
