@@ -395,7 +395,7 @@ def _overview():
              else 'Submit ideas for each part of the mission sentence, then vote on the best answers.'),
     )
     _step(
-        'Vision Statement — Magazine Cover',
+        'Vision Statement',
         'done'   if vision_done  else ('active' if vision_alive else 'upcoming'),
         'Locked.' if vision_done else
             (f'{n_vision} cover {"stories" if n_vision != 1 else "story"} submitted — vote and the facilitator locks the final statement.' if vision_alive
