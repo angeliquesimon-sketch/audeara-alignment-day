@@ -30,7 +30,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 h1, h2, h3, h4 {
     font-family: 'roc-grotesk', sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    font-feature-settings: 'ss01' 1, 'ss02' 1;
 }
 </style>
 """, unsafe_allow_html=True)

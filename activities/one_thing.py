@@ -81,12 +81,7 @@ with tab_intro:
             f'</div>',
             unsafe_allow_html=True,
         )
-        st.markdown(
-            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-weight:600;font-size:1.15em;color:{PURPLE};margin-bottom:16px;">'
-            f'What\'s the one thing you can do, such that by doing it, everything else becomes easier or unnecessary?'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown("### What's the one thing you can do, such that by doing it, everything else becomes easier or unnecessary?")
 
         st.markdown(
             f'<div style="background:#F7F0F7;border-left:4px solid {PURPLE};'
@@ -190,7 +185,7 @@ with tab_depts:
                         f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:6px;">'
                         f'<div style="font-size:0.85em;font-weight:700;color:#2D7D4F;'
                         f'letter-spacing:1px;margin-bottom:6px;">AGREED ONE THING ✅</div>'
-                        f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
+                        f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
