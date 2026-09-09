@@ -33,7 +33,7 @@ BRAND_PROMISE      = 'Feel connected.'
 def _org_svg(styles=None) -> str:
     # L3 row holds 11 boxes side by side (Rebekah×2, JK×4, Louise×5).
     # l3_w=100, gap=10 → each slot is 110px wide.
-    W, H = 1700, 420
+    W, H = 1500, 420
 
     DARK      = '#50144B'   # Wine — James, Bill
     KAVI_WINE = '#73436F'   # 80% tint of Wine — Kavi
@@ -50,14 +50,13 @@ def _org_svg(styles=None) -> str:
     l3_y,   l3_h    = 260, 58
     l4_y,   l4_h    = 340, 58
 
-    james_w, l1_w, l2_w, l3_w, l4_w = 128, 128, 128, 128, 128
+    james_w, l1_w, l2_w, l3_w, l4_w = 110, 110, 110, 110, 110
 
-    # L3 column centers — 11 boxes, gap=10, l3_w=128 (step=138)
+    # L3 column centers — 11 boxes, gap=10, l3_w=110 (step=120)
     # Order left→right: Rebekah's 2 | JK's 4 | Louise's 5
-    # Start at 220 so c_ellissa left-edge (156) clears Sayaka right-edge (144)
-    c_ellissa = 220; c_charli = 358                                              # Rebekah's 2
-    c_ang     = 496; c_rob   = 634; c_vac1 = 772; c_vac2 = 910                  # JK's 4
-    c_andrew  = 1048; c_ian   = 1186; c_alex = 1324; c_dylan = 1462; c_bonar = 1600  # Louise's 5
+    c_ellissa = 220; c_charli = 340                                              # Rebekah's 2
+    c_ang     = 460; c_rob   = 580; c_vac1 = 700; c_vac2 = 820                  # JK's 4
+    c_andrew  = 940; c_ian   = 1060; c_alex = 1180; c_dylan = 1300; c_bonar = 1420  # Louise's 5
 
     c_rebekah = (c_ellissa + c_charli) // 2  # 289
     c_jk      = (c_ang     + c_vac2)   // 2  # 703
@@ -181,7 +180,7 @@ def _org_svg(styles=None) -> str:
     mgmt(c_jk,      l2_y, l2_w, l2_h, 'John Krajewski',
          ['Head of International', 'Sales &amp; Marketing'], fill=FOREST_D)
     mgmt(c_louise,  l2_y, l2_w, l2_h, 'Louise Heller',
-         ['Engineering Program Manager'], fill=FOREST_D)
+         ['Engineering Program', 'Manager'], fill=FOREST_D)
     team(c_kavi,    l3_y, l3_w, l3_h, 'Sayaka Smith', ['Accounting Manager'])
 
     team(c_ellissa, l3_y, l3_w, l3_h, 'Ellissa Waters',
