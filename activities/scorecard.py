@@ -315,6 +315,7 @@ with tab_dept:
                                 st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
                                 st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
                                 st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
+                                st.session_state[f'sc_entry_edit_{cid}_{d}']   = True
                                 st.rerun()
                     else:
                         st.markdown(prop_card, unsafe_allow_html=True)
