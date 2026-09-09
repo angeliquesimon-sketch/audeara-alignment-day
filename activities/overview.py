@@ -420,7 +420,7 @@ def _overview():
     elif ot_alive:
         ot_detail = 'The One Thing activity is underway.'
     else:
-        ot_detail = 'Each department agrees on their One Thing, then everyone commits to a personal One Thing.'
+        ot_detail = 'Each department agrees on their One Thing.'
     _step(
         'The One Thing',
         'done'   if ot_done  else ('active' if ot_alive else 'upcoming'),
