@@ -370,9 +370,9 @@ with tab_results:
             )
             if st.button('🔓 Unlock', key='mission_unlock_btn'):
                 try:
+                    st.session_state['mission_generated'] = locked_mission
                     unlock_mission_statement()
                     st.cache_data.clear()
-                    st.toast('Mission statement unlocked', icon='🔓')
                     st.rerun()
                 except Exception as _e:
                     st.error(f'Could not unlock — {_e}')
