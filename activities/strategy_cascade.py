@@ -307,7 +307,7 @@ with tab_activity:
             f'border-radius:0 8px 8px 0;padding:18px 22px;margin-bottom:20px;">'
             f'<div style="font-size:0.85em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">'
             f'STRATEGIC CHOICE {choice["number"]} OF {len(CHOICES)}</div>'
-            f'<div style="font-weight:700;font-size:1.15em;color:#1a1a1a;margin-bottom:8px;">{choice["title"]}</div>'
+            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-weight:500;font-size:1.15em;color:#1a1a1a;margin-bottom:8px;">{choice["title"]}</div>'
             f'<div style="font-size:1.0em;color:#555;line-height:1.6;">{choice["description"]}</div>'
             f'</div>',
             unsafe_allow_html=True,
