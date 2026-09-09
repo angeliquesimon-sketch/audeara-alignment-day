@@ -454,9 +454,19 @@ with tab_dept:
                                                  help='Return to In Discussion'):
                                         try:
                                             delete_scorecard_entry(cid, d, ts)
-                                            save_scorecard_proposal(
-                                                cid, d, name,
-                                                erow['Metric'], erow['Target'], erow['Owner'])
+                                            # Only add proposal if no matching row already exists
+                                            already_proposed = (
+                                                not _all_props.empty and any(
+                                                    r['Metric'] == erow['Metric']
+                                                    and r['Target'] == erow['Target']
+                                                    and r['Owner'] == erow['Owner']
+                                                    for _, r in _all_props.iterrows()
+                                                )
+                                            )
+                                            if not already_proposed:
+                                                save_scorecard_proposal(
+                                                    cid, d, name,
+                                                    erow['Metric'], erow['Target'], erow['Owner'])
                                             pull_scorecard_entries.clear()
                                             pull_scorecard_proposals.clear()
                                             st.toast('Moved back to In Discussion', icon='↩')
