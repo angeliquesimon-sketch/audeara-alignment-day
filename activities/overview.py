@@ -503,7 +503,7 @@ def _overview():
         _m_plain = (f'We help {mission_top.get("Who", "")} do {mission_top.get("What", "")} '
                     f'by {mission_top.get("How", "")}, so they can {mission_top.get("Makes Possible", "")}.')
         m_svg_block = (
-            f'<text x="150" y="311" text-anchor="middle" font-family="Noto Sans,sans-serif" '
+            f'<text x="150" y="311" text-anchor="middle" font-family="roc-grotesk,sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
             + ''.join(
                 f'<text x="150" y="{335 + i * 16}" text-anchor="middle" font-family="Noto Sans,sans-serif" '
@@ -514,7 +514,7 @@ def _overview():
     else:
         _m_sub = 'Ideas coming in' if mission_alive else 'What do we do and why?'
         m_svg_block = (
-            f'<text x="150" y="321" text-anchor="middle" font-family="Noto Sans,sans-serif" '
+            f'<text x="150" y="321" text-anchor="middle" font-family="roc-grotesk,sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
             f'<text x="150" y="349" text-anchor="middle" font-family="Noto Sans,sans-serif" '
             f'font-size="12" font-weight="600" fill="{m_text_col}">{_m_sub}</text>'
@@ -523,7 +523,7 @@ def _overview():
     # Vision is now the third band (y=194–286)
     if vision_done:
         v_svg_block = (
-            f'<text x="150" y="214" text-anchor="middle" font-family="Noto Sans,sans-serif" '
+            f'<text x="150" y="214" text-anchor="middle" font-family="roc-grotesk,sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
             + ''.join(
                 f'<text x="150" y="{238 + i * 16}" text-anchor="middle" font-family="Noto Sans,sans-serif" '
@@ -534,7 +534,7 @@ def _overview():
     else:
         _v_sub = 'Taking shape' if vision_alive else 'Where are we going?'
         v_svg_block = (
-            f'<text x="150" y="224" text-anchor="middle" font-family="Noto Sans,sans-serif" '
+            f'<text x="150" y="224" text-anchor="middle" font-family="roc-grotesk,sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
             f'<text x="150" y="252" text-anchor="middle" font-family="Noto Sans,sans-serif" '
             f'font-size="12" font-weight="600" fill="{v_text_col}">{_v_sub}</text>'
@@ -546,13 +546,13 @@ def _overview():
      style="width:100%;max-width:480px;display:block;margin:0 auto">
 
   <polygon points="68,0 232,0 271,92 29,92" fill="#005E63"/>
-  <text x="150" y="30" text-anchor="middle" font-family="Noto Sans,sans-serif"
+  <text x="150" y="30" text-anchor="middle" font-family="roc-grotesk,sans-serif"
         font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">BRAND PROMISE</text>
   <text x="150" y="58" text-anchor="middle" font-family="Noto Sans,sans-serif"
         font-size="13" font-weight="700" fill="white">Feel connected.</text>
 
   <polygon points="29,97 271,97 311,189 -11,189" fill="#50144B"/>
-  <text x="150" y="127" text-anchor="middle" font-family="Noto Sans,sans-serif"
+  <text x="150" y="127" text-anchor="middle" font-family="roc-grotesk,sans-serif"
         font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">VALUES</text>
   <text x="150" y="149" text-anchor="middle" font-family="Noto Sans,sans-serif"
         font-size="13" font-weight="600" fill="white">Impact · Quality</text>

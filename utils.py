@@ -75,6 +75,7 @@ def inject_styles():
     border: 2px solid {TEAL};
     border-radius: 10px;
     padding: 24px 28px;
+    font-family: 'roc-grotesk', sans-serif;
     font-size: 18px;
     font-weight: 500;
     line-height: 1.7;

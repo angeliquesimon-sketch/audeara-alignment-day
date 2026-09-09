@@ -190,7 +190,7 @@ with tab_depts:
                         f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:6px;">'
                         f'<div style="font-size:0.85em;font-weight:700;color:#2D7D4F;'
                         f'letter-spacing:1px;margin-bottom:6px;">AGREED ONE THING ✅</div>'
-                        f'<div style="font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
+                        f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:0.9em;color:#1a1a1a;line-height:1.6;">{winner}</div>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )

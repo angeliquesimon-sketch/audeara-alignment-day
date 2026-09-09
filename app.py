@@ -28,6 +28,9 @@ html, body, [class*="css"], .stMarkdown, .stTextInput > div > div > input,
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Noto Sans', sans-serif !important;
 }
+h1, h2, h3, h4 {
+    font-family: 'roc-grotesk', sans-serif !important;
+}
 </style>
 """, unsafe_allow_html=True)
 

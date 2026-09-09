@@ -135,7 +135,7 @@ with tab_pres:
             _engine_cards = ''.join([
                 f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
                 f'border-radius:0 6px 6px 0;padding:14px 16px;">'
-                f'<div style="font-weight:700;font-size:1.15em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-weight:700;font-size:1.15em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
                 f'<div style="font-size:0.85em;color:#999;font-style:italic;margin-bottom:6px;">{e.get("subtitle","")}</div>'
                 f'<div style="font-size:1.0em;color:#555;line-height:1.55;">{e["description"]}</div>'
                 f'</div>'
@@ -225,7 +225,7 @@ with tab_pres:
             _choice_cards = ''.join([
                 f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
                 f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-                f'<div style="font-weight:700;font-size:1.15em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-weight:700;font-size:1.15em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
                 + (
                     f'<div style="margin-bottom:8px;">'
                     f'<span style="background:{FOREST};color:white;font-size:0.85em;'

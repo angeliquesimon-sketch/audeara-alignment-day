@@ -248,7 +248,7 @@ def _scenario_view():
         f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.12em;'
         f'text-transform:uppercase;color:#bbb;margin-bottom:4px;">'
         f'Scenario {current + 1} of {len(SCENARIOS)}</div>'
-        f'<div style="font-size:1.2em;font-weight:700;color:#111;margin-bottom:6px;">{sc["title"]}</div>'
+        f'<div style="font-family:\'roc-grotesk\',sans-serif;font-size:1.2em;font-weight:700;color:#111;margin-bottom:6px;">{sc["title"]}</div>'
         f'<div style="font-size:0.92em;color:#555;line-height:1.6;">{sc["prompt"]}</div>'
         f'</div>',
         unsafe_allow_html=True,
