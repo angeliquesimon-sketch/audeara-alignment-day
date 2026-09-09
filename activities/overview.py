@@ -13,7 +13,9 @@ from styles_shared import (
 from strategy_cascade_shared import (
     pull_cascade_session, pull_commitments as _pull_casc_comm,
     CHOICES as CASCADE_CHOICES, pull_cascade_contributions as _pull_casc_contribs,
+    get_live_choices,
 )
+from scorecard_shared import pull_scorecard_entries, pull_scorecard_proposals
 from one_thing_shared import (
     pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS,
     OPERATIONAL_FUNCTIONS, GOVERNANCE_FUNCTIONS, _fn_table_html,
@@ -354,6 +356,12 @@ def _overview():
     styles_df       = pull_styles()
     casc_contribs   = _pull_casc_contribs()
     submitted_set   = set(styles_df['Name'].tolist()) if not styles_df.empty else set()
+    sc_entries_df   = pull_scorecard_entries()
+    sc_proposals_df = pull_scorecard_proposals()
+    sc_choices      = get_live_choices()
+    n_sc_choices    = len(sc_choices)
+    n_sc_filled     = len(sc_entries_df['ChoiceID'].unique()) if not sc_entries_df.empty else 0
+    n_sc_proposals  = len(sc_proposals_df) if not sc_proposals_df.empty else 0
 
     mission_done  = len(mission_top) == 4
     mission_alive = n_mission > 0
@@ -439,6 +447,20 @@ def _overview():
         'Strategy Cascade',
         'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
         casc_detail,
+    )
+
+    sc_done  = n_sc_choices > 0 and n_sc_filled >= n_sc_choices
+    sc_alive = n_sc_filled > 0 or n_sc_proposals > 0
+    if sc_done:
+        sc_detail = 'Complete.'
+    elif sc_alive:
+        sc_detail = f'{n_sc_filled} of {n_sc_choices} strategic choices have a scorecard metric.'
+    else:
+        sc_detail = 'Each strategic choice gets a metric, target, and owner — the team\'s FY27 scorecard.'
+    _step(
+        'Scorecard',
+        'done'   if sc_done  else ('active' if sc_alive else 'upcoming'),
+        sc_detail,
     )
 
     st.divider()
