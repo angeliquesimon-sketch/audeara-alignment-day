@@ -745,10 +745,8 @@ def _overview():
                 st.markdown(
                     f'<div style="border:1px solid #E8E0E8;border-top:3px solid {colour};'
                     f'border-radius:0 0 10px 10px;padding:12px 14px;margin-bottom:12px;">'
-                    f'<div style="display:flex;justify-content:space-between;align-items:baseline;'
+                    f'<div style="display:flex;justify-content:flex-end;align-items:baseline;'
                     f'margin-bottom:2px;">'
-                    f'<div style="font-size:0.65em;font-weight:700;color:{colour};'
-                    f'letter-spacing:1px;text-transform:uppercase;">Choice {choice["number"]}</div>'
                     f'<div style="font-size:0.65em;color:{status_colour};font-weight:600;">'
                     f'{status_label}</div>'
                     f'</div>'
