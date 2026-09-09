@@ -497,14 +497,15 @@ def _overview():
             lines.append(current)
         return lines[:3]
 
+    # Mission is now the bottom band (y=291–383)
     if mission_done:
         _m_plain = (f'We help {mission_top.get("Who", "")} do {mission_top.get("What", "")} '
                     f'by {mission_top.get("How", "")}, so they can {mission_top.get("Makes Possible", "")}.')
         m_svg_block = (
-            f'<text x="150" y="20" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="311" text-anchor="middle" font-family="sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
             + ''.join(
-                f'<text x="150" y="{44 + i * 16}" text-anchor="middle" font-family="sans-serif" '
+                f'<text x="150" y="{335 + i * 16}" text-anchor="middle" font-family="sans-serif" '
                 f'font-size="9" font-weight="500" fill="{m_text_col}">{line}</text>'
                 for i, line in enumerate(_wrap_svg(_m_plain))
             )
@@ -512,18 +513,19 @@ def _overview():
     else:
         _m_sub = 'Ideas coming in' if mission_alive else 'What do we do and why?'
         m_svg_block = (
-            f'<text x="150" y="30" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="321" text-anchor="middle" font-family="sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
-            f'<text x="150" y="58" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="349" text-anchor="middle" font-family="sans-serif" '
             f'font-size="12" font-weight="600" fill="{m_text_col}">{_m_sub}</text>'
         )
 
+    # Vision is now the third band (y=194–286)
     if vision_done:
         v_svg_block = (
-            f'<text x="150" y="117" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="214" text-anchor="middle" font-family="sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
             + ''.join(
-                f'<text x="150" y="{141 + i * 16}" text-anchor="middle" font-family="sans-serif" '
+                f'<text x="150" y="{238 + i * 16}" text-anchor="middle" font-family="sans-serif" '
                 f'font-size="9" font-weight="500" fill="{v_text_col}">{line}</text>'
                 for i, line in enumerate(_wrap_svg(vision_final))
             )
@@ -531,9 +533,9 @@ def _overview():
     else:
         _v_sub = 'Taking shape' if vision_alive else 'Where are we going?'
         v_svg_block = (
-            f'<text x="150" y="127" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="224" text-anchor="middle" font-family="sans-serif" '
             f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
-            f'<text x="150" y="155" text-anchor="middle" font-family="sans-serif" '
+            f'<text x="150" y="252" text-anchor="middle" font-family="sans-serif" '
             f'font-size="12" font-weight="600" fill="{v_text_col}">{_v_sub}</text>'
         )
 
@@ -542,25 +544,25 @@ def _overview():
 <svg viewBox="-90 0 480 400" xmlns="http://www.w3.org/2000/svg"
      style="width:100%;max-width:480px;display:block;margin:0 auto">
 
-  <polygon points="-90,0 390,0 351,92 -51,92" fill="{m_fill}"/>
-  {m_svg_block}
+  <polygon points="68,0 232,0 271,92 29,92" fill="#005E63"/>
+  <text x="150" y="30" text-anchor="middle" font-family="sans-serif"
+        font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">BRAND PROMISE</text>
+  <text x="150" y="58" text-anchor="middle" font-family="sans-serif"
+        font-size="13" font-weight="700" fill="white">Feel connected.</text>
 
-  <polygon points="-51,97 351,97 311,189 -11,189" fill="{v_fill}"/>
-  {v_svg_block}
-
-  <polygon points="-11,194 311,194 271,286 29,286" fill="#50144B"/>
-  <text x="150" y="224" text-anchor="middle" font-family="sans-serif"
+  <polygon points="29,97 271,97 311,189 -11,189" fill="#50144B"/>
+  <text x="150" y="127" text-anchor="middle" font-family="sans-serif"
         font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">VALUES</text>
-  <text x="150" y="246" text-anchor="middle" font-family="sans-serif"
+  <text x="150" y="149" text-anchor="middle" font-family="sans-serif"
         font-size="13" font-weight="600" fill="white">Impact · Quality</text>
-  <text x="150" y="262" text-anchor="middle" font-family="sans-serif"
+  <text x="150" y="165" text-anchor="middle" font-family="sans-serif"
         font-size="13" font-weight="600" fill="white">Leadership · Momentum</text>
 
-  <polygon points="29,291 271,291 232,383 68,383" fill="#005E63"/>
-  <text x="150" y="321" text-anchor="middle" font-family="sans-serif"
-        font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">BRAND PROMISE</text>
-  <text x="150" y="347" text-anchor="middle" font-family="sans-serif"
-        font-size="13" font-weight="700" fill="white">Feel connected.</text>
+  <polygon points="-11,194 311,194 351,286 -51,286" fill="{v_fill}"/>
+  {v_svg_block}
+
+  <polygon points="-51,291 351,291 390,383 -90,383" fill="{m_fill}"/>
+  {m_svg_block}
 
 </svg>
 </div>"""
