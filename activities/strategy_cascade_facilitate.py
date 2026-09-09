@@ -682,4 +682,4 @@ elif stage == 'reveal':
     _reveal_summary()
 
 else:
-    st.info('Advance to Cascade to manage department contributions.')
+    st.info('Advance to Cascade to manage function contributions.')

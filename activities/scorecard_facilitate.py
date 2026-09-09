@@ -49,8 +49,8 @@ if not st.session_state.get('_sc_fac_tab_ready'):
 
 st.markdown('### 🎛️ Facilitate — FY27 Scorecard')
 st.caption(
-    'Admin override — edit or correct any department entry. '
-    'Primary input is via the FY27 Scorecard page where department groups work directly.'
+    'Admin override — edit or correct any function entry. '
+    'Primary input is via the FY27 Scorecard page where function groups work directly.'
 )
 
 # ── Load data ──────────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ for idx, choice in enumerate(choices):
         )
 
         if not dept_inputs:
-            st.info('No department contributions recorded in the cascade for this choice yet.')
+            st.info('No function contributions recorded in the cascade for this choice yet.')
             continue
 
         for dept in DEPARTMENTS:

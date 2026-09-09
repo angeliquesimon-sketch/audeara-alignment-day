@@ -375,10 +375,13 @@ CHOICE_DETAIL = {
 DEPARTMENTS = [
     'Marketing',
     'Sales',
-    'Product / R&D',
-    'Operations & Customer Service',
+    'Engineering',
+    'Operations',
+    'Customer Service',
     'Finance',
     'Leadership & Strategy',
+    'Product Owners',
+    'R&D',
 ]
 
 CHOICE_COLOURS = ['#781E73', '#188383', '#50144B', '#005E63', '#781E73', '#188383']

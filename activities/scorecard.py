@@ -50,12 +50,12 @@ if not name:
 my_depts = DEPARTMENT_MAP.get(name, [])
 
 if not my_depts:
-    st.warning("We don't have a department on file for your name.")
+    st.warning("We don't have a function on file for your name.")
     st.stop()
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
 
-tab_about, tab_dept, tab_all = st.tabs(['📋 About', '🏢 My Department', '🌟 All Departments'])
+tab_about, tab_dept, tab_all = st.tabs(['📋 About', '🏢 My Function', '🌟 All Functions'])
 
 # ── Tab: About ─────────────────────────────────────────────────────────────────
 
@@ -67,7 +67,7 @@ with tab_about:
         f'color:{WINE};margin-bottom:8px;">WHAT IS THE SCORECARD?</div>'
         f'<div style="font-size:0.88em;color:#444;line-height:1.7;">'
         f'The Scorecard turns the commitments your team made in the Strategy Cascade into '
-        f'measurable outcomes. For each strategic choice your department contributed to, '
+        f'measurable outcomes. For each strategic choice your function contributed to, '
         f'you\'ll agree on a metric, a target, and an owner — so there\'s no ambiguity '
         f'about what success looks like or who is responsible.'
         f'</div></div>',
@@ -77,11 +77,11 @@ with tab_about:
     cols = st.columns(3)
     for col, (icon, heading, body) in zip(cols, [
         ('🎯', 'Cascade to commitment',
-         'Your department\'s cascade input becomes the context for setting a clear metric and target.'),
+         'Your function\'s cascade input becomes the context for setting a clear metric and target.'),
         ('👤', 'Named ownership',
          'Every entry has an owner — a real person accountable for the outcome, not a team or a function.'),
         ('✏️', 'Always editable',
-         'Department heads can update entries at any time. The scorecard evolves as the year does.'),
+         'Function leads can update entries at any time. The scorecard evolves as the year does.'),
     ]):
         with col:
             st.markdown(
@@ -101,8 +101,8 @@ with tab_about:
         f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
         f'color:{TEAL};margin-bottom:6px;">HOW IT WORKS</div>'
         f'<div style="font-size:0.88em;color:#444;line-height:1.6;">'
-        f'Break into your department groups. Anyone can propose a metric, target, and owner '
-        f'for each strategic choice. Department heads review the proposals and confirm the '
+        f'Break into your function groups. Anyone can propose a metric, target, and owner '
+        f'for each strategic choice. Function leads review the proposals and confirm the '
         f'final entry — which stays editable throughout the day.'
         f'</div></div>',
         unsafe_allow_html=True,
@@ -115,7 +115,7 @@ with tab_dept:
     # Role indicator — show all depts the user belongs to
     role_parts = []
     for d in my_depts:
-        role = 'Head of Department' if DEPARTMENT_HEADS.get(d) == name else 'Team Member'
+        role = 'Function Lead' if DEPARTMENT_HEADS.get(d) == name else 'Team Member'
         role_colour = WINE if DEPARTMENT_HEADS.get(d) == name else '#888888'
         role_parts.append(
             f'<span style="color:{role_colour};font-weight:600;">{d}</span>'
@@ -186,7 +186,7 @@ with tab_dept:
     any_contribs = any(_cascade_text(c['id'], d) for c in choices for d in my_depts)
     if not any_contribs:
         st.info(
-            'Your department hasn\'t contributed to the Strategy Cascade yet. '
+            'Your function hasn\'t contributed to the Strategy Cascade yet. '
             'Complete the cascade activity first, then come back here.'
         )
         st.stop()
@@ -292,7 +292,7 @@ with tab_dept:
             has_my_prop = not my_prop_row.empty
 
             my_prop_label = (
-                'Your proposal (optional — for HoD to consider)' if is_hod else 'Your proposal'
+                'Your proposal (optional — for Function Lead to consider)' if is_hod else 'Your proposal'
             )
             st.markdown(
                 f'<div style="font-size:0.72em;color:#888;font-weight:700;'
@@ -347,7 +347,7 @@ with tab_dept:
                 st.markdown(
                     f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
-                    f'margin-bottom:6px;">Department answer</div>',
+                    f'margin-bottom:6px;">Function answer</div>',
                     unsafe_allow_html=True,
                 )
 
@@ -412,7 +412,7 @@ with tab_dept:
                                     pull_scorecard_entries.clear()
                                     st.session_state.pop(load_flag, None)
                                     st.session_state[edit_flag] = False
-                                    st.toast('Department answer saved ✓', icon='✅')
+                                    st.toast('Function answer saved ✓', icon='✅')
                                     st.rerun()
                                 except Exception as _e:
                                     st.error(f'Could not save. ({_e})')
@@ -458,7 +458,7 @@ with tab_all:
             st.markdown(
                 f'<div style="background:#F7F0F7;border-radius:10px;padding:24px;'
                 f'text-align:center;color:#AAAAAA;font-size:0.9em;">'
-                f'Department answers will appear here as groups confirm their entries.</div>',
+                f'Function answers will appear here as groups confirm their entries.</div>',
                 unsafe_allow_html=True,
             )
 
