@@ -482,8 +482,60 @@ def _overview():
     else:
         v_fill, v_text_col = '#E0E0E0', '#AAAAAA'
 
-    m_sublabel = 'Our mission' if mission_done else ('Ideas coming in' if mission_alive else 'What do we do and why?')
-    v_sublabel = 'Our vision'  if vision_done  else ('Taking shape'   if vision_alive  else 'Where are we going?')
+    def _wrap_svg(text, max_chars=40):
+        words = text.split()
+        lines, current = [], ''
+        for word in words:
+            test = (current + ' ' + word).strip()
+            if len(test) <= max_chars:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines[:3]
+
+    if mission_done:
+        _m_plain = (f'We help {mission_top.get("Who", "")} do {mission_top.get("What", "")} '
+                    f'by {mission_top.get("How", "")}, so they can {mission_top.get("Makes Possible", "")}.')
+        m_svg_block = (
+            f'<text x="150" y="20" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
+            + ''.join(
+                f'<text x="150" y="{44 + i * 16}" text-anchor="middle" font-family="sans-serif" '
+                f'font-size="9" font-weight="500" fill="{m_text_col}">{line}</text>'
+                for i, line in enumerate(_wrap_svg(_m_plain))
+            )
+        )
+    else:
+        _m_sub = 'Ideas coming in' if mission_alive else 'What do we do and why?'
+        m_svg_block = (
+            f'<text x="150" y="30" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>'
+            f'<text x="150" y="58" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="12" font-weight="600" fill="{m_text_col}">{_m_sub}</text>'
+        )
+
+    if vision_done:
+        v_svg_block = (
+            f'<text x="150" y="117" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
+            + ''.join(
+                f'<text x="150" y="{141 + i * 16}" text-anchor="middle" font-family="sans-serif" '
+                f'font-size="9" font-weight="500" fill="{v_text_col}">{line}</text>'
+                for i, line in enumerate(_wrap_svg(vision_final))
+            )
+        )
+    else:
+        _v_sub = 'Taking shape' if vision_alive else 'Where are we going?'
+        v_svg_block = (
+            f'<text x="150" y="127" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>'
+            f'<text x="150" y="155" text-anchor="middle" font-family="sans-serif" '
+            f'font-size="12" font-weight="600" fill="{v_text_col}">{_v_sub}</text>'
+        )
 
     svg = f"""
 <div style="padding:8px 0 16px;">
@@ -491,16 +543,10 @@ def _overview():
      style="width:100%;max-width:320px;display:block;margin:0 auto">
 
   <polygon points="0,0 300,0 283,92 17,92" fill="{m_fill}"/>
-  <text x="150" y="30" text-anchor="middle" font-family="sans-serif"
-        font-size="9" font-weight="700" letter-spacing="2.5" fill="{m_text_col}" opacity="0.7">MISSION</text>
-  <text x="150" y="58" text-anchor="middle" font-family="sans-serif"
-        font-size="12" font-weight="600" fill="{m_text_col}">{m_sublabel}</text>
+  {m_svg_block}
 
   <polygon points="17,97 283,97 266,189 34,189" fill="{v_fill}"/>
-  <text x="150" y="127" text-anchor="middle" font-family="sans-serif"
-        font-size="9" font-weight="700" letter-spacing="2.5" fill="{v_text_col}" opacity="0.7">VISION</text>
-  <text x="150" y="155" text-anchor="middle" font-family="sans-serif"
-        font-size="12" font-weight="600" fill="{v_text_col}">{v_sublabel}</text>
+  {v_svg_block}
 
   <polygon points="34,194 266,194 249,286 51,286" fill="#50144B"/>
   <text x="150" y="224" text-anchor="middle" font-family="sans-serif"
@@ -529,38 +575,15 @@ def _overview():
     with col_c:
         # Build panel HTML — rendered as one block so flexbox can equalise heights
 
-        if mission_done:
-            m_bc, m_bg, m_icon = '#781E73', '#F7F0F7', '✅'
-            m_heading = 'Mission Statement'
-            m_body = (
-                f'<div style="font-size:1.0em;line-height:1.6;margin-top:6px;">'
-                f'We help <strong>{mission_top["Who"]}</strong> '
-                f'do <strong>{mission_top["What"]}</strong> '
-                f'by <strong>{mission_top["How"]}</strong>, '
-                f'so they can <strong>{mission_top["Makes Possible"]}</strong>.'
-                f'</div>'
-            )
-        elif mission_alive:
-            m_bc, m_bg, m_icon = '#C4A0C2', '#FAF5FA', '💬'
-            m_heading = f'Mission Statement — {n_mission} idea{"s" if n_mission != 1 else ""} in'
-            m_body = '<div style="font-size:1.0em;color:#999;margin-top:4px;">Voting will surface the top answers.</div>'
-        else:
-            m_bc, m_bg, m_icon = '#CCCCCC', '#F5F5F5', '⏳'
-            m_heading = 'Mission Statement'
-            m_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
+        m_bc, m_bg, m_icon = ('#781E73', '#F7F0F7', '✅') if mission_done else ('#CCCCCC', '#F5F5F5', '⏳')
+        m_heading = 'Mission Statement'
+        m_body_col = '#555' if mission_done else '#AAAAAA'
+        m_body = f'<div style="font-size:1.0em;color:{m_body_col};margin-top:4px;">What do we do and why? Who do we serve? How do we do it? What does that make possible?</div>'
 
-        if vision_done:
-            v_bc, v_bg, v_icon = '#188383', '#F0F8F8', '✅'
-            v_heading = 'Vision Statement'
-            v_body = f'<div style="font-size:1.0em;line-height:1.6;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
-        elif vision_alive:
-            v_bc, v_bg, v_icon = '#9BCFCF', '#F3FAFA', '🎨'
-            v_heading = f'Vision — {n_vision} cover {"stories" if n_vision != 1 else "story"} in'
-            v_body = '<div style="font-size:1.0em;color:#999;margin-top:4px;">Voting will surface the top answers. Facilitator locks the final statement.</div>'
-        else:
-            v_bc, v_bg, v_icon = '#CCCCCC', '#F5F5F5', '⏳'
-            v_heading = 'Vision Statement'
-            v_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
+        v_bc, v_bg, v_icon = ('#188383', '#F0F8F8', '✅') if vision_done else ('#CCCCCC', '#F5F5F5', '⏳')
+        v_heading = 'Vision Statement'
+        v_body_col = '#555' if vision_done else '#AAAAAA'
+        v_body = f'<div style="font-size:1.0em;color:{v_body_col};margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
 
         st.markdown(
             f'<div style="display:flex;flex-direction:column;gap:10px;">'
@@ -578,13 +601,13 @@ def _overview():
             f'<div style="flex:1;border-left:4px solid #50144B;background:#F5EFF5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
             f'<div style="font-weight:700;font-size:1.15em;color:#50144B;">✅ Values</div>'
-            f'<div style="font-size:1.0em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
+            f'<div style="font-size:1.0em;color:#666;margin-top:4px;">What do we stand for? What principles guide how we work and make decisions?</div>'
             f'</div>'
 
             f'<div style="flex:1;border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
             f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">✅ Brand promise</div>'
-            f'<div style="font-size:1.15em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
+            f'<div style="font-size:1.0em;color:#005E63;margin-top:4px;">What do we promise to deliver for every customer? What feeling do we create?</div>'
             f'</div>'
 
             f'</div>',
