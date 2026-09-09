@@ -207,7 +207,7 @@ with tab_dept:
                 f'margin-top:20px;margin-bottom:8px;background:#FAFAFA;border-radius:0 8px 8px 0;">'
                 f'<div style="font-size:0.85em;color:{colour};font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:1px;">Strategic Choice {choice["number"]}</div>'
-                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-weight:700;font-size:1.0em;color:#1a1a1a;">{choice["title"]}</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-weight:500;font-size:1.15em;color:#1a1a1a;">{choice["title"]}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -622,7 +622,7 @@ with tab_all:
                 f'<div>'
                 f'<div style="font-size:0.85em;color:{colour};font-weight:700;'
                 f'letter-spacing:1px;text-transform:uppercase;">Strategic Choice {choice["number"]}</div>'
-                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-weight:700;font-size:1.0em;color:#1a1a1a;">{choice["title"]}</div>'
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;font-feature-settings:\'ss01\' 1,\'ss02\' 1;font-weight:500;font-size:1.15em;color:#1a1a1a;">{choice["title"]}</div>'
                 f'</div>'
                 f'<div style="font-size:0.85em;color:{status_colour};font-weight:600;">'
                 f'{status_label}</div>'
