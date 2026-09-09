@@ -232,7 +232,7 @@ with tab_dept:
                     unsafe_allow_html=True,
                 )
 
-            # Cascade reference
+            # ── 1. CASCADE INPUT ──────────────────────────────────────────────────
             st.markdown(
                 f'<div style="background:#F7F7F7;border-left:3px solid #DDDDDD;'
                 f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;'
@@ -243,7 +243,7 @@ with tab_dept:
                 unsafe_allow_html=True,
             )
 
-            # All proposals for this function + choice — yellow cards, visible to everyone
+            # ── 2. ADD A METRIC (proposal submission — all roles) ─────────────
             dept_props = (
                 proposals_df[
                     (proposals_df['ChoiceID'] == cid) & (proposals_df['Department'] == d)
@@ -254,8 +254,45 @@ with tab_dept:
 
             st.markdown(
                 f'<div style="font-size:0.72em;color:#888;font-weight:700;'
-                f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
-                f'Proposals</div>',
+                f'text-transform:uppercase;letter-spacing:0.5px;'
+                f'margin-bottom:4px;">Add a metric</div>',
+                unsafe_allow_html=True,
+            )
+            col_m, col_t, col_o, col_btn = st.columns([3, 2, 2, 1])
+            with col_m:
+                st.text_input('Metric', key=f'sc_new_metric_{cid}_{d}_{n_props}',
+                              placeholder='e.g. Repeat order rate',
+                              label_visibility='visible')
+            with col_t:
+                st.text_input('Target', key=f'sc_new_target_{cid}_{d}_{n_props}',
+                              placeholder='e.g. 40% of clinics',
+                              label_visibility='visible')
+            with col_o:
+                st.text_input('Owner', key=f'sc_new_owner_{cid}_{d}_{n_props}',
+                              placeholder='e.g. JK',
+                              label_visibility='visible')
+            with col_btn:
+                st.markdown('<br>', unsafe_allow_html=True)
+                if st.button('Add', key=f'sc_submit_{cid}_{d}_{n_props}',
+                             use_container_width=True):
+                    m = st.session_state.get(f'sc_new_metric_{cid}_{d}_{n_props}', '').strip()
+                    t = st.session_state.get(f'sc_new_target_{cid}_{d}_{n_props}', '').strip()
+                    o = st.session_state.get(f'sc_new_owner_{cid}_{d}_{n_props}', '').strip()
+                    if m or t or o:
+                        try:
+                            save_scorecard_proposal(cid, d, name, m, t, o)
+                            st.toast('Metric added ✓', icon='✅')
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f'Could not save. ({_e})')
+                    else:
+                        st.warning('Enter at least one field.')
+
+            # ── 3. PROPOSALS (yellow cards — visible to all) ──────────────────
+            st.markdown(
+                f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:0.5px;'
+                f'margin-top:14px;margin-bottom:6px;">Proposals</div>',
                 unsafe_allow_html=True,
             )
             if dept_props.empty:
@@ -291,52 +328,19 @@ with tab_dept:
                         with col_use:
                             if st.button('Use', key=f'sc_use_{cid}_{d}_{pi}',
                                          use_container_width=True):
-                                st.session_state[f'sc_entry_metric_{cid}_{d}'] = prop['Metric']
-                                st.session_state[f'sc_entry_target_{cid}_{d}'] = prop['Target']
-                                st.session_state[f'sc_entry_owner_{cid}_{d}']  = prop['Owner']
-                                st.rerun()
+                                try:
+                                    save_scorecard_entry(
+                                        cid, d, prop['Metric'], prop['Target'],
+                                        prop['Owner'], locked_by=name)
+                                    pull_scorecard_entries.clear()
+                                    st.toast('Confirmed ✓', icon='✅')
+                                    st.rerun()
+                                except Exception as _e:
+                                    st.error(f'Could not confirm. ({_e})')
                     else:
                         st.markdown(prop_card, unsafe_allow_html=True)
 
-            # Add a metric — always-append, key resets after each submit
-            st.markdown(
-                f'<div style="font-size:0.72em;color:#888;font-weight:700;'
-                f'text-transform:uppercase;letter-spacing:0.5px;'
-                f'margin-top:12px;margin-bottom:4px;">Add a metric</div>',
-                unsafe_allow_html=True,
-            )
-            col_m, col_t, col_o, col_btn = st.columns([3, 2, 2, 1])
-            with col_m:
-                st.text_input('Metric', key=f'sc_new_metric_{cid}_{d}_{n_props}',
-                              placeholder='e.g. Repeat order rate',
-                              label_visibility='visible')
-            with col_t:
-                st.text_input('Target', key=f'sc_new_target_{cid}_{d}_{n_props}',
-                              placeholder='e.g. 40% of clinics',
-                              label_visibility='visible')
-            with col_o:
-                st.text_input('Owner', key=f'sc_new_owner_{cid}_{d}_{n_props}',
-                              placeholder='e.g. JK',
-                              label_visibility='visible')
-            with col_btn:
-                st.markdown('<br>', unsafe_allow_html=True)
-                if st.button('Add', key=f'sc_submit_{cid}_{d}_{n_props}',
-                             use_container_width=True):
-                    m = st.session_state.get(f'sc_new_metric_{cid}_{d}_{n_props}', '').strip()
-                    t = st.session_state.get(f'sc_new_target_{cid}_{d}_{n_props}', '').strip()
-                    o = st.session_state.get(f'sc_new_owner_{cid}_{d}_{n_props}', '').strip()
-                    if m or t or o:
-                        try:
-                            save_scorecard_proposal(cid, d, name, m, t, o)
-                            st.toast('Metric added ✓', icon='✅')
-                            st.rerun()
-                        except Exception as _e:
-                            st.error(f'Could not save. ({_e})')
-                    else:
-                        st.warning('Enter at least one field.')
-
-            # Function answer — multiple confirmed entries; all see green cards;
-            # Function Lead has remove buttons and a confirm form
+            # ── 4. CONFIRMED (green cards + manual confirm form for HOD) ──────
             dept_entries = (
                 entries_df[
                     (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
@@ -347,7 +351,7 @@ with tab_dept:
             st.markdown(
                 f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
-                f'margin-bottom:6px;">Function answer</div>',
+                f'margin-bottom:6px;">Confirmed</div>',
                 unsafe_allow_html=True,
             )
 
@@ -396,11 +400,12 @@ with tab_dept:
                     else:
                         st.markdown(entry_card, unsafe_allow_html=True)
 
+            # HOD: manual confirm form (for metrics not from a proposal)
             if is_hod:
                 st.markdown(
                     f'<div style="font-size:0.72em;color:#888;font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;'
-                    f'margin-top:10px;margin-bottom:4px;">Confirm a metric</div>',
+                    f'margin-top:10px;margin-bottom:4px;">Confirm manually</div>',
                     unsafe_allow_html=True,
                 )
                 col_m2, col_t2, col_o2, col_btn2 = st.columns([3, 2, 2, 1])
