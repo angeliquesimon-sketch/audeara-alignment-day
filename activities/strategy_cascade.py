@@ -445,7 +445,7 @@ with tab_activity:
                     dept,
                     value='',
                     height=68,
-                    placeholder=f'Add {dept}\'s contribution to this choice…',
+                    placeholder=f'How will {dept} help make this happen?',
                     key=f'casc_ta_new_{choice["id"]}_{dept}_{n_rows}',
                     label_visibility='collapsed',
                 )
