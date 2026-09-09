@@ -704,9 +704,9 @@ def _overview():
                 if len(cascade_text) > 90:
                     cascade_text = cascade_text[:87] + '…'
                 if row['entries']:
-                    e = row['entries'][0]
-                    metric_strip = (
-                        f'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">'
+                    metric_strip = ''.join(
+                        f'<div style="display:flex;gap:8px;flex-wrap:wrap;'
+                        f'margin-top:4px;{"padding-top:4px;border-top:1px solid #E8E0E8;" if ei > 0 else ""}">'
                         f'<span style="font-size:0.7em;background:{colour}14;color:{colour};'
                         f'font-weight:600;padding:2px 7px;border-radius:10px;">'
                         f'{e["Metric"] or "—"}</span>'
@@ -717,6 +717,7 @@ def _overview():
                         f'padding:2px 7px;border-radius:10px;">'
                         f'{e["Owner"] or "—"}</span>'
                         f'</div>'
+                        for ei, e in enumerate(row['entries'])
                     )
                 else:
                     metric_strip = (
