@@ -399,7 +399,7 @@ def _overview():
         'done'   if vision_done  else ('active' if vision_alive else 'upcoming'),
         'Locked.' if vision_done else
             (f'{n_vision} cover {"stories" if n_vision != 1 else "story"} submitted — vote and the facilitator locks the final statement.' if vision_alive
-             else 'Imagine Audeara on the cover of a major publication in 2030. Submit, vote, and lock a shared vision.'),
+             else 'It\'s 2032. Audeara is an Official Partner of the Brisbane Olympic Games — and just made the cover. Submit your cover story, vote, and lock a shared vision.'),
     )
     _step(
         'Different Styles, Shared Direction',
