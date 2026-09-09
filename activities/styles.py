@@ -75,7 +75,7 @@ def _render_spectrum(current, sc, df, started_at):
         )
         initial_svg += (
             f'<text x="{cx}" y="{LINE_Y}" text-anchor="middle" dominant-baseline="central" '
-            f'font-size="6" font-weight="700" fill="white" font-family="sans-serif">'
+            f'font-size="6" font-weight="700" fill="white" font-family="Noto Sans,sans-serif">'
             f'{_initials(p["name"])}</text>'
         )
 
@@ -145,7 +145,7 @@ def _team_map_svg(profiles, width=700, height=300):
         )
         initial_svg += (
             f'<text x="{cx}" y="{cy}" text-anchor="middle" dominant-baseline="central" '
-            f'font-size="8" font-weight="700" fill="white" font-family="sans-serif">'
+            f'font-size="8" font-weight="700" fill="white" font-family="Noto Sans,sans-serif">'
             f'{_initials(pos["name"])}</text>'
         )
 
@@ -159,13 +159,13 @@ def _team_map_svg(profiles, width=700, height=300):
         f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
         f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
         f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="7" '
-        f'fill="#4285C8" font-weight="bold" font-family="sans-serif">Blue</text>'
+        f'fill="#4285C8" font-weight="bold" font-family="Noto Sans,sans-serif">Blue</text>'
         f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" '
-        f'font-size="7" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
+        f'font-size="7" fill="#E84040" font-weight="bold" font-family="Noto Sans,sans-serif">Red</text>'
         f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="7" '
-        f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
+        f'fill="#3EAA6D" font-weight="bold" font-family="Noto Sans,sans-serif">Green</text>'
         f'<text x="{hw}" y="16" text-anchor="middle" font-size="7" '
-        f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
+        f'fill="#F5A623" font-weight="bold" font-family="Noto Sans,sans-serif">Yellow</text>'
         f'{dot_svg}{initial_svg}'
         f'</svg></div>'
     )

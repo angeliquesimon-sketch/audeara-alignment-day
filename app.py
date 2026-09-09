@@ -17,6 +17,20 @@ st.set_page_config(
     layout='wide',
 )
 
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&display=swap');
+@import url('https://use.typekit.net/bxp8awr.css');
+
+html, body, [class*="css"], .stMarkdown, .stTextInput > div > div > input,
+.stTextArea > div > div > textarea, .stSelectbox > div > div,
+.stButton > button, .stRadio > div, .stSlider > div,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans', sans-serif !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title('Audeara Alignment Day')
 st.caption('FY27 · Strategy and alignment activities')
 

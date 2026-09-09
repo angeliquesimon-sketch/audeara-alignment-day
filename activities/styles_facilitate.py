@@ -76,7 +76,7 @@ def _team_map_svg(profiles, width=700, height=500):
         )
         label_svg += (
             f'<text x="{pos["lx"]}" y="{pos["ly"]}" text-anchor="middle" '
-            f'font-size="10" fill="#333333" font-family="sans-serif">{pos["name"]}</text>'
+            f'font-size="10" fill="#333333" font-family="Noto Sans,sans-serif">{pos["name"]}</text>'
         )
 
     return (
@@ -89,13 +89,13 @@ def _team_map_svg(profiles, width=700, height=500):
         f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
         f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
         f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="11" '
-        f'fill="#4285C8" font-weight="bold" font-family="sans-serif">Blue</text>'
+        f'fill="#4285C8" font-weight="bold" font-family="Noto Sans,sans-serif">Blue</text>'
         f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" '
-        f'font-size="11" fill="#E84040" font-weight="bold" font-family="sans-serif">Red</text>'
+        f'font-size="11" fill="#E84040" font-weight="bold" font-family="Noto Sans,sans-serif">Red</text>'
         f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="11" '
-        f'fill="#3EAA6D" font-weight="bold" font-family="sans-serif">Green</text>'
+        f'fill="#3EAA6D" font-weight="bold" font-family="Noto Sans,sans-serif">Green</text>'
         f'<text x="{hw}" y="16" text-anchor="middle" font-size="11" '
-        f'fill="#F5A623" font-weight="bold" font-family="sans-serif">Yellow</text>'
+        f'fill="#F5A623" font-weight="bold" font-family="Noto Sans,sans-serif">Yellow</text>'
         f'{leader_svg}{dot_svg}{bg_svg}{label_svg}'
         f'</svg></div>'
     )
