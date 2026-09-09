@@ -350,7 +350,7 @@ with tab_activity:
                             unsafe_allow_html=True,
                         )
 
-        _section_label('TURN YOUR ONE THING INTO ACTION')
+        st.markdown('#### Turn your One Thing into action')
 
         @st.fragment(run_every=8)
         def _contributions():
