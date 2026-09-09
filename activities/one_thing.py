@@ -41,11 +41,11 @@ if not name:
 my_depts = DEPARTMENT_MAP.get(name, [])
 is_dept_head = any(DEPARTMENT_HEADS.get(d) == name for d in my_depts)
 
-tab_intro, tab_depts, tab_personal, tab_all = st.tabs([
+tab_intro, tab_depts, tab_all, tab_personal = st.tabs([
     '💡 What is The One Thing?',
     '🏢 Departmental One Things',
-    '✋ Your One Thing',
     '🌟 Our One Things',
+    '✋ Your One Thing',
 ])
 
 # ── Auto-refreshing stage gate ─────────────────────────────────────────────────
