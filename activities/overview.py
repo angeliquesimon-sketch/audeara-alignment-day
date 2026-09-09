@@ -577,13 +577,13 @@ def _overview():
 
             f'<div style="flex:1;border-left:4px solid #50144B;background:#F5EFF5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:#50144B;">Values</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#50144B;">✅ Values</div>'
             f'<div style="font-size:1.0em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
             f'</div>'
 
             f'<div style="flex:1;border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">Brand promise</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">✅ Brand promise</div>'
             f'<div style="font-size:1.15em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
             f'</div>'
 
