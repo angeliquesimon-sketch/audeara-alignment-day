@@ -655,7 +655,7 @@ def _overview():
     )
     st.markdown(
         f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
-        f'Strategic Choices</div>',
+        f'FY27 Strategy</div>',
         unsafe_allow_html=True,
     )
 
