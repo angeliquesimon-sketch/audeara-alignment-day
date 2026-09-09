@@ -468,7 +468,7 @@ with tab_activity:
             # Confidence vote (facilitator opens per choice)
             if conf_open:
                 st.divider()
-                st.markdown('#### Team Confidence — Anonymous')
+                st.markdown('#### Team Confidence (Anonymous)')
                 if st.session_state.get(f'casc_conf_voted_{choice["id"]}'):
                     st.success('Your vote has been recorded. Thank you.')
                 else:
