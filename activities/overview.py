@@ -654,8 +654,8 @@ def _overview():
         unsafe_allow_html=True,
     )
     st.markdown(
-        f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
-        f'color:#888;margin-bottom:8px;">STRATEGIC CHOICES</div>',
+        f'<div style="font-weight:700;font-size:1.05em;color:#333;margin-bottom:16px;">'
+        f'Strategic Choices</div>',
         unsafe_allow_html=True,
     )
 
