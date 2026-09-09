@@ -112,6 +112,20 @@ def save_mission_statement(text):
     ).execute()
     pull_mission_statement.clear()
 
+def unlock_mission_statement():
+    svc  = _sheets()
+    rows = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A2:B10",
+    ).execute().get('values', [])
+    for i, row in enumerate(rows, start=2):
+        if len(row) >= 1 and row[0] == 'locked':
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID, range=f"'{MISSION_STMT_TAB}'!A{i}:B{i}",
+                valueInputOption='RAW', body={'values': [['', '']]},
+            ).execute()
+            pull_mission_statement.clear()
+            return
+
 def generate_mission_polish(who, what, how, makes):
     from openai import OpenAI
     client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
@@ -346,7 +360,7 @@ with tab_results:
         locked_mission = pull_mission_statement()
         if locked_mission:
             st.markdown(
-                f'<div style="background:{TEAL};border-radius:10px;padding:18px 22px;margin-bottom:16px;">'
+                f'<div style="background:{TEAL};border-radius:10px;padding:18px 22px;margin-bottom:8px;">'
                 f'<div style="font-size:0.85em;color:rgba(255,255,255,0.7);font-weight:700;'
                 f'letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">'
                 f'Locked mission statement</div>'
@@ -354,6 +368,14 @@ with tab_results:
                 f'{locked_mission}</div></div>',
                 unsafe_allow_html=True,
             )
+            if st.button('🔓 Unlock', key='mission_unlock_btn'):
+                try:
+                    unlock_mission_statement()
+                    st.cache_data.clear()
+                    st.toast('Mission statement unlocked', icon='🔓')
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f'Could not unlock — {_e}')
 
         if all_four:
             if st.button('✨ Polish with AI', type='primary', key='mission_polish_btn'):
