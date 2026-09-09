@@ -444,11 +444,7 @@ with tab_all:
                 )
                 return
 
-            st.markdown(
-                f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
-                f'color:#888;margin-bottom:16px;">AGREED ONE THINGS</div>',
-                unsafe_allow_html=True,
-            )
+            st.markdown('#### Agreed One Things')
 
             for dept in DEPARTMENTS:
                 w = winners.get(dept, '')
