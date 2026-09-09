@@ -82,7 +82,7 @@ with tab_intro:
             unsafe_allow_html=True,
         )
         st.markdown(
-            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-weight:700;font-size:1.15em;color:{PURPLE};margin-bottom:16px;">'
+            f'<div style="font-family:\'roc-grotesk\',sans-serif;font-weight:600;font-size:1.15em;color:{PURPLE};margin-bottom:16px;">'
             f'What\'s the one thing you can do, such that by doing it, everything else becomes easier or unnecessary?'
             f'</div>',
             unsafe_allow_html=True,
