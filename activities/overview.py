@@ -464,6 +464,7 @@ def _overview():
     )
 
     st.divider()
+    st.markdown('#### Our foundation')
 
     # ── Funnel colours ────────────────────────────────────────────────────────
 
@@ -526,12 +527,13 @@ def _overview():
         st.markdown(svg, unsafe_allow_html=True)
 
     with col_c:
-        # Mission panel
+        # Build panel HTML — rendered as one block so flexbox can equalise heights
+
         if mission_done:
             m_bc, m_bg, m_icon = '#781E73', '#F7F0F7', '✅'
             m_heading = 'Mission Statement'
             m_body = (
-                f'<div style="font-size:1.0em;line-height:1.7;margin-top:6px;">'
+                f'<div style="font-size:1.0em;line-height:1.6;margin-top:6px;">'
                 f'We help <strong>{mission_top["Who"]}</strong> '
                 f'do <strong>{mission_top["What"]}</strong> '
                 f'by <strong>{mission_top["How"]}</strong>, '
@@ -547,19 +549,10 @@ def _overview():
             m_heading = 'Mission Statement'
             m_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">What do we provide? Who do we serve? How do we do that? What does that make possible?</div>'
 
-        st.markdown(
-            f'<div style="border-left:4px solid {m_bc};background:{m_bg};'
-            f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:{m_bc};">{m_icon} {m_heading}</div>'
-            f'{m_body}</div>',
-            unsafe_allow_html=True,
-        )
-
-        # Vision panel
         if vision_done:
             v_bc, v_bg, v_icon = '#188383', '#F0F8F8', '✅'
             v_heading = 'Vision Statement'
-            v_body = f'<div style="font-size:1.0em;line-height:1.7;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
+            v_body = f'<div style="font-size:1.0em;line-height:1.6;margin-top:6px;font-style:italic;">"{vision_final}"</div>'
         elif vision_alive:
             v_bc, v_bg, v_icon = '#9BCFCF', '#F3FAFA', '🎨'
             v_heading = f'Vision — {n_vision} cover {"stories" if n_vision != 1 else "story"} in'
@@ -570,29 +563,30 @@ def _overview():
             v_body = '<div style="font-size:1.0em;color:#AAAAAA;margin-top:4px;">Where are we in 3–5 years? What have we achieved? Who have we become?</div>'
 
         st.markdown(
-            f'<div style="border-left:4px solid {v_bc};background:{v_bg};'
-            f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:{v_bc};">{v_icon} {v_heading}</div>'
-            f'{v_body}</div>',
-            unsafe_allow_html=True,
-        )
+            f'<div style="display:flex;flex-direction:column;gap:10px;">'
 
-        # Values (always filled)
-        st.markdown(
-            f'<div style="border-left:4px solid #50144B;background:#F5EFF5;'
-            f'border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;">'
+            f'<div style="flex:1;border-left:4px solid {m_bc};background:{m_bg};'
+            f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+            f'<div style="font-weight:700;font-size:1.15em;color:{m_bc};">{m_icon} {m_heading}</div>'
+            f'{m_body}</div>'
+
+            f'<div style="flex:1;border-left:4px solid {v_bc};background:{v_bg};'
+            f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+            f'<div style="font-weight:700;font-size:1.15em;color:{v_bc};">{v_icon} {v_heading}</div>'
+            f'{v_body}</div>'
+
+            f'<div style="flex:1;border-left:4px solid #50144B;background:#F5EFF5;'
+            f'border-radius:0 8px 8px 0;padding:14px 16px;">'
             f'<div style="font-weight:700;font-size:1.15em;color:#50144B;">Values</div>'
             f'<div style="font-size:1.0em;color:#50144B;font-weight:600;margin-top:4px;">{VALUES}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+            f'</div>'
 
-        # Brand promise (always filled)
-        st.markdown(
-            f'<div style="border-left:4px solid #005E63;background:#EDF5F5;'
+            f'<div style="flex:1;border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
             f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">Brand promise</div>'
             f'<div style="font-size:1.15em;color:#005E63;font-weight:700;margin-top:4px;">{BRAND_PROMISE}</div>'
+            f'</div>'
+
             f'</div>',
             unsafe_allow_html=True,
         )
