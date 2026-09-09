@@ -262,11 +262,7 @@ st.markdown('')
 
 # ── Ground rules ──────────────────────────────────────────────────────────────
 
-st.markdown(
-    f'<div style="font-weight:700;font-size:1.4em;color:{TEAL};margin-bottom:14px;">'
-    f'Good times. Good vibes.</div>',
-    unsafe_allow_html=True,
-)
+st.markdown('#### Good times. Good vibes.')
 
 RULES = [
     'Be open and constructive',
@@ -618,11 +614,7 @@ def _overview():
         )
 
     st.divider()
-    st.markdown(
-        f'<div style="font-weight:700;font-size:1.4em;color:#333;margin-bottom:16px;">'
-        f"Who we are and how we work</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown('#### Who we are and how we work')
 
     # ── Organogram ────────────────────────────────────────────────────────────
 
@@ -673,11 +665,7 @@ def _overview():
         '<hr style="border:none;border-top:1px solid #E0E0E0;margin:24px 0 20px 0;">',
         unsafe_allow_html=True,
     )
-    st.markdown(
-        f'<div style="font-weight:700;font-size:1.4em;color:#333;margin-bottom:16px;">'
-        f'FY27 Strategy</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('#### FY27 Strategy')
 
     if not casc_alive:
         st.markdown(
