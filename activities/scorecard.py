@@ -245,13 +245,34 @@ with tab_dept:
             )
 
             # ── 2. ADD A METRIC (proposal submission — all roles) ─────────────
-            dept_props = (
+            # Pre-load confirmed entries so we can filter proposals below
+            dept_entries = (
+                entries_df[
+                    (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
+                ]
+                if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
+            )
+            confirmed_tuples = set(
+                zip(dept_entries['Metric'], dept_entries['Target'], dept_entries['Owner'])
+            ) if not dept_entries.empty else set()
+
+            _all_props = (
                 proposals_df[
                     (proposals_df['ChoiceID'] == cid) & (proposals_df['Department'] == d)
                 ]
                 if not proposals_df.empty else pd.DataFrame(columns=proposals_df.columns)
             )
-            n_props = len(dept_props)
+            # Hide proposals already confirmed (matched by content)
+            if confirmed_tuples and not _all_props.empty:
+                dept_props = _all_props[
+                    ~_all_props.apply(
+                        lambda r: (r['Metric'], r['Target'], r['Owner']) in confirmed_tuples,
+                        axis=1,
+                    )
+                ].reset_index(drop=True)
+            else:
+                dept_props = _all_props
+            n_props = len(_all_props)  # key uses total count so form key stays stable
 
             st.markdown(
                 f'<div style="font-size:0.72em;color:#888;font-weight:700;'
@@ -344,13 +365,6 @@ with tab_dept:
                         st.markdown(prop_card, unsafe_allow_html=True)
 
             # ── 4. CONFIRMED (green cards + manual confirm form for HOD) ──────
-            dept_entries = (
-                entries_df[
-                    (entries_df['ChoiceID'] == cid) & (entries_df['Department'] == d)
-                ]
-                if not entries_df.empty else pd.DataFrame(columns=entries_df.columns)
-            )
-
             st.markdown(
                 f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
