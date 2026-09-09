@@ -396,10 +396,11 @@ if stage == 'cascade':
                     restore_dept(choice['id'], dept)
                     st.rerun()
             else:
-                # ── All active rows — keyed on Timestamp so indices never shift ──
-                for _, row in locked_rows.iterrows():
+                # ── All active rows — keyed on choice+dept+index so duplicates can't collide ──
+                for ri, (_, row) in enumerate(locked_rows.iterrows()):
                     ts   = row['Timestamp']
                     text = row['Text']
+                    rkey = f'{choice["id"]}_{dept}_{ri}'
                     pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
                     if len(pts) == 1:
                         rbody = f'✅ {pts[0]}'
@@ -414,11 +415,11 @@ if stage == 'cascade':
                     )
                     c1, c2 = st.columns(2)
                     with c1:
-                        if st.button('Unlock', key=f'fac_unlock_{ts}', use_container_width=True):
+                        if st.button('Unlock', key=f'fac_unlock_{rkey}', use_container_width=True):
                             update_contribution(ts, new_status='draft')
                             st.rerun()
                     with c2:
-                        if st.button('Delete', key=f'fac_del_l_{ts}', use_container_width=True):
+                        if st.button('Delete', key=f'fac_del_l_{rkey}', use_container_width=True):
                             update_contribution(ts, new_status='deleted')
                             st.rerun()
 
