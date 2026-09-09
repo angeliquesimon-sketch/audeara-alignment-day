@@ -632,12 +632,27 @@ def _overview():
         unsafe_allow_html=True,
     )
 
-    # ── Row 2: Strategy Cascade (full width) ──────────────────────────────────
+    # ── Row 2: Strategic Choices (cascade + scorecard, full width) ───────────────
+
+    CHOICE_COLOURS = [WINE, FOREST, '#781E73', '#005E63', WINE, FOREST, '#781E73']
+
+    def _dept_contribs(cid):
+        if casc_contribs.empty:
+            return {}
+        sub = casc_contribs[
+            (casc_contribs['ChoiceID'] == cid) &
+            (~casc_contribs['Status'].isin(['deleted', 'opted_out']))
+        ].sort_values('Timestamp', ascending=False)
+        result = {}
+        for _, row in sub.iterrows():
+            if row['Department'] not in result and row['Text'].strip():
+                result[row['Department']] = row['Text'].strip()
+        return result
 
     st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
     st.markdown(
         f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
-        f'color:#888;margin-bottom:8px;">STRATEGY CASCADE</div>',
+        f'color:#888;margin-bottom:8px;">STRATEGIC CHOICES</div>',
         unsafe_allow_html=True,
     )
 
@@ -645,53 +660,110 @@ def _overview():
         st.markdown(
             f'<div style="background:#F5F5F5;border-radius:8px;padding:16px;'
             f'text-align:center;font-size:0.9em;color:#AAAAAA;font-style:italic;">'
-            f'Strategic choices and departmental decisions will appear here as the cascade progresses.</div>',
+            f'Strategic choices and scorecard entries will appear here as the session progresses.</div>',
             unsafe_allow_html=True,
         )
     else:
-        casc_cols = st.columns(2)
-        for i, choice in enumerate(CASCADE_CHOICES):
-            with casc_cols[i % 2]:
-                dept_rows_html = ''
-                for dept in OT_DEPARTMENTS:
-                    locked = (
-                        casc_contribs[
-                            (casc_contribs['ChoiceID'] == choice['id']) &
-                            (casc_contribs['Department'] == dept) &
-                            (casc_contribs['Status'] == 'locked')
-                        ]
-                        if not casc_contribs.empty else casc_contribs
-                    )
-                    is_last = dept == OT_DEPARTMENTS[-1]
-                    border  = '' if is_last else 'border-bottom:1px solid rgba(80,20,75,0.08);'
-                    if not locked.empty:
-                        text = ' · '.join(str(t) for t in locked['Text'].tolist() if str(t).strip())
-                        if len(text) > 130:
-                            text = text[:127] + '…'
-                        dept_rows_html += (
-                            f'<div style="padding:6px 0;{border}">'
-                            f'<div style="font-size:0.65em;font-weight:700;color:{WINE};'
-                            f'letter-spacing:0.8px;margin-bottom:2px;">{dept.upper()}</div>'
-                            f'<div style="font-size:0.82em;color:#333;line-height:1.45;">{text}</div>'
-                            f'</div>'
-                        )
-                    else:
-                        dept_rows_html += (
-                            f'<div style="padding:6px 0;{border}">'
-                            f'<div style="font-size:0.65em;font-weight:700;color:#CCCCCC;'
-                            f'letter-spacing:0.8px;margin-bottom:2px;">{dept.upper()}</div>'
-                            f'<div style="font-size:0.82em;color:#CCCCCC;font-style:italic;">Pending</div>'
-                            f'</div>'
-                        )
+        for idx, choice in enumerate(sc_choices):
+            cid           = choice['id']
+            colour        = CHOICE_COLOURS[idx % len(CHOICE_COLOURS)]
+            dept_inputs   = _dept_contribs(cid)
+            choice_entries = (
+                sc_entries_df[sc_entries_df['ChoiceID'] == cid]
+                if not sc_entries_df.empty else sc_entries_df
+            )
+
+            rows = []
+            for d in OT_DEPARTMENTS:
+                if not dept_inputs.get(d, ''):
+                    continue
+                entry = choice_entries[choice_entries['Department'] == d]
+                rows.append({
+                    'dept':    d,
+                    'cascade': dept_inputs[d],
+                    'entries': entry.to_dict('records') if not entry.empty else [],
+                    'saved':   not entry.empty,
+                })
+
+            if not rows:
                 st.markdown(
-                    f'<div style="border:1px solid #E8E0E8;border-top:3px solid {WINE};'
-                    f'border-radius:0 0 8px 8px;padding:14px 16px;margin-bottom:12px;">'
-                    f'<div style="font-size:0.68em;font-weight:700;color:{WINE};'
-                    f'letter-spacing:1px;margin-bottom:4px;">CHOICE {choice["number"]}</div>'
-                    f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;'
-                    f'margin-bottom:10px;line-height:1.3;">{choice["title"]}</div>'
-                    f'{dept_rows_html}</div>',
+                    f'<div style="border-left:4px solid #DDDDDD;background:#FAFAFA;'
+                    f'border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;">'
+                    f'<div style="font-size:0.68em;color:#CCCCCC;font-weight:700;'
+                    f'letter-spacing:1px;text-transform:uppercase;">Strategic Choice {choice["number"]}</div>'
+                    f'<div style="font-weight:700;font-size:0.92em;color:#CCCCCC;">{choice["title"]}</div>'
+                    f'<div style="font-size:0.78em;color:#CCCCCC;margin-top:6px;">No cascade inputs yet</div>'
+                    f'</div>',
                     unsafe_allow_html=True,
                 )
+                continue
+
+            n_saved       = sum(1 for r in rows if r['saved'])
+            n_total       = len(rows)
+            all_done      = n_saved == n_total
+            status_colour = '#3EAA6D' if all_done else '#F5A623' if n_saved > 0 else '#AAAAAA'
+            status_label  = (
+                f'All {n_total} confirmed' if all_done
+                else f'{n_saved} of {n_total} confirmed' if n_saved > 0
+                else 'Pending'
+            )
+
+            st.markdown(
+                f'<div style="border-left:4px solid {colour};background:#FFFFFF;'
+                f'border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:2px;'
+                f'box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
+                f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
+                f'<div>'
+                f'<div style="font-size:0.68em;color:{colour};font-weight:700;'
+                f'letter-spacing:1px;text-transform:uppercase;">Strategic Choice {choice["number"]}</div>'
+                f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;">{choice["title"]}</div>'
+                f'</div>'
+                f'<div style="font-size:0.72em;color:{status_colour};font-weight:600;">'
+                f'{status_label}</div>'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
+
+            for row in rows:
+                if row['entries']:
+                    metric_html = ''.join(
+                        f'<div style="display:flex;gap:24px;flex-wrap:wrap;'
+                        f'{"margin-top:6px;padding-top:6px;border-top:1px solid #D5EDDF;" if ei > 0 else ""}">'
+                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Metric"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Target"] or "—"}</div></div>'
+                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
+                        f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
+                        f'{e["Owner"] or "—"}</div></div>'
+                        f'</div>'
+                        for ei, e in enumerate(row['entries'])
+                    )
+                else:
+                    metric_html = '<div style="font-size:0.78em;color:#CCCCCC;">Scorecard pending</div>'
+
+                cascade_html = (
+                    f'<div style="font-size:0.75em;color:#888;margin-bottom:8px;'
+                    f'padding:6px 10px;background:#F7F7F7;border-radius:4px;'
+                    f'line-height:1.5;font-style:italic;">{row["cascade"]}</div>'
+                )
+                st.markdown(
+                    f'<div style="border-left:2px solid #EEEEEE;padding:10px 14px 10px 16px;'
+                    f'margin-left:4px;margin-bottom:2px;">'
+                    f'<div style="font-size:0.72em;font-weight:700;color:{colour};'
+                    f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
+                    f'{row["dept"]}</div>'
+                    f'{cascade_html}'
+                    f'{metric_html}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown('<div style="margin-bottom:16px;"></div>', unsafe_allow_html=True)
 
 _overview()
