@@ -649,7 +649,10 @@ def _overview():
                 result[row['Department']] = row['Text'].strip()
         return result
 
-    st.markdown('<div style="margin-top:16px;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<hr style="border:none;border-top:1px solid #E0E0E0;margin:24px 0 20px 0;">',
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f'<div style="font-size:0.75em;font-weight:700;letter-spacing:2px;'
         f'color:#888;margin-bottom:8px;">STRATEGIC CHOICES</div>',
