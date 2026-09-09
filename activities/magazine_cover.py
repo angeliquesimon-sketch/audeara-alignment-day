@@ -108,7 +108,7 @@ st.markdown(
     f'<div style="font-size:1.05em;font-style:italic;color:#1a1a1a;'
     f'margin-bottom:8px;">"Enhancing people\'s lives through sound."</div>'
     f'<div style="font-size:0.88em;color:#555;line-height:1.6;">'
-    f'This is the draft vision statement from James. As a team today, we\'re going to explore '
+    f'This is the draft vision statement. As a team today, we\'re going to explore '
     f'what that means, what inspires us, and decide together on words we all feel genuinely connected to.'
     f'</div></div>',
     unsafe_allow_html=True,

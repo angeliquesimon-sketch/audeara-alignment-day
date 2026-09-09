@@ -123,7 +123,7 @@ tab_pres, tab_activity, tab_results = st.tabs(['📊 Presentation', '💬 Activi
 with tab_pres:
 
     if stage == 'hidden':
-        _waiting('James will open this session shortly.')
+        _waiting('This session will open shortly.')
 
     else:
         # Tab 1 never collapses — it is a permanent record of the full presentation
@@ -292,7 +292,7 @@ with tab_pres:
 with tab_activity:
 
     if stage in ('hidden', 'engines', 'choices', 'working'):
-        _waiting('The cascade discussion will open here when James is ready.')
+        _waiting('The cascade discussion will open here shortly.')
 
     elif stage in ('cascade', 'reveal'):
         pass

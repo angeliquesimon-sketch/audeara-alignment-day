@@ -175,7 +175,7 @@ st.markdown(
     f'<div style="font-size:1.05em;font-style:italic;color:#1a1a1a;'
     f'margin-bottom:8px;">"To connect people to the experiences that matter to them through sound technology."</div>'
     f'<div style="font-size:0.88em;color:#555;line-height:1.6;">'
-    f'This is the draft mission statement from James. As a team today, we\'re going to work through '
+    f'This is the draft mission statement. As a team today, we\'re going to work through '
     f'the building blocks of a mission and decide together on wording we all feel genuinely connected to.'
     f'</div></div>',
     unsafe_allow_html=True,

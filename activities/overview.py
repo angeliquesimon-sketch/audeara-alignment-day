@@ -430,11 +430,11 @@ def _overview():
         n_conf = _row_count('Cascade Confidence')
         casc_detail = f'Cascade underway — {n_conf} confidence vote{"s" if n_conf != 1 else ""} in.'
     elif casc_stage in ('engines', 'choices', 'working'):
-        casc_detail = 'James is presenting the FY27 strategy.'
+        casc_detail = 'The FY27 strategy is being presented.'
     elif casc_alive:
         casc_detail = 'Strategy Cascade is underway.'
     else:
-        casc_detail = 'James presents the FY27 strategy. Each function agrees how they contribute to each strategic choice.'
+        casc_detail = 'The FY27 strategy is presented. Each function agrees how they contribute to each strategic choice.'
     _step(
         'Strategy Cascade',
         'done'   if casc_done  else ('active' if casc_alive else 'upcoming'),
