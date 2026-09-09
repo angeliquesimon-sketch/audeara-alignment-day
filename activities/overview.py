@@ -539,10 +539,10 @@ def _overview():
 
     svg = f"""
 <div style="padding:8px 0 16px;">
-<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg"
-     style="width:100%;max-width:320px;display:block;margin:0 auto">
+<svg viewBox="-20 0 340 400" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;max-width:340px;display:block;margin:0 auto">
 
-  <polygon points="0,0 300,0 283,92 17,92" fill="{m_fill}"/>
+  <polygon points="-20,0 320,0 283,92 17,92" fill="{m_fill}"/>
   {m_svg_block}
 
   <polygon points="17,97 283,97 266,189 34,189" fill="{v_fill}"/>
