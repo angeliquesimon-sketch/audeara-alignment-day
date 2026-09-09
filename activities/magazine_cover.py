@@ -103,11 +103,11 @@ st.markdown('### Vision Activity — Magazine Cover Story')
 st.markdown(
     f'<div style="border-left:4px solid #005E63;background:#F0F7F7;'
     f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;">'
-    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1.5px;'
+    f'<div style="font-size:0.85em;font-weight:700;letter-spacing:1.5px;'
     f'color:#005E63;margin-bottom:6px;">JAMES\'S STARTING POINT</div>'
-    f'<div style="font-size:1.05em;font-style:italic;color:#1a1a1a;'
+    f'<div style="font-size:1.15em;font-style:italic;color:#1a1a1a;'
     f'margin-bottom:8px;">"Enhancing people\'s lives through sound."</div>'
-    f'<div style="font-size:0.88em;color:#555;line-height:1.6;">'
+    f'<div style="font-size:0.9em;color:#555;line-height:1.6;">'
     f'This is the draft vision statement. As a team today, we\'re going to explore '
     f'what that means, what inspires us, and decide together on words we all feel genuinely connected to.'
     f'</div></div>',
@@ -222,12 +222,12 @@ with tab_submit:
             partner_str = row.get('Partner Title', '').strip()
             st.markdown(
                 f'<div class="activity-card">'
-                f'<span style="font-size:0.75em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
-                + (f'<span style="font-size:0.78em;font-weight:700;color:{TEAL};">Official {partner_str} Partner · Brisbane 2032</span><br>' if partner_str else '')
-                + f'<span style="font-size:1.05em;font-weight:700;">{row.get("Headline","")}</span><br>'
-                f'<span style="font-size:0.88em;color:#555;">{row.get("The Story","")}</span><br>'
+                f'<span style="font-size:0.85em;color:#888;">{COVER_YEAR}{pub_str}</span><br>'
+                + (f'<span style="font-size:0.85em;font-weight:700;color:{TEAL};">Official {partner_str} Partner · Brisbane 2032</span><br>' if partner_str else '')
+                + f'<span style="font-size:1.15em;font-weight:700;">{row.get("Headline","")}</span><br>'
+                f'<span style="font-size:0.9em;color:#555;">{row.get("The Story","")}</span><br>'
                 f'<em style="font-size:0.85em;">{row.get("Quote","")}</em><br>'
-                f'<span style="font-size:0.82em;color:#777;">{row.get("Standout","")}</span>'
+                f'<span style="font-size:0.85em;color:#777;">{row.get("Standout","")}</span>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -384,7 +384,7 @@ with tab_results:
                 st.markdown(
                     f'<div style="background:#1a1a2e;border-radius:10px;height:340px;'
                     f'display:flex;align-items:center;justify-content:center;'
-                    f'color:#555;font-size:0.88em;text-align:center;padding:24px;">'
+                    f'color:#555;font-size:0.9em;text-align:center;padding:24px;">'
                     f'Add an image description in your submission<br>and it will appear here.'
                     f'</div>',
                     unsafe_allow_html=True,
@@ -528,7 +528,7 @@ with tab_vision:
             )
             if _candidates:
                 st.markdown(
-                    '<div style="font-size:0.8em;color:#aaa;margin:8px 0 4px 0;'
+                    '<div style="font-size:0.85em;color:#aaa;margin:8px 0 4px 0;'
                     'letter-spacing:0.06em;text-transform:uppercase;">Candidates discussed</div>',
                     unsafe_allow_html=True,
                 )
@@ -536,9 +536,9 @@ with tab_vision:
                     st.markdown(
                         f'<div style="background:#f7f7f7;border:1px solid #e8e8e8;border-radius:8px;'
                         f'padding:16px 20px;margin:6px 0;opacity:0.5;border-left:4px solid #ccc;">'
-                        f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
+                        f'<span style="font-size:0.85em;font-weight:700;letter-spacing:0.1em;'
                         f'text-transform:uppercase;color:#bbb;">Option {i+1}</span><br>'
-                        f'<span style="font-size:0.95em;line-height:1.5;color:#999;">{c}</span>'
+                        f'<span style="font-size:1.0em;line-height:1.5;color:#999;">{c}</span>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
@@ -562,8 +562,8 @@ with tab_vision:
                     st.markdown(
                         f'<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;'
                         f'padding:16px 20px;margin:8px 0;border-left:4px solid {PURPLE};">'
-                        f'<span style="font-size:0.95em;line-height:1.5;">{c}</span>'
-                        f'<span style="font-size:0.82em;color:#aaa;margin-left:10px;">'
+                        f'<span style="font-size:1.0em;line-height:1.5;">{c}</span>'
+                        f'<span style="font-size:0.85em;color:#aaa;margin-left:10px;">'
                         f'&nbsp;·&nbsp; {count} vote{"s" if count != 1 else ""}</span>'
                         f'</div>',
                         unsafe_allow_html=True,

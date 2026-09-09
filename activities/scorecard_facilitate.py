@@ -91,7 +91,7 @@ n_filled  = len(entries_df['ChoiceID'].unique()) if not entries_df.empty else 0
 
 st.markdown(
     f'<div style="background:#F5F0F5;border-radius:8px;padding:10px 16px;margin-bottom:20px;'
-    f'font-size:0.84em;color:{PURPLE};font-weight:600;">'
+    f'font-size:0.85em;color:{PURPLE};font-weight:600;">'
     f'{n_entries} scorecard entries saved · {n_filled} of {n_choices} choices have at least one entry'
     f'</div>',
     unsafe_allow_html=True,
@@ -154,9 +154,9 @@ for idx, choice in enumerate(choices):
             st.markdown(
                 f'<div style="display:flex;justify-content:space-between;align-items:baseline;'
                 f'margin-top:16px;margin-bottom:6px;">'
-                f'<div style="font-size:0.8em;font-weight:700;color:{colour};'
+                f'<div style="font-size:0.85em;font-weight:700;color:{colour};'
                 f'text-transform:uppercase;letter-spacing:0.5px;">{dept}</div>'
-                f'<div style="font-size:0.72em;color:{dept_status_colour};">{dept_status}</div>'
+                f'<div style="font-size:0.85em;color:{dept_status_colour};">{dept_status}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -164,8 +164,8 @@ for idx, choice in enumerate(choices):
             st.markdown(
                 f'<div style="background:#F7F7F7;border-left:3px solid #DDDDDD;'
                 f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:10px;'
-                f'font-size:0.82em;color:#444;line-height:1.5;">'
-                f'<span style="font-size:0.72em;color:#AAAAAA;font-weight:700;'
+                f'font-size:0.85em;color:#444;line-height:1.5;">'
+                f'<span style="font-size:0.85em;color:#AAAAAA;font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:0.5px;">Cascade input</span><br>'
                 f'{cascade_text}</div>',
                 unsafe_allow_html=True,

@@ -170,11 +170,11 @@ st.markdown('### Mission Statement Activity')
 st.markdown(
     f'<div style="border-left:4px solid #005E63;background:#F0F7F7;'
     f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;">'
-    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1.5px;'
+    f'<div style="font-size:0.85em;font-weight:700;letter-spacing:1.5px;'
     f'color:#005E63;margin-bottom:6px;">JAMES\'S STARTING POINT</div>'
-    f'<div style="font-size:1.05em;font-style:italic;color:#1a1a1a;'
+    f'<div style="font-size:1.15em;font-style:italic;color:#1a1a1a;'
     f'margin-bottom:8px;">"To connect people to the experiences that matter to them through sound technology."</div>'
-    f'<div style="font-size:0.88em;color:#555;line-height:1.6;">'
+    f'<div style="font-size:0.9em;color:#555;line-height:1.6;">'
     f'This is the draft mission statement. As a team today, we\'re going to work through '
     f'the building blocks of a mission and decide together on wording we all feel genuinely connected to.'
     f'</div></div>',
@@ -347,10 +347,10 @@ with tab_results:
         if locked_mission:
             st.markdown(
                 f'<div style="background:{TEAL};border-radius:10px;padding:18px 22px;margin-bottom:16px;">'
-                f'<div style="font-size:0.68em;color:rgba(255,255,255,0.7);font-weight:700;'
+                f'<div style="font-size:0.85em;color:rgba(255,255,255,0.7);font-weight:700;'
                 f'letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">'
                 f'Locked mission statement</div>'
-                f'<div style="font-size:1.05em;color:#fff;font-weight:600;line-height:1.6;">'
+                f'<div style="font-size:1.15em;color:#fff;font-weight:600;line-height:1.6;">'
                 f'{locked_mission}</div></div>',
                 unsafe_allow_html=True,
             )

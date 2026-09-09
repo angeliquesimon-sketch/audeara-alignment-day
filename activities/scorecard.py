@@ -64,9 +64,9 @@ with tab_about:
     st.markdown(
         f'<div style="background:#F7F0F7;border-left:4px solid {WINE};'
         f'border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:16px;">'
-        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{WINE};margin-bottom:8px;">WHAT IS THE SCORECARD?</div>'
-        f'<div style="font-size:0.88em;color:#444;line-height:1.7;">'
+        f'<div style="font-size:0.9em;color:#444;line-height:1.7;">'
         f'The Scorecard turns the commitments your team made in the Strategy Cascade into '
         f'measurable outcomes. For each strategic choice your function contributed to, '
         f'you\'ll agree on a metric, a target, and an owner — so there\'s no ambiguity '
@@ -88,9 +88,9 @@ with tab_about:
             st.markdown(
                 f'<div style="background:#F5F5F5;border-radius:8px;padding:14px 16px;">'
                 f'<div style="font-size:1.2em;margin-bottom:6px;">{icon}</div>'
-                f'<div style="font-weight:700;font-size:0.84em;color:#333;margin-bottom:4px;">'
+                f'<div style="font-weight:700;font-size:0.85em;color:#333;margin-bottom:4px;">'
                 f'{heading}</div>'
-                f'<div style="font-size:0.78em;color:#666;line-height:1.5;">{body}</div>'
+                f'<div style="font-size:0.85em;color:#666;line-height:1.5;">{body}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -99,9 +99,9 @@ with tab_about:
     st.markdown(
         f'<div style="background:#F0F8F8;border-left:4px solid {TEAL};'
         f'border-radius:0 8px 8px 0;padding:14px 20px;">'
-        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{TEAL};margin-bottom:6px;">HOW IT WORKS</div>'
-        f'<div style="font-size:0.88em;color:#444;line-height:1.6;">'
+        f'<div style="font-size:0.9em;color:#444;line-height:1.6;">'
         f'Break into your function groups. Anyone can propose a metric, target, and owner '
         f'for each strategic choice. Function leads review the proposals and confirm the '
         f'final entry — which stays editable throughout the day.'
@@ -112,23 +112,23 @@ with tab_about:
     st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
     _fl_rows = ''.join(
         f'<tr>'
-        f'<td style="padding:8px 14px;font-size:0.84em;font-weight:600;color:#1a1a1a;'
+        f'<td style="padding:8px 14px;font-size:0.85em;font-weight:600;color:#1a1a1a;'
         f'border-bottom:1px solid #F0EBF0;">{fn}</td>'
-        f'<td style="padding:8px 14px;font-size:0.84em;color:#555;'
+        f'<td style="padding:8px 14px;font-size:0.85em;color:#555;'
         f'border-bottom:1px solid #F0EBF0;">{lead}</td>'
         f'</tr>'
         for fn, lead in DEPARTMENT_HEADS.items()
     )
     st.markdown(
-        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{WINE};margin-bottom:10px;">FUNCTION LEADS</div>'
         f'<table style="width:100%;border-collapse:collapse;background:#FAFAFA;'
         f'border-radius:8px;overflow:hidden;">'
         f'<thead><tr>'
-        f'<th style="text-align:left;padding:8px 14px;font-size:0.7em;font-weight:700;'
+        f'<th style="text-align:left;padding:8px 14px;font-size:0.85em;font-weight:700;'
         f'letter-spacing:1px;color:{WINE};background:#F5F0F5;border-bottom:2px solid #E8DEE8;">'
         f'FUNCTION</th>'
-        f'<th style="text-align:left;padding:8px 14px;font-size:0.7em;font-weight:700;'
+        f'<th style="text-align:left;padding:8px 14px;font-size:0.85em;font-weight:700;'
         f'letter-spacing:1px;color:{WINE};background:#F5F0F5;border-bottom:2px solid #E8DEE8;">'
         f'LEAD</th>'
         f'</tr></thead>'
@@ -157,7 +157,7 @@ with tab_dept:
                 f'<span style="color:#CCCCCC;"> ({role})</span>'
             )
         st.markdown(
-            f'<div style="font-size:0.75em;margin-bottom:16px;">'
+            f'<div style="font-size:0.85em;margin-bottom:16px;">'
             + ' &nbsp;·&nbsp; '.join(role_parts)
             + '</div>',
             unsafe_allow_html=True,
@@ -205,9 +205,9 @@ with tab_dept:
             st.markdown(
                 f'<div style="border-left:4px solid {colour};padding:10px 14px;'
                 f'margin-top:20px;margin-bottom:8px;background:#FAFAFA;border-radius:0 8px 8px 0;">'
-                f'<div style="font-size:0.68em;color:{colour};font-weight:700;'
+                f'<div style="font-size:0.85em;color:{colour};font-weight:700;'
                 f'text-transform:uppercase;letter-spacing:1px;">Strategic Choice {choice["number"]}</div>'
-                f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;">{choice["title"]}</div>'
+                f'<div style="font-weight:700;font-size:1.0em;color:#1a1a1a;">{choice["title"]}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -221,7 +221,7 @@ with tab_dept:
 
                 if multi_dept:
                     st.markdown(
-                        f'<div style="font-size:0.8em;font-weight:700;color:{colour};'
+                        f'<div style="font-size:0.85em;font-weight:700;color:{colour};'
                         f'text-transform:uppercase;letter-spacing:0.5px;'
                         f'margin-top:14px;margin-bottom:6px;">{d}</div>',
                         unsafe_allow_html=True,
@@ -231,8 +231,8 @@ with tab_dept:
                 st.markdown(
                     f'<div style="background:#F7F7F7;border-left:3px solid #DDDDDD;'
                     f'border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;'
-                    f'font-size:0.82em;color:#444;line-height:1.5;">'
-                    f'<span style="font-size:0.72em;color:#AAAAAA;font-weight:700;'
+                    f'font-size:0.85em;color:#444;line-height:1.5;">'
+                    f'<span style="font-size:0.85em;color:#AAAAAA;font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;">Your cascade input</span><br>'
                     f'{cascade_text}</div>',
                     unsafe_allow_html=True,
@@ -267,7 +267,7 @@ with tab_dept:
                 n_props = len(_all_props)
 
                 st.markdown(
-                    f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                    f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;'
                     f'margin-bottom:4px;">Add a metric</div>',
                     unsafe_allow_html=True,
@@ -304,14 +304,14 @@ with tab_dept:
 
                 # ── 3. PROPOSALS (yellow cards) ───────────────────────────────
                 st.markdown(
-                    f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                    f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;'
                     f'margin-top:14px;margin-bottom:6px;">Proposals</div>',
                     unsafe_allow_html=True,
                 )
                 if dept_props.empty:
                     st.markdown(
-                        '<div style="font-size:0.82em;color:#BBBBBB;font-style:italic;'
+                        '<div style="font-size:0.85em;color:#BBBBBB;font-style:italic;'
                         'margin-bottom:10px;">No proposals yet.</div>',
                         unsafe_allow_html=True,
                     )
@@ -320,19 +320,19 @@ with tab_dept:
                         prop_card = (
                             f'<div style="background:#FEF9E7;border-left:4px solid #F4B942;'
                             f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:6px;">'
-                            f'<div style="font-size:0.68em;font-weight:700;color:#B7860D;'
+                            f'<div style="font-size:0.85em;font-weight:700;color:#B7860D;'
                             f'letter-spacing:1px;margin-bottom:6px;">'
                             f'{prop["Name"].upper()} 💬 IN DISCUSSION</div>'
                             f'<div style="display:flex;gap:20px;flex-wrap:wrap;">'
-                            f'<div><div style="font-size:0.65em;color:#B7860D;font-weight:700;'
+                            f'<div><div style="font-size:0.85em;color:#B7860D;font-weight:700;'
                             f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                            f'<div style="font-size:0.84em;color:#1a1a1a;">{prop["Metric"] or "—"}</div></div>'
-                            f'<div><div style="font-size:0.65em;color:#B7860D;font-weight:700;'
+                            f'<div style="font-size:0.85em;color:#1a1a1a;">{prop["Metric"] or "—"}</div></div>'
+                            f'<div><div style="font-size:0.85em;color:#B7860D;font-weight:700;'
                             f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                            f'<div style="font-size:0.84em;color:#1a1a1a;">{prop["Target"] or "—"}</div></div>'
-                            f'<div><div style="font-size:0.65em;color:#B7860D;font-weight:700;'
+                            f'<div style="font-size:0.85em;color:#1a1a1a;">{prop["Target"] or "—"}</div></div>'
+                            f'<div><div style="font-size:0.85em;color:#B7860D;font-weight:700;'
                             f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                            f'<div style="font-size:0.84em;color:#1a1a1a;">{prop["Owner"] or "—"}</div></div>'
+                            f'<div style="font-size:0.85em;color:#1a1a1a;">{prop["Owner"] or "—"}</div></div>'
                             f'</div></div>'
                         )
                         if is_hod:
@@ -358,7 +358,7 @@ with tab_dept:
 
                 # ── 4. CONFIRMED (green cards + manual form for HOD) ──────────
                 st.markdown(
-                    f'<div style="font-size:0.72em;color:{colour};font-weight:700;'
+                    f'<div style="font-size:0.85em;color:{colour};font-weight:700;'
                     f'text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;'
                     f'margin-bottom:6px;">Confirmed</div>',
                     unsafe_allow_html=True,
@@ -366,7 +366,7 @@ with tab_dept:
 
                 if dept_entries.empty:
                     st.markdown(
-                        '<div style="font-size:0.82em;color:#BBBBBB;font-style:italic;'
+                        '<div style="font-size:0.85em;color:#BBBBBB;font-style:italic;'
                         'margin-bottom:8px;">Nothing confirmed yet.</div>',
                         unsafe_allow_html=True,
                     )
@@ -419,20 +419,20 @@ with tab_dept:
                             entry_card = (
                                 f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
                                 f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:6px;">'
-                                f'<div style="font-size:0.68em;font-weight:700;color:#2D7D4F;'
+                                f'<div style="font-size:0.85em;font-weight:700;color:#2D7D4F;'
                                 f'letter-spacing:1px;margin-bottom:6px;">CONFIRMED ✅</div>'
                                 f'<div style="display:flex;gap:20px;flex-wrap:wrap;">'
-                                f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                                f'<div><div style="font-size:0.85em;color:#3EAA6D;font-weight:700;'
                                 f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
-                                f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                                f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                                 f'{erow["Metric"] or "—"}</div></div>'
-                                f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                                f'<div><div style="font-size:0.85em;color:#3EAA6D;font-weight:700;'
                                 f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
-                                f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                                f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                                 f'{erow["Target"] or "—"}</div></div>'
-                                f'<div><div style="font-size:0.65em;color:#3EAA6D;font-weight:700;'
+                                f'<div><div style="font-size:0.85em;color:#3EAA6D;font-weight:700;'
                                 f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
-                                f'<div style="font-size:0.84em;color:#1a1a1a;font-weight:600;">'
+                                f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                                 f'{erow["Owner"] or "—"}</div></div>'
                                 f'</div></div>'
                             )
@@ -479,7 +479,7 @@ with tab_dept:
                 # HOD: manual confirm form
                 if is_hod:
                     st.markdown(
-                        f'<div style="font-size:0.72em;color:#888;font-weight:700;'
+                        f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;'
                         f'margin-top:10px;margin-bottom:4px;">Confirm manually</div>',
                         unsafe_allow_html=True,
@@ -520,7 +520,7 @@ with tab_dept:
                                 st.warning('Enter at least one field.')
                 elif dept_entries.empty:
                     st.markdown(
-                        '<div style="font-size:0.82em;color:#AAAAAA;font-style:italic;">'
+                        '<div style="font-size:0.85em;color:#AAAAAA;font-style:italic;">'
                         'Pending — Function Lead will confirm.</div>',
                         unsafe_allow_html=True,
                     )
@@ -594,10 +594,10 @@ with tab_all:
                 st.markdown(
                     f'<div style="border-left:4px solid #DDDDDD;background:#FAFAFA;'
                     f'border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;">'
-                    f'<div style="font-size:0.68em;color:#CCCCCC;font-weight:700;'
+                    f'<div style="font-size:0.85em;color:#CCCCCC;font-weight:700;'
                     f'letter-spacing:1px;text-transform:uppercase;">Strategic Choice {choice["number"]}</div>'
-                    f'<div style="font-weight:700;font-size:0.92em;color:#CCCCCC;">{choice["title"]}</div>'
-                    f'<div style="font-size:0.78em;color:#CCCCCC;margin-top:6px;">No cascade inputs yet</div>'
+                    f'<div style="font-weight:700;font-size:1.0em;color:#CCCCCC;">{choice["title"]}</div>'
+                    f'<div style="font-size:0.85em;color:#CCCCCC;margin-top:6px;">No cascade inputs yet</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -620,11 +620,11 @@ with tab_all:
                 f'box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
                 f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
                 f'<div>'
-                f'<div style="font-size:0.68em;color:{colour};font-weight:700;'
+                f'<div style="font-size:0.85em;color:{colour};font-weight:700;'
                 f'letter-spacing:1px;text-transform:uppercase;">Strategic Choice {choice["number"]}</div>'
-                f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;">{choice["title"]}</div>'
+                f'<div style="font-weight:700;font-size:1.0em;color:#1a1a1a;">{choice["title"]}</div>'
                 f'</div>'
-                f'<div style="font-size:0.72em;color:{status_colour};font-weight:600;">'
+                f'<div style="font-size:0.85em;color:{status_colour};font-weight:600;">'
                 f'{status_label}</div>'
                 f'</div></div>',
                 unsafe_allow_html=True,
@@ -635,15 +635,15 @@ with tab_all:
                     metric_html = ''.join(
                         f'<div style="display:flex;gap:24px;flex-wrap:wrap;'
                         f'{"margin-top:6px;padding-top:6px;border-top:1px solid #D5EDDF;" if ei > 0 else ""}">'
-                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'<div><div style="font-size:0.85em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Metric</div>'
                         f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                         f'{e["Metric"] or "—"}</div></div>'
-                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'<div><div style="font-size:0.85em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Target</div>'
                         f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                         f'{e["Target"] or "—"}</div></div>'
-                        f'<div><div style="font-size:0.65em;color:#AAAAAA;font-weight:700;'
+                        f'<div><div style="font-size:0.85em;color:#AAAAAA;font-weight:700;'
                         f'text-transform:uppercase;letter-spacing:0.5px;">Owner</div>'
                         f'<div style="font-size:0.85em;color:#1a1a1a;font-weight:600;">'
                         f'{e["Owner"] or "—"}</div></div>'
@@ -652,18 +652,18 @@ with tab_all:
                     )
                 else:
                     metric_html = (
-                        '<div style="font-size:0.78em;color:#CCCCCC;">Pending</div>'
+                        '<div style="font-size:0.85em;color:#CCCCCC;">Pending</div>'
                     )
 
                 cascade_html = (
-                    f'<div style="font-size:0.75em;color:#888;margin-bottom:8px;'
+                    f'<div style="font-size:0.85em;color:#888;margin-bottom:8px;'
                     f'padding:6px 10px;background:#F7F7F7;border-radius:4px;'
                     f'line-height:1.5;font-style:italic;">{row["cascade"]}</div>'
                 )
                 st.markdown(
                     f'<div style="border-left:2px solid #EEEEEE;padding:10px 14px 10px 16px;'
                     f'margin-left:4px;margin-bottom:2px;">'
-                    f'<div style="font-size:0.72em;font-weight:700;color:{colour};'
+                    f'<div style="font-size:0.85em;font-weight:700;color:{colour};'
                     f'text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'
                     f'{row["dept"]}</div>'
                     f'{cascade_html}'

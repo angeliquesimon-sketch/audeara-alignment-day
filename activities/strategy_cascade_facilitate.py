@@ -50,7 +50,7 @@ with _view_col:
 if _page_view == '📝 Edit Content':
 
     st.markdown(
-        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:#888;margin-bottom:4px;">PRESENTATION CONTENT EDITOR</div>',
         unsafe_allow_html=True,
     )
@@ -70,7 +70,7 @@ if _page_view == '📝 Edit Content':
 
     # ── COMMERCIAL ENGINES ──────────────────────────────────────────────────────
     st.markdown(
-        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{FOREST};margin-bottom:12px;">COMMERCIAL ENGINES</div>',
         unsafe_allow_html=True,
     )
@@ -82,7 +82,7 @@ if _page_view == '📝 Edit Content':
             _new_sub   = st.text_input('Subtitle', value=_eng.get('subtitle',''), key=f'ce_eng_sub_{_ei}')
             _new_desc  = st.text_area('Description', value=_eng['description'], height=80, key=f'ce_eng_desc_{_ei}')
 
-            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">STAT CHIPS (value | label)</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:0.85em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">STAT CHIPS (value | label)</div>', unsafe_allow_html=True)
             _curr_stats = list(_eng.get('stats', []))
             while len(_curr_stats) < 3:
                 _curr_stats.append(['', ''])
@@ -96,7 +96,7 @@ if _page_view == '📝 Edit Content':
                 if _sv.strip():
                     _new_stats.append([_sv.strip(), _sl.strip()])
 
-            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:0.85em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
             _curr_secs = list(_eng.get('sections', []))
             _new_secs  = []
             for _si, _sec in enumerate(_curr_secs):
@@ -158,7 +158,7 @@ if _page_view == '📝 Edit Content':
 
     # ── HOW WE OPERATE AS ONE COMPANY ──────────────────────────────────────────
     st.markdown(
-        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{WINE};margin-bottom:12px;">HOW WE OPERATE AS ONE COMPANY</div>',
         unsafe_allow_html=True,
     )
@@ -204,7 +204,7 @@ if _page_view == '📝 Edit Content':
 
     # ── STRATEGIC CHOICES ───────────────────────────────────────────────────────
     st.markdown(
-        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:{WINE};margin-bottom:12px;">FY27 STRATEGIC CHOICES</div>',
         unsafe_allow_html=True,
     )
@@ -220,7 +220,7 @@ if _page_view == '📝 Edit Content':
             _cho_desc  = st.text_area('Card description', value=_cho['description'], height=80, key=f'ce_cho_desc_{_ci}')
             _cho_intro = st.text_area('Accordion intro (italic)', value=_cho.get('intro',''), height=56, key=f'ce_cho_intro_{_ci}')
 
-            st.markdown('<div style="font-size:0.75em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:0.85em;color:#888;font-weight:700;margin-top:8px;margin-bottom:4px;">ACCORDION SECTIONS</div>', unsafe_allow_html=True)
             _csecs     = list(_cho.get('sections', []))
             _new_csecs = []
             for _csi, _csec in enumerate(_csecs):
@@ -293,7 +293,7 @@ if _page_view == '📝 Edit Content':
 # ── Stage selector ─────────────────────────────────────────────────────────────
 
 st.markdown(
-    f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+    f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
     f'color:#888;margin-bottom:10px;">PRESENTATION STAGE</div>',
     unsafe_allow_html=True,
 )
@@ -323,9 +323,9 @@ if stage == 'cascade':
     st.markdown(
         f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
         f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:16px;">'
-        f'<div style="font-size:0.65em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">'
+        f'<div style="font-size:0.85em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">'
         f'CHOICE {choice["number"]} OF {len(CHOICES)}</div>'
-        f'<div style="font-weight:700;font-size:0.95em;color:#1a1a1a;">{choice["title"]}</div>'
+        f'<div style="font-weight:700;font-size:1.0em;color:#1a1a1a;">{choice["title"]}</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -364,7 +364,7 @@ if stage == 'cascade':
         df_conf = pull_cascade_confidence()
 
         st.markdown(
-            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+            f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
             f'color:#888;margin-bottom:14px;">DEPARTMENT CONTRIBUTIONS</div>',
             unsafe_allow_html=True,
         )
@@ -380,7 +380,7 @@ if stage == 'cascade':
             n_active    = len(locked_rows) + len(draft_rows) + len(held_rows)
 
             st.markdown(
-                f'<div style="font-size:0.72em;font-weight:700;color:{bc};'
+                f'<div style="font-size:0.85em;font-weight:700;color:{bc};'
                 f'letter-spacing:1px;margin-bottom:6px;">{dept.upper()}</div>',
                 unsafe_allow_html=True,
             )
@@ -388,7 +388,7 @@ if stage == 'cascade':
             if is_opted:
                 st.markdown(
                     f'<div style="background:#FAFAFA;border-left:3px solid #DDDDDD;'
-                    f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
+                    f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.85em;'
                     f'color:#AAAAAA;font-style:italic;margin-bottom:6px;">Not contributing to this choice</div>',
                     unsafe_allow_html=True,
                 )
@@ -409,7 +409,7 @@ if stage == 'cascade':
                         rbody = f'✅<ul style="margin:4px 0 0 0;padding-left:18px;">{items}</ul>'
                     st.markdown(
                         f'<div style="background:#E8F5EE;border-left:3px solid #3EAA6D;'
-                        f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.84em;'
+                        f'padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.85em;'
                         f'color:#1a1a1a;margin-bottom:4px;">{rbody}</div>',
                         unsafe_allow_html=True,
                     )
@@ -429,11 +429,11 @@ if stage == 'cascade':
                     hkey = f'{choice["id"]}_{dept}_{hi}'
                     pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
                     if len(pts) == 1:
-                        hbody = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">📌 {pts[0]}</div>'
+                        hbody = f'<div style="font-size:0.85em;color:#1a1a1a;line-height:1.6;">📌 {pts[0]}</div>'
                     else:
                         hitems = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in pts])
-                        hbody  = (f'<div style="font-size:0.76em;color:#005E63;margin-bottom:3px;">📌 KEPT FOR LATER</div>'
-                                  f'<ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{hitems}</ul>')
+                        hbody  = (f'<div style="font-size:0.85em;color:#005E63;margin-bottom:3px;">📌 KEPT FOR LATER</div>'
+                                  f'<ul style="font-size:0.85em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{hitems}</ul>')
                     st.markdown(
                         f'<div style="background:#EEF6F6;border-left:3px solid #188383;'
                         f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:4px;">'
@@ -460,11 +460,11 @@ if stage == 'cascade':
                     dkey = f'{choice["id"]}_{dept}_{di}'
                     pts  = [p.strip() for p in str(text).split('\n') if p.strip()]
                     if len(pts) == 1:
-                        dbody = f'<div style="font-size:0.84em;color:#1a1a1a;line-height:1.6;">💬 {pts[0]}</div>'
+                        dbody = f'<div style="font-size:0.85em;color:#1a1a1a;line-height:1.6;">💬 {pts[0]}</div>'
                     else:
                         ditems = ''.join([f'<li style="margin-bottom:3px;">{p}</li>' for p in pts])
-                        dbody  = (f'<div style="font-size:0.76em;color:#B7860D;margin-bottom:3px;">💬 IN DISCUSSION</div>'
-                                  f'<ul style="font-size:0.84em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{ditems}</ul>')
+                        dbody  = (f'<div style="font-size:0.85em;color:#B7860D;margin-bottom:3px;">💬 IN DISCUSSION</div>'
+                                  f'<ul style="font-size:0.85em;color:#1a1a1a;line-height:1.6;margin:0;padding-left:18px;">{ditems}</ul>')
                     st.markdown(
                         f'<div style="background:#FEF9E7;border-left:3px solid #F4B942;'
                         f'padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:4px;">'
@@ -554,7 +554,7 @@ if stage == 'cascade':
                     bg   = '#E8F5EE' if avg >= 4 else ('#FEF5E7' if avg >= 3 else '#FDECEA')
 
                     st.markdown(
-                        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+                        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
                         f'color:#888;margin-bottom:10px;">CONFIDENCE VOTES</div>',
                         unsafe_allow_html=True,
                     )
@@ -562,12 +562,12 @@ if stage == 'cascade':
                     col_t, col_f = st.columns(2)
                     with col_t:
                         st.markdown(
-                            f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                            f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                             f'letter-spacing:1px;margin-bottom:6px;">TEAM EXECUTION</div>'
                             f'<div style="background:{bg};border-radius:8px;padding:12px 16px;'
                             f'text-align:center;margin-bottom:10px;">'
                             f'<div style="font-size:1.9em;font-weight:700;color:{fc};">{avg:.1f}</div>'
-                            f'<div style="font-size:0.74em;color:{fc};">avg · {n} vote{"s" if n!=1 else ""}</div>'
+                            f'<div style="font-size:0.85em;color:{fc};">avg · {n} vote{"s" if n!=1 else ""}</div>'
                             f'</div>',
                             unsafe_allow_html=True,
                         )
@@ -576,10 +576,10 @@ if stage == 'cascade':
                             pct   = count / n * 100
                             st.markdown(
                                 f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-                                f'<span style="font-size:0.76em;color:#888;width:14px;">{score}</span>'
+                                f'<span style="font-size:0.85em;color:#888;width:14px;">{score}</span>'
                                 f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:8px;">'
                                 f'<div style="width:{pct:.0f}%;background:{fc};border-radius:4px;height:8px;"></div></div>'
-                                f'<span style="font-size:0.72em;color:#888;width:18px;">{count}</span>'
+                                f'<span style="font-size:0.85em;color:#888;width:18px;">{count}</span>'
                                 f'</div>',
                                 unsafe_allow_html=True,
                             )
@@ -591,12 +591,12 @@ if stage == 'cascade':
                             ffc   = '#2D7D4F' if fa >= 4 else ('#B7770D' if fa >= 3 else '#C0392B')
                             fbg   = '#E8F5EE' if fa >= 4 else ('#FEF5E7' if fa >= 3 else '#FDECEA')
                             st.markdown(
-                                f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                                f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                                 f'letter-spacing:1px;margin-bottom:6px;">FUNCTION CONFIDENCE</div>'
                                 f'<div style="background:{fbg};border-radius:8px;padding:12px 16px;'
                                 f'text-align:center;margin-bottom:10px;">'
                                 f'<div style="font-size:1.9em;font-weight:700;color:{ffc};">{fa:.1f}</div>'
-                                f'<div style="font-size:0.74em;color:{ffc};">avg · {fn} response{"s" if fn!=1 else ""}</div>'
+                                f'<div style="font-size:0.85em;color:{ffc};">avg · {fn} response{"s" if fn!=1 else ""}</div>'
                                 f'</div>',
                                 unsafe_allow_html=True,
                             )
@@ -605,32 +605,32 @@ if stage == 'cascade':
                                 pct   = count / fn * 100
                                 st.markdown(
                                     f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-                                    f'<span style="font-size:0.76em;color:#888;width:14px;">{score}</span>'
+                                    f'<span style="font-size:0.85em;color:#888;width:14px;">{score}</span>'
                                     f'<div style="flex:1;background:#E0E0E0;border-radius:4px;height:8px;">'
                                     f'<div style="width:{pct:.0f}%;background:{ffc};border-radius:4px;height:8px;"></div></div>'
-                                    f'<span style="font-size:0.72em;color:#888;width:18px;">{count}</span>'
+                                    f'<span style="font-size:0.85em;color:#888;width:18px;">{count}</span>'
                                     f'</div>',
                                     unsafe_allow_html=True,
                                 )
                         else:
                             st.markdown(
-                                f'<div style="font-size:0.65em;color:#888;font-weight:700;'
+                                f'<div style="font-size:0.85em;color:#888;font-weight:700;'
                                 f'letter-spacing:1px;margin-bottom:6px;">FUNCTION CONFIDENCE</div>'
-                                f'<div style="color:#BBBBBB;font-size:0.8em;font-style:italic;'
+                                f'<div style="color:#BBBBBB;font-size:0.85em;font-style:italic;'
                                 f'padding:10px 0;">No function responses yet</div>',
                                 unsafe_allow_html=True,
                             )
 
                     if feedbacks:
                         st.markdown(
-                            f'<div style="font-size:0.65em;font-weight:700;color:#888;'
+                            f'<div style="font-size:0.85em;font-weight:700;color:#888;'
                             f'letter-spacing:1px;margin:10px 0 6px;">FEEDBACK</div>',
                             unsafe_allow_html=True,
                         )
                         for fb in feedbacks:
                             st.markdown(
                                 f'<div style="background:#F8F8F8;border-left:3px solid #DDDDDD;'
-                                f'padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.82em;'
+                                f'padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.85em;'
                                 f'color:#444;margin-bottom:5px;">{fb}</div>',
                                 unsafe_allow_html=True,
                             )
@@ -671,9 +671,9 @@ elif stage == 'reveal':
             st.markdown(
                 f'<div style="border-left:4px solid {bc};padding:10px 14px;'
                 f'background:#F8F8F8;border-radius:0 6px 6px 0;margin-bottom:8px;">'
-                f'<div style="font-weight:700;font-size:0.88em;color:{bc};">'
+                f'<div style="font-weight:700;font-size:0.9em;color:{bc};">'
                 f'{choice["number"]}. {choice["title"]}{conf_str}</div>'
-                f'<div style="font-size:0.74em;color:#888;margin-top:4px;">'
+                f'<div style="font-size:0.85em;color:#888;margin-top:4px;">'
                 f'✅ {n_locked_depts} dept{"s" if n_locked_depts!=1 else ""} locked '
                 f'({n_locked_items} contribution{"s" if n_locked_items!=1 else ""}) · '
                 f'{n_opted_depts} opted out · {n_pending} pending</div>'

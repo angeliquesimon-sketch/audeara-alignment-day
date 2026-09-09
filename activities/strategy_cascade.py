@@ -56,27 +56,27 @@ stage_idx   = STAGE_ORDER.index(stage) if stage in STAGE_ORDER else 0
 def _waiting(msg='This will open shortly.'):
     st.markdown(
         f'<div style="background:#F5F5F5;border-radius:10px;padding:32px;'
-        f'text-align:center;color:#AAAAAA;font-size:0.95em;margin-top:8px;">⏳  {msg}</div>',
+        f'text-align:center;color:#AAAAAA;font-size:1.0em;margin-top:8px;">⏳  {msg}</div>',
         unsafe_allow_html=True,
     )
 
 def _section_label(text):
     st.markdown(
-        f'<div style="font-size:0.84em;font-weight:700;letter-spacing:2px;'
+        f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;'
         f'color:#888;margin-bottom:16px;">{text}</div>',
         unsafe_allow_html=True,
     )
 
 def _collapsed_engines():
     pills = ''.join([
-        f'<span style="background:{FOREST};color:white;font-size:0.84em;'
+        f'<span style="background:{FOREST};color:white;font-size:0.85em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{e["title"]}</span>'
         for e in get_live_engines()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
-        f'<div style="font-size:0.75em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
+        f'<div style="font-size:0.85em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
         f'margin-bottom:8px;">COMMERCIAL ENGINES</div>'
         f'{pills}</div>',
         unsafe_allow_html=True,
@@ -84,14 +84,14 @@ def _collapsed_engines():
 
 def _collapsed_choices():
     pills = ''.join([
-        f'<span style="background:{WINE};color:white;font-size:0.84em;'
+        f'<span style="background:{WINE};color:white;font-size:0.85em;'
         f'font-weight:600;padding:4px 11px;border-radius:14px;margin-right:6px;'
         f'display:inline-block;margin-bottom:5px;">{c["title"]}</span>'
         for c in get_live_choices()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
-        f'<div style="font-size:0.75em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
+        f'<div style="font-size:0.85em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
         f'margin-bottom:8px;">FY27 STRATEGIC CHOICES</div>'
         f'{pills}</div>',
         unsafe_allow_html=True,
@@ -100,13 +100,13 @@ def _collapsed_choices():
 def _collapsed_working():
     pills = ''.join([
         f'<span style="background:{WINE};color:white;'
-        f'font-size:0.84em;font-weight:600;padding:4px 11px;border-radius:14px;'
+        f'font-size:0.85em;font-weight:600;padding:4px 11px;border-radius:14px;'
         f'margin-right:6px;display:inline-block;margin-bottom:5px;">{principle}</span>'
         for principle, _ in get_live_how()
     ])
     st.markdown(
         f'<div style="background:#F4F4F4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">'
-        f'<div style="font-size:0.75em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
+        f'<div style="font-size:0.85em;font-weight:700;color:#AAAAAA;letter-spacing:1.5px;'
         f'margin-bottom:8px;">HOW WE OPERATE AS ONE COMPANY</div>'
         f'{pills}</div>',
         unsafe_allow_html=True,
@@ -135,9 +135,9 @@ with tab_pres:
             _engine_cards = ''.join([
                 f'<div style="border-left:4px solid {FOREST};background:#F8F8F8;'
                 f'border-radius:0 6px 6px 0;padding:14px 16px;">'
-                f'<div style="font-weight:700;font-size:1.05em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
-                f'<div style="font-size:0.75em;color:#999;font-style:italic;margin-bottom:6px;">{e.get("subtitle","")}</div>'
-                f'<div style="font-size:0.95em;color:#555;line-height:1.55;">{e["description"]}</div>'
+                f'<div style="font-weight:700;font-size:1.15em;color:{FOREST};margin-bottom:2px;">{e["title"]}</div>'
+                f'<div style="font-size:0.85em;color:#999;font-style:italic;margin-bottom:6px;">{e.get("subtitle","")}</div>'
+                f'<div style="font-size:1.0em;color:#555;line-height:1.55;">{e["description"]}</div>'
                 f'</div>'
                 for e in _live_engines
             ])
@@ -164,7 +164,7 @@ with tab_pres:
                             f'<div style="background:{FOREST};color:white;border-radius:8px;'
                             f'padding:10px 20px;text-align:center;min-width:90px;">'
                             f'<div style="font-size:1.25em;font-weight:700;line-height:1.2;">{s[0]}</div>'
-                            f'<div style="font-size:0.72em;opacity:0.75;margin-top:2px;">{s[1]}</div>'
+                            f'<div style="font-size:0.85em;opacity:0.75;margin-top:2px;">{s[1]}</div>'
                             f'</div>'
                             for s in _stats
                         ])
@@ -178,12 +178,12 @@ with tab_pres:
                         _sec_content = _sec.get('content', [])
                         if isinstance(_sec_content, list):
                             _items = ''.join([f'<li style="margin-bottom:3px;">{item}</li>' for item in _sec_content])
-                            _body  = f'<ul style="font-size:0.84em;color:#333;line-height:1.5;margin:0;padding-left:16px;">{_items}</ul>'
+                            _body  = f'<ul style="font-size:0.85em;color:#333;line-height:1.5;margin:0;padding-left:16px;">{_items}</ul>'
                         else:
-                            _body  = f'<div style="font-size:0.84em;color:#333;line-height:1.5;">{_sec_content}</div>'
+                            _body  = f'<div style="font-size:0.85em;color:#333;line-height:1.5;">{_sec_content}</div>'
                         _cards += (
                             f'<div style="background:#F8F8F8;border-radius:8px;padding:13px 15px;">'
-                            f'<div style="font-size:0.72em;font-weight:700;color:{FOREST};'
+                            f'<div style="font-size:0.85em;font-weight:700;color:{FOREST};'
                             f'letter-spacing:1px;margin-bottom:7px;">{_sec_title.upper()}</div>'
                             f'{_body}</div>'
                         )
@@ -198,17 +198,17 @@ with tab_pres:
             _live_how = get_live_how()
             _how_items = ''.join([
                 f'<div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">'
-                f'<div style="font-size:0.95em;font-weight:600;color:white;margin-bottom:4px;">'
+                f'<div style="font-size:1.0em;font-weight:600;color:white;margin-bottom:4px;">'
                 f'{HOW_WE_WORK_ICONS[i] if i < len(HOW_WE_WORK_ICONS) else "•"}&nbsp;{principle}</div>'
-                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
+                f'<div style="font-size:0.85em;color:rgba(255,255,255,0.65);line-height:1.5;">{description}</div>'
                 f'</div>'
                 for i, (principle, description) in enumerate(_live_how)
             ])
             st.markdown(
                 f'<div style="background:{WINE};border-radius:10px;padding:18px 20px;margin-top:28px;">'
-                f'<div style="font-size:0.75em;font-weight:700;color:rgba(255,255,255,0.4);'
+                f'<div style="font-size:0.85em;font-weight:700;color:rgba(255,255,255,0.4);'
                 f'letter-spacing:1.5px;margin-bottom:6px;">HOW WE OPERATE AS ONE COMPANY</div>'
-                f'<div style="font-size:0.84em;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">'
+                f'<div style="font-size:0.85em;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.5;">'
                 f'All engines run on the same foundation: customer insight, quality and regulatory discipline, '
                 f'software and product capability, and commercial and governance functions.</div>'
                 f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
@@ -225,15 +225,15 @@ with tab_pres:
             _choice_cards = ''.join([
                 f'<div style="border-left:4px solid {WINE};background:#F8F8F8;'
                 f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-                f'<div style="font-weight:700;font-size:1.05em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
+                f'<div style="font-weight:700;font-size:1.15em;color:#1a1a1a;margin-bottom:6px;">{c["title"]}</div>'
                 + (
                     f'<div style="margin-bottom:8px;">'
-                    f'<span style="background:{FOREST};color:white;font-size:0.75em;'
+                    f'<span style="background:{FOREST};color:white;font-size:0.85em;'
                     f'font-weight:600;padding:3px 9px;border-radius:10px;">'
                     f'{c["attribution"]}</span></div>'
                     if c.get('attribution') else ''
                 ) +
-                f'<div style="font-size:0.95em;color:#555;line-height:1.55;">{c["description"]}</div>'
+                f'<div style="font-size:1.0em;color:#555;line-height:1.55;">{c["description"]}</div>'
                 f'</div>'
                 for c in _live_choices
             ])
@@ -255,7 +255,7 @@ with tab_pres:
                 with st.expander(_c['title'], expanded=False):
                     if _intro:
                         st.markdown(
-                            f'<div style="font-size:0.95em;color:#555;font-style:italic;'
+                            f'<div style="font-size:1.0em;color:#555;font-style:italic;'
                             f'line-height:1.6;margin-bottom:14px;">{_intro}</div>',
                             unsafe_allow_html=True,
                         )
@@ -263,7 +263,7 @@ with tab_pres:
                         _sec_title   = _sec.get('title', '')
                         _sec_content = _sec.get('content', [])
                         st.markdown(
-                            f'<div style="font-size:0.84em;font-weight:700;color:{WINE};'
+                            f'<div style="font-size:0.85em;font-weight:700;color:{WINE};'
                             f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
                             f'{_sec_title.upper()}</div>',
                             unsafe_allow_html=True,
@@ -274,13 +274,13 @@ with tab_pres:
                                 for item in _sec_content
                             ])
                             st.markdown(
-                                f'<ul style="font-size:0.95em;color:#333;line-height:1.6;'
+                                f'<ul style="font-size:1.0em;color:#333;line-height:1.6;'
                                 f'margin:0;padding-left:18px;">{_items}</ul>',
                                 unsafe_allow_html=True,
                             )
                         else:
                             st.markdown(
-                                f'<div style="font-size:0.95em;color:#333;line-height:1.6;">'
+                                f'<div style="font-size:1.0em;color:#333;line-height:1.6;">'
                                 f'{_sec_content}</div>',
                                 unsafe_allow_html=True,
                             )
@@ -305,10 +305,10 @@ with tab_activity:
         st.markdown(
             f'<div style="border-left:4px solid {bc};background:#F8F8F8;'
             f'border-radius:0 8px 8px 0;padding:18px 22px;margin-bottom:20px;">'
-            f'<div style="font-size:0.75em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">'
+            f'<div style="font-size:0.85em;font-weight:700;color:{bc};letter-spacing:1px;margin-bottom:4px;">'
             f'STRATEGIC CHOICE {choice["number"]} OF {len(CHOICES)}</div>'
-            f'<div style="font-weight:700;font-size:1.05em;color:#1a1a1a;margin-bottom:8px;">{choice["title"]}</div>'
-            f'<div style="font-size:0.95em;color:#555;line-height:1.6;">{choice["description"]}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#1a1a1a;margin-bottom:8px;">{choice["title"]}</div>'
+            f'<div style="font-size:1.0em;color:#555;line-height:1.6;">{choice["description"]}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -320,7 +320,7 @@ with tab_activity:
             with st.expander(choice['title'], expanded=False):
                 if _act_intro:
                     st.markdown(
-                        f'<div style="font-size:0.95em;color:#555;font-style:italic;'
+                        f'<div style="font-size:1.0em;color:#555;font-style:italic;'
                         f'line-height:1.6;margin-bottom:14px;">{_act_intro}</div>',
                         unsafe_allow_html=True,
                     )
@@ -328,7 +328,7 @@ with tab_activity:
                     _act_sec_title   = _act_sec.get('title', '')
                     _act_sec_content = _act_sec.get('content', [])
                     st.markdown(
-                        f'<div style="font-size:0.84em;font-weight:700;color:{WINE};'
+                        f'<div style="font-size:0.85em;font-weight:700;color:{WINE};'
                         f'letter-spacing:1px;margin-top:12px;margin-bottom:5px;">'
                         f'{_act_sec_title.upper()}</div>',
                         unsafe_allow_html=True,
@@ -339,13 +339,13 @@ with tab_activity:
                             for item in _act_sec_content
                         ])
                         st.markdown(
-                            f'<ul style="font-size:0.95em;color:#333;line-height:1.6;'
+                            f'<ul style="font-size:1.0em;color:#333;line-height:1.6;'
                             f'margin:0;padding-left:18px;">{_act_items}</ul>',
                             unsafe_allow_html=True,
                         )
                     else:
                         st.markdown(
-                            f'<div style="font-size:0.95em;color:#333;line-height:1.6;">'
+                            f'<div style="font-size:1.0em;color:#333;line-height:1.6;">'
                             f'{_act_sec_content}</div>',
                             unsafe_allow_html=True,
                         )
@@ -371,9 +371,9 @@ with tab_activity:
                 ot_text   = one_thing if one_thing else 'One Thing not yet agreed'
                 ot_colour = '#777777' if one_thing else '#BBBBBB'
                 st.markdown(
-                    f'<div style="font-size:0.84em;font-weight:700;color:{bc};'
+                    f'<div style="font-size:0.85em;font-weight:700;color:{bc};'
                     f'letter-spacing:1px;margin-bottom:0;">{dept.upper()}</div>'
-                    f'<div style="font-size:0.75em;color:{ot_colour};font-style:italic;'
+                    f'<div style="font-size:0.85em;color:{ot_colour};font-style:italic;'
                     f'margin-top:2px;margin-bottom:8px;">Our One Thing: {ot_text}</div>',
                     unsafe_allow_html=True,
                 )
@@ -382,9 +382,9 @@ with tab_activity:
                     st.markdown(
                         f'<div style="border-left:4px solid #DDDDDD;background:#FAFAFA;'
                         f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;">'
-                        f'<div style="font-size:0.75em;font-weight:700;color:#AAAAAA;'
+                        f'<div style="font-size:0.85em;font-weight:700;color:#AAAAAA;'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>'
-                        f'<div style="font-size:0.95em;color:#BBBBBB;font-style:italic;">'
+                        f'<div style="font-size:1.0em;color:#BBBBBB;font-style:italic;">'
                         f'Not directly contributing to this choice.</div>'
                         f'</div>',
                         unsafe_allow_html=True,
@@ -400,14 +400,14 @@ with tab_activity:
                     for _, lrow in visible.iterrows():
                         pts = [p.strip() for p in str(lrow['Text']).split('\n') if p.strip()]
                         if len(pts) == 1:
-                            lbody = f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
+                            lbody = f'<div style="font-size:1.0em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
                         else:
                             litems = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in pts])
-                            lbody  = f'<ul style="font-size:0.95em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{litems}</ul>'
+                            lbody  = f'<ul style="font-size:1.0em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{litems}</ul>'
                         st.markdown(
                             f'<div style="background:#E8F5EE;border-left:4px solid #3EAA6D;'
                             f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
-                            f'<div style="font-size:0.75em;font-weight:700;color:#2D7D4F;'
+                            f'<div style="font-size:0.85em;font-weight:700;color:#2D7D4F;'
                             f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} ✅</div>'
                             f'{lbody}</div>',
                             unsafe_allow_html=True,
@@ -426,14 +426,14 @@ with tab_activity:
                 for _, drow in draft_rows.iterrows():
                     pts = [p.strip() for p in str(drow['Text']).split('\n') if p.strip()]
                     if len(pts) == 1:
-                        dbody = f'<div style="font-size:0.95em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
+                        dbody = f'<div style="font-size:1.0em;color:#1a1a1a;line-height:1.6;">{pts[0]}</div>'
                     else:
                         ditems = ''.join([f'<li style="margin-bottom:4px;">{p}</li>' for p in pts])
-                        dbody  = f'<ul style="font-size:0.95em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{ditems}</ul>'
+                        dbody  = f'<ul style="font-size:1.0em;color:#1a1a1a;line-height:1.6;margin:4px 0 0 0;padding-left:18px;">{ditems}</ul>'
                     st.markdown(
                         f'<div style="background:#FEF9E7;border-left:4px solid #F4B942;'
                         f'border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:6px;">'
-                        f'<div style="font-size:0.75em;font-weight:700;color:#B7860D;'
+                        f'<div style="font-size:0.85em;font-weight:700;color:#B7860D;'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()} 💬 IN DISCUSSION</div>'
                         f'{dbody}</div>',
                         unsafe_allow_html=True,
@@ -535,7 +535,7 @@ with tab_activity:
                         cbc = '#2D7D4F' if avg >= 4 else ('#B7770D' if avg >= 3 else '#C0392B')
                         cbg = '#E8F5EE' if avg >= 4 else ('#FEF5E7' if avg >= 3 else '#FDECEA')
                         conf_badge = (
-                            f' <span style="font-size:0.84em;background:{cbg};color:{cbc};'
+                            f' <span style="font-size:0.85em;background:{cbg};color:{cbc};'
                             f'font-weight:700;padding:2px 10px;border-radius:10px;">'
                             f'{avg:.1f}/5</span>'
                         )
@@ -543,7 +543,7 @@ with tab_activity:
                 st.markdown(
                     f'<div style="border-left:4px solid {bc};padding:14px 18px;'
                     f'background:#F8F8F8;border-radius:0 8px 8px 0;margin-bottom:6px;">'
-                    f'<div style="font-weight:700;font-size:1.05em;color:{bc};">'
+                    f'<div style="font-weight:700;font-size:1.15em;color:{bc};">'
                     f'{choice["number"]}. {choice["title"]}{conf_badge}</div>'
                     f'</div>',
                     unsafe_allow_html=True,
@@ -567,14 +567,14 @@ with tab_activity:
                                 body  = f'<strong style="color:#2D7D4F;">{dept}:</strong><ul style="margin:4px 0 0 0;padding-left:18px;">{items}</ul>'
                             st.markdown(
                                 f'<div style="margin-left:20px;border-left:3px solid #3EAA6D;'
-                                f'padding:8px 14px;margin-bottom:4px;font-size:0.95em;'
+                                f'padding:8px 14px;margin-bottom:4px;font-size:1.0em;'
                                 f'color:#333;line-height:1.5;">{body}</div>',
                                 unsafe_allow_html=True,
                             )
                         if is_opted:
                             st.markdown(
                                 f'<div style="margin-left:20px;border-left:3px solid #DDDDDD;'
-                                f'padding:8px 14px;margin-bottom:4px;font-size:0.95em;'
+                                f'padding:8px 14px;margin-bottom:4px;font-size:1.0em;'
                                 f'color:#BBBBBB;font-style:italic;">{dept}: not contributing</div>',
                                 unsafe_allow_html=True,
                             )
@@ -599,7 +599,7 @@ with tab_results:
         if not any_data:
             st.markdown(
                 f'<div style="background:#F5F5F5;border-radius:10px;padding:28px;'
-                f'text-align:center;color:#AAAAAA;font-size:0.95em;">'
+                f'text-align:center;color:#AAAAAA;font-size:1.0em;">'
                 f'⏳  Results will appear here as the team works through each Strategic Choice.</div>',
                 unsafe_allow_html=True,
             )
@@ -643,7 +643,7 @@ with tab_results:
                 t_fc  = '#2D7D4F' if t_avg >= 4 else ('#B7770D' if t_avg >= 3 else '#C0392B')
                 t_bg  = '#E8F5EE' if t_avg >= 4 else ('#FEF5E7' if t_avg >= 3 else '#FDECEA')
                 badge_html += (
-                    f'<span style="font-size:0.84em;background:{t_bg};color:{t_fc};'
+                    f'<span style="font-size:0.85em;background:{t_bg};color:{t_fc};'
                     f'font-weight:700;padding:2px 9px;border-radius:10px;margin-left:8px;">'
                     f'Team {t_avg:.1f}/5 ({t_n})</span>'
                 )
@@ -653,7 +653,7 @@ with tab_results:
                 f_fc  = '#2D7D4F' if f_avg >= 4 else ('#B7770D' if f_avg >= 3 else '#C0392B')
                 f_bg  = '#E8F5EE' if f_avg >= 4 else ('#FEF5E7' if f_avg >= 3 else '#FDECEA')
                 badge_html += (
-                    f'<span style="font-size:0.84em;background:{f_bg};color:{f_fc};'
+                    f'<span style="font-size:0.85em;background:{f_bg};color:{f_fc};'
                     f'font-weight:700;padding:2px 9px;border-radius:10px;margin-left:6px;">'
                     f'Function {f_avg:.1f}/5 ({f_n})</span>'
                 )
@@ -661,7 +661,7 @@ with tab_results:
             st.markdown(
                 f'<div style="border-left:4px solid {WINE};padding:14px 18px;'
                 f'background:#F8F8F8;border-radius:0 8px 8px 0;margin-bottom:10px;">'
-                f'<div style="font-weight:700;font-size:1.05em;color:{WINE};">'
+                f'<div style="font-weight:700;font-size:1.15em;color:{WINE};">'
                 f'{choice["number"]}. {choice["title"]}{badge_html}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
@@ -679,15 +679,15 @@ with tab_results:
                     st.markdown(
                         f'<div style="margin-left:4px;border-left:3px solid {WINE};'
                         f'padding:8px 14px;margin-bottom:6px;background:#FDF8FC;border-radius:0 6px 6px 0;">'
-                        f'<div style="font-size:0.75em;font-weight:700;color:{WINE};'
+                        f'<div style="font-size:0.85em;font-weight:700;color:{WINE};'
                         f'letter-spacing:1px;margin-bottom:4px;">{dept.upper()}</div>'
-                        f'<div style="font-size:0.95em;line-height:1.6;">{body}</div>'
+                        f'<div style="font-size:1.0em;line-height:1.6;">{body}</div>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
             else:
                 st.markdown(
-                    f'<div style="font-size:0.95em;color:#BBBBBB;font-style:italic;'
+                    f'<div style="font-size:1.0em;color:#BBBBBB;font-style:italic;'
                     f'margin-left:4px;margin-bottom:6px;">No contributions locked yet.</div>',
                     unsafe_allow_html=True,
                 )
@@ -695,14 +695,14 @@ with tab_results:
             # ── Feedback ────────────────────────────────────────────────────────
             if feedbacks:
                 st.markdown(
-                    f'<div style="font-size:0.75em;font-weight:700;color:#888;'
+                    f'<div style="font-size:0.85em;font-weight:700;color:#888;'
                     f'letter-spacing:1px;margin:8px 0 5px 4px;">FEEDBACK</div>',
                     unsafe_allow_html=True,
                 )
                 for fb in feedbacks:
                     st.markdown(
                         f'<div style="margin-left:4px;background:#F8F8F8;border-left:3px solid #DDDDDD;'
-                        f'padding:7px 12px;border-radius:0 6px 6px 0;font-size:0.95em;'
+                        f'padding:7px 12px;border-radius:0 6px 6px 0;font-size:1.0em;'
                         f'color:#555;margin-bottom:4px;">{fb}</div>',
                         unsafe_allow_html=True,
                     )

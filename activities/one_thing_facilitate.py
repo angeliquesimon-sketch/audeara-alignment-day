@@ -55,7 +55,7 @@ stage     = session.get('stage', 'hidden')
 
 st.markdown(
     f'<div style="background:#F5F0F5;border-radius:8px;padding:10px 16px;margin-bottom:14px;'
-    f'font-size:0.84em;color:{PURPLE};font-weight:600;">'
+    f'font-size:0.85em;color:{PURPLE};font-weight:600;">'
     f'Current stage: {ONE_THING_STAGE_LABELS.get(stage, stage)}</div>',
     unsafe_allow_html=True,
 )
@@ -142,10 +142,10 @@ def _suggestions_view():
             f'<div style="border-left:4px solid {bc};background:{bg};'
             f'border-radius:0 8px 8px 0;padding:10px 16px;margin-bottom:6px;">'
             f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
-            f'<div style="font-weight:700;font-size:0.88em;color:{bc};">{dept}</div>'
-            f'<div style="font-size:0.72em;color:{bc};opacity:0.85;">{status_label}</div>'
+            f'<div style="font-weight:700;font-size:0.9em;color:{bc};">{dept}</div>'
+            f'<div style="font-size:0.85em;color:{bc};opacity:0.85;">{status_label}</div>'
             f'</div>'
-            + (f'<div style="font-size:0.84em;color:#1a1a1a;margin-top:6px;line-height:1.5;">{winner}</div>' if winner else '')
+            + (f'<div style="font-size:0.85em;color:#1a1a1a;margin-top:6px;line-height:1.5;">{winner}</div>' if winner else '')
             + '</div>',
             unsafe_allow_html=True,
         )
@@ -155,7 +155,7 @@ def _suggestions_view():
             for _, row in dept_suggs.iterrows():
                 st.markdown(
                     f'<div style="border-left:2px solid #CCCCCC;padding:6px 14px;'
-                    f'margin:4px 0 4px 8px;font-size:0.8em;color:#555;">'
+                    f'margin:4px 0 4px 8px;font-size:0.85em;color:#555;">'
                     f'{row["Suggestion"]}</div>',
                     unsafe_allow_html=True,
                 )
@@ -204,7 +204,7 @@ def _personal_tracker():
     n_done    = len(submitted)
 
     st.markdown(
-        f'<div style="font-size:0.84em;color:#888;margin-bottom:10px;">'
+        f'<div style="font-size:0.85em;color:#888;margin-bottom:10px;">'
         f'{n_done} of {len(TEAM)} submitted</div>',
         unsafe_allow_html=True,
     )
@@ -217,7 +217,7 @@ def _personal_tracker():
         with cols[i % 4]:
             st.markdown(
                 f'<div style="background:{bg};border-radius:8px;padding:8px 10px;'
-                f'margin-bottom:8px;text-align:center;font-size:0.8em;color:{tc};font-weight:600;">'
+                f'margin-bottom:8px;text-align:center;font-size:0.85em;color:{tc};font-weight:600;">'
                 f'{"✅" if done else "○"} {person}</div>',
                 unsafe_allow_html=True,
             )
@@ -235,7 +235,7 @@ def _personal_tracker():
         if dept_rows.empty:
             continue
         items = ''.join(
-            f'<div style="padding:7px 0;border-bottom:1px solid #F0F0F0;font-size:0.84em;">'
+            f'<div style="padding:7px 0;border-bottom:1px solid #F0F0F0;font-size:0.85em;">'
             f'<strong style="color:#444;min-width:100px;display:inline-block;">{row["Name"]}</strong>'
             f'<span style="color:#555;">{row["Commitment"]}</span>'
             f'</div>'
@@ -244,7 +244,7 @@ def _personal_tracker():
         st.markdown(
             f'<div style="border-left:4px solid {TEAL};background:#F8F8F8;'
             f'border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px;">'
-            f'<div style="font-size:0.7em;font-weight:700;color:{TEAL};letter-spacing:1px;margin-bottom:8px;">{dept.upper()}</div>'
+            f'<div style="font-size:0.85em;font-weight:700;color:{TEAL};letter-spacing:1px;margin-bottom:8px;">{dept.upper()}</div>'
             f'{items}</div>',
             unsafe_allow_html=True,
         )
