@@ -130,6 +130,22 @@ with tab_intro:
             unsafe_allow_html=True,
         )
 
+        st.markdown(
+            f'<div style="border:1px solid #D0E8E8;border-radius:8px;background:#F4FBFB;'
+            f'padding:16px 20px;margin-bottom:24px;">'
+            f'<div style="font-size:0.7em;font-weight:700;letter-spacing:2px;color:{TEAL};margin-bottom:10px;">EXAMPLE — MARKETING</div>'
+            f'<div style="font-size:0.8em;color:#555;line-height:1.6;margin-bottom:12px;">'
+            f'Marketing is responsible for building brand awareness, driving demand, and communicating '
+            f"Audeara's value across all channels — shaping the customer journey from first discovery "
+            f'through to purchase and long-term engagement.'
+            f'</div>'
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:1px;color:{TEAL};margin-bottom:6px;">THE ONE THING</div>'
+            f'<div style="font-size:0.88em;font-weight:600;color:#1a1a1a;line-height:1.6;">'
+            f'Make the customer outcome the starting point. Not the product, the channel, or the format.'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
+
         ot_winners_intro = pull_one_thing_winners()
         st.markdown(
             _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners_intro) +
