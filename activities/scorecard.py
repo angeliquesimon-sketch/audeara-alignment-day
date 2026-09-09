@@ -108,7 +108,35 @@ with tab_about:
         unsafe_allow_html=True,
     )
 
-# ── Tab: My Department ─────────────────────────────────────────────────────────
+    st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+    _fl_rows = ''.join(
+        f'<tr>'
+        f'<td style="padding:8px 14px;font-size:0.84em;font-weight:600;color:#1a1a1a;'
+        f'border-bottom:1px solid #F0EBF0;">{fn}</td>'
+        f'<td style="padding:8px 14px;font-size:0.84em;color:#555;'
+        f'border-bottom:1px solid #F0EBF0;">{lead}</td>'
+        f'</tr>'
+        for fn, lead in DEPARTMENT_HEADS.items()
+    )
+    st.markdown(
+        f'<div style="font-size:0.72em;font-weight:700;letter-spacing:2px;'
+        f'color:{WINE};margin-bottom:10px;">FUNCTION LEADS</div>'
+        f'<table style="width:100%;border-collapse:collapse;background:#FAFAFA;'
+        f'border-radius:8px;overflow:hidden;">'
+        f'<thead><tr>'
+        f'<th style="text-align:left;padding:8px 14px;font-size:0.7em;font-weight:700;'
+        f'letter-spacing:1px;color:{WINE};background:#F5F0F5;border-bottom:2px solid #E8DEE8;">'
+        f'FUNCTION</th>'
+        f'<th style="text-align:left;padding:8px 14px;font-size:0.7em;font-weight:700;'
+        f'letter-spacing:1px;color:{WINE};background:#F5F0F5;border-bottom:2px solid #E8DEE8;">'
+        f'LEAD</th>'
+        f'</tr></thead>'
+        f'<tbody>{_fl_rows}</tbody>'
+        f'</table>',
+        unsafe_allow_html=True,
+    )
+
+# ── Tab: My Function ───────────────────────────────────────────────────────────
 
 with tab_dept:
 
