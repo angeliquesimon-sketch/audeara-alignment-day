@@ -73,8 +73,10 @@ def _org_svg(styles=None) -> str:
 
     L = []; a = L.append
 
-    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
-      f'style="width:100%;max-width:{W}px;display:block;margin:0 auto;">')
+    # viewBox crops to exact content bounds: left=25 (Kavi edge), top=20 (James edge),
+    # right=1475 (Bonar edge), bottom=398 (l4 edge)
+    a(f'<svg viewBox="23 20 1454 378" xmlns="http://www.w3.org/2000/svg" '
+      f'style="width:100%;max-width:100%;display:block;margin:0 auto;">')
 
     def _box(cx, y, w, h, name, titles, fill,
              nc='white', tc='white', to=0.85, stroke=None, rx=7):
