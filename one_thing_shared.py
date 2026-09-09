@@ -140,7 +140,7 @@ def _fn_table_html(label, functions, winners):
         f'<table style="width:100%;border-collapse:collapse;">'
         f'<thead><tr style="background:#FAF6FA;border-bottom:2px solid #E0D0DF;">'
         f'<th style="{TH}width:13%;">FUNCTION</th>'
-        f'<th style="{TH}width:37%;">DEFINITION</th>'
+        f'<th style="{TH}width:37%;">RESPONSIBLE FOR</th>'
         f'<th style="{TH}width:22%;">MEMBERS</th>'
         f'<th style="{TH}width:28%;">THE ONE THING</th>'
         f'</tr></thead>'
