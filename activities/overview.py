@@ -590,15 +590,11 @@ def _overview():
         st.markdown(
             f'<div style="display:flex;flex-direction:column;gap:10px;">'
 
-            f'<div style="flex:1;border-left:4px solid {m_bc};background:{m_bg};'
+            f'<div style="flex:1;border-left:4px solid #005E63;background:#EDF5F5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:{m_bc};">{m_icon} {m_heading}</div>'
-            f'{m_body}</div>'
-
-            f'<div style="flex:1;border-left:4px solid {v_bc};background:{v_bg};'
-            f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:{v_bc};">{v_icon} {v_heading}</div>'
-            f'{v_body}</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">✅ Brand promise</div>'
+            f'<div style="font-size:1.0em;color:#005E63;margin-top:4px;">What do we promise to deliver for every customer? What feeling do we create?</div>'
+            f'</div>'
 
             f'<div style="flex:1;border-left:4px solid #50144B;background:#F5EFF5;'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
@@ -606,11 +602,15 @@ def _overview():
             f'<div style="font-size:1.0em;color:#666;margin-top:4px;">What do we stand for? What principles guide how we work and make decisions?</div>'
             f'</div>'
 
-            f'<div style="flex:1;border-left:4px solid #005E63;background:#EDF5F5;'
+            f'<div style="flex:1;border-left:4px solid {v_bc};background:{v_bg};'
             f'border-radius:0 8px 8px 0;padding:14px 16px;">'
-            f'<div style="font-weight:700;font-size:1.15em;color:#005E63;">✅ Brand promise</div>'
-            f'<div style="font-size:1.0em;color:#005E63;margin-top:4px;">What do we promise to deliver for every customer? What feeling do we create?</div>'
-            f'</div>'
+            f'<div style="font-weight:700;font-size:1.15em;color:{v_bc};">{v_icon} {v_heading}</div>'
+            f'{v_body}</div>'
+
+            f'<div style="flex:1;border-left:4px solid {m_bc};background:{m_bg};'
+            f'border-radius:0 8px 8px 0;padding:14px 16px;">'
+            f'<div style="font-weight:700;font-size:1.15em;color:{m_bc};">{m_icon} {m_heading}</div>'
+            f'{m_body}</div>'
 
             f'</div>',
             unsafe_allow_html=True,
