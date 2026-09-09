@@ -109,7 +109,7 @@ GOVERNANCE_FUNCTIONS = [
 ]
 
 
-def _fn_table_html(label, functions, winners):
+def _fn_table_html(label, functions, winners, show_lead=False):
     TH = (
         'text-align:left;font-size:0.85em;font-weight:700;letter-spacing:1px;'
         f'color:{WINE};padding:8px 12px;'
@@ -122,27 +122,38 @@ def _fn_table_html(label, functions, winners):
             ot = f'<span style="font-size:0.9em;color:{FOREST};line-height:1.45;">{winner}</span>'
         else:
             ot = '<span style="font-size:0.9em;color:#CCCCCC;font-style:italic;">Not yet agreed</span>'
+        lead_cell = ''
+        if show_lead:
+            lead_name = DEPARTMENT_HEADS.get(fn['name'], '')
+            lead_cell = (
+                f'<td style="font-size:0.9em;color:#555;padding:10px 12px;'
+                f'vertical-align:top;white-space:nowrap;">{lead_name}</td>'
+            )
         rows += (
             f'<tr style="{border}">'
             f'<td style="font-weight:700;font-size:0.9em;color:{WINE};padding:10px 12px;'
             f'vertical-align:top;white-space:nowrap;">{fn["name"]}</td>'
             f'<td style="font-size:0.9em;color:#555;line-height:1.5;padding:10px 12px;'
             f'vertical-align:top;">{fn["defn"]}</td>'
+            f'{lead_cell}'
             f'<td style="font-size:0.9em;color:#777;padding:10px 12px;'
             f'vertical-align:top;">{fn["members"]}</td>'
             f'<td style="padding:10px 12px;vertical-align:top;">{ot}</td>'
             f'</tr>'
         )
+    lead_header = f'<th style="{TH}width:13%;">FUNCTION LEAD</th>' if show_lead else ''
+    widths = ('12%', '30%', '18%', '22%') if show_lead else ('13%', '37%', '22%', '28%')
     return (
         f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;color:#888;'
         f'margin-bottom:8px;">{label}</div>'
         f'<div style="border:1px solid #E8E0E8;border-radius:8px;overflow:hidden;margin-bottom:24px;">'
         f'<table style="width:100%;border-collapse:collapse;">'
         f'<thead><tr style="background:#FAF6FA;border-bottom:2px solid #E0D0DF;">'
-        f'<th style="{TH}width:13%;">FUNCTION</th>'
-        f'<th style="{TH}width:37%;">RESPONSIBLE FOR</th>'
-        f'<th style="{TH}width:22%;">MEMBERS</th>'
-        f'<th style="{TH}width:28%;">THE ONE THING</th>'
+        f'<th style="{TH}width:{widths[0]};">FUNCTION</th>'
+        f'<th style="{TH}width:{widths[1]};">RESPONSIBLE FOR</th>'
+        f'{lead_header}'
+        f'<th style="{TH}width:{widths[2]};">MEMBERS</th>'
+        f'<th style="{TH}width:{widths[3]};">THE ONE THING</th>'
         f'</tr></thead>'
         f'<tbody>{rows}</tbody>'
         f'</table></div>'

@@ -644,7 +644,7 @@ def _overview():
     # ── Row 1: Function tables with One Thing column ──────────────────────────
 
     st.markdown(
-        _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners) +
+        _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners, show_lead=True) +
         _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners),
         unsafe_allow_html=True,
     )
