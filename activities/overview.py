@@ -542,21 +542,21 @@ def _overview():
 <svg viewBox="-20 0 340 400" xmlns="http://www.w3.org/2000/svg"
      style="width:100%;max-width:340px;display:block;margin:0 auto">
 
-  <polygon points="-20,0 320,0 283,92 17,92" fill="{m_fill}"/>
+  <polygon points="-20,0 320,0 2,92 298,92" fill="{m_fill}"/>
   {m_svg_block}
 
-  <polygon points="17,97 283,97 266,189 34,189" fill="{v_fill}"/>
+  <polygon points="2,97 298,97 24,189 276,189" fill="{v_fill}"/>
   {v_svg_block}
 
-  <polygon points="34,194 266,194 249,286 51,286" fill="#50144B"/>
+  <polygon points="24,194 276,194 46,286 254,286" fill="#50144B"/>
   <text x="150" y="224" text-anchor="middle" font-family="sans-serif"
         font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">VALUES</text>
   <text x="150" y="246" text-anchor="middle" font-family="sans-serif"
-        font-size="9.5" font-weight="600" fill="white">Impact · Quality</text>
+        font-size="13" font-weight="600" fill="white">Impact · Quality</text>
   <text x="150" y="262" text-anchor="middle" font-family="sans-serif"
-        font-size="9.5" font-weight="600" fill="white">Leadership · Momentum</text>
+        font-size="13" font-weight="600" fill="white">Leadership · Momentum</text>
 
-  <polygon points="51,291 249,291 232,383 68,383" fill="#005E63"/>
+  <polygon points="46,291 254,291 68,383 232,383" fill="#005E63"/>
   <text x="150" y="321" text-anchor="middle" font-family="sans-serif"
         font-size="9" font-weight="700" letter-spacing="2.5" fill="white" opacity="0.7">BRAND PROMISE</text>
   <text x="150" y="347" text-anchor="middle" font-family="sans-serif"
