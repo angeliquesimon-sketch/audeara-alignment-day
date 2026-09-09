@@ -704,8 +704,6 @@ def _overview():
             dept_rows_html = ''
             for row in rows:
                 cascade_text = row['cascade']
-                if len(cascade_text) > 90:
-                    cascade_text = cascade_text[:87] + '…'
                 if row['entries']:
                     metric_strip = ''.join(
                         f'<div style="display:flex;gap:8px;flex-wrap:wrap;'
