@@ -723,12 +723,13 @@ def _overview():
                         f'<div style="font-size:0.7em;color:#CCCCCC;margin-top:3px;">'
                         f'Scorecard pending</div>'
                     )
+                tick = '<span style="font-size:0.65em;color:#3EAA6D;">✓</span>' if row['saved'] else ''
                 dept_rows_html += (
                     f'<div style="padding:7px 0;border-top:1px solid #F0EBF0;">'
                     f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
                     f'<span style="font-size:0.65em;font-weight:700;color:{colour};'
                     f'text-transform:uppercase;letter-spacing:0.6px;">{row["dept"]}</span>'
-                    f'{"<span style=\\"font-size:0.65em;color:#3EAA6D;\\">✓</span>" if row["saved"] else ""}'
+                    f'{tick}'
                     f'</div>'
                     f'<div style="font-size:0.76em;color:#666;line-height:1.4;margin-top:2px;'
                     f'font-style:italic;">{cascade_text}</div>'
