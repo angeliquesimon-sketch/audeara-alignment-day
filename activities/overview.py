@@ -53,17 +53,17 @@ def _org_svg(styles=None) -> str:
     james_w, l1_w, l2_w, l3_w, l4_w = 110, 110, 110, 110, 110
 
     # L3 column centers — 11 boxes, gap=10, l3_w=110 (step=120)
-    # Order left→right: Rebekah's 2 | JK's 4 | Louise's 5
+    # Order left→right: Rebekah's 2 | JK's 3 | Engineering's 6 (Louise + 5)
     c_ellissa = 220; c_charli = 340                                              # Rebekah's 2
-    c_ang     = 460; c_rob   = 580; c_vac1 = 700; c_vac2 = 820                  # JK's 4
-    c_andrew  = 940; c_ian   = 1060; c_alex = 1180; c_dylan = 1300; c_bonar = 1420  # Louise's 5
+    c_ang     = 460; c_rob   = 580; c_vac1 = 700                                # JK's 3
+    c_louise_eng = 820                                                           # Engineering: Louise (left of Andrew)
+    c_andrew  = 940; c_ian   = 1060; c_alex = 1180; c_dylan = 1300; c_bonar = 1420  # Engineering: 5 team
 
-    c_rebekah = (c_ellissa + c_charli) // 2  # 289
-    c_jk      = (c_ang     + c_vac2)   // 2  # 703
-    c_louise  = (c_andrew  + c_bonar)  // 2  # 1324
+    c_rebekah = (c_ellissa + c_charli) // 2  # 280
+    c_jk      = (c_ang     + c_vac1)   // 2  # 580
 
     c_kavi   = 80                                      # left of the main tree
-    c_bill   = (c_rebekah + c_louise)  // 2            # 806 — midpoint of L2 span
+    c_bill   = (c_rebekah + c_jk)      // 2            # 430 — midpoint of L2 direct reports
     james_cx = c_bill                                  # James directly above Bill
 
     james_bot = james_y + james_h
@@ -146,25 +146,35 @@ def _org_svg(styles=None) -> str:
     _vl(c_bill, jy0, l1_y)
     _vl(c_kavi, jy0, l1_y, LINE_D, dash='4,3')
 
-    _conn(c_bill, l1_bot, [c_rebekah, c_jk, c_louise], l2_y)
+    _conn(c_bill, l1_bot, [c_rebekah, c_jk], l2_y)
     _conn(c_kavi, l1_bot, [c_kavi], l3_y, LINE_D, dash='4,3')
     # Sayaka ↔ Bill dotted-line — exits Sayaka right, up the gap, right to Bill left edge
-    rm      = (c_kavi + l3_w // 2 + c_ellissa - l3_w // 2) // 2  # midpoint of 12px gap (≈150)
-    s_right = c_kavi + l3_w // 2          # Sayaka right edge (144)
-    s_mid_y = l3_y  + l3_h // 2           # Sayaka vertical centre (289)
-    b_left  = c_bill - l1_w // 2          # Bill left edge (742)
-    b_mid_y = l1_y  + l1_h // 2           # Bill mid-height (129)
+    rm      = (c_kavi + l3_w // 2 + c_ellissa - l3_w // 2) // 2  # midpoint of gap (≈150)
+    s_right = c_kavi + l3_w // 2          # Sayaka right edge
+    s_mid_y = l3_y  + l3_h // 2           # Sayaka vertical centre
+    b_left  = c_bill - l1_w // 2          # Bill left edge
+    b_mid_y = l1_y  + l1_h // 2           # Bill mid-height
     for x1, y1, x2, y2 in [
         (s_right, s_mid_y, rm,     s_mid_y),  # right from Sayaka
-        (rm,      s_mid_y, rm,     b_mid_y),  # up the gap (x=150 clears all boxes)
+        (rm,      s_mid_y, rm,     b_mid_y),  # up the gap
         (rm,      b_mid_y, b_left, b_mid_y),  # right to Bill's left edge at mid-height
     ]:
         a(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
           f'stroke="{LINE_D}" stroke-width="1.5" stroke-dasharray="4,3"/>')
 
-    _conn(c_jk,      l2_bot, [c_ang, c_rob, c_vac1, c_vac2],              l3_y)
-    _conn(c_louise,  l2_bot, [c_andrew, c_ian, c_alex, c_dylan, c_bonar], l3_y)
-    _conn(c_rebekah, l2_bot, [c_ellissa, c_charli],                        l3_y)
+    _conn(c_jk,      l2_bot, [c_ang, c_rob, c_vac1], l3_y)
+    _conn(c_rebekah, l2_bot, [c_ellissa, c_charli],   l3_y)
+
+    # Engineering elbow — Bill's junction bar extends right to Louise's x, then
+    # drops to the engineering junction y, then fans out across all 6 engineers.
+    jy_l12  = (l1_bot + l2_y) // 2   # Bill's direct-report junction y (169)
+    jy_eng  = (l2_bot + l3_y) // 2   # Engineering junction y (249)
+    eng_xs  = [c_louise_eng, c_andrew, c_ian, c_alex, c_dylan, c_bonar]
+    _hl(c_jk, c_louise_eng, jy_l12)              # extend Bill's bar right to elbow x
+    _vl(c_louise_eng, jy_l12, jy_eng)            # elbow drops to engineering junction
+    _hl(min(eng_xs), max(eng_xs), jy_eng)        # horizontal bar across all engineers
+    for ex in eng_xs:
+        _vl(ex, jy_eng, l3_y)                    # drop to each engineer box
 
     _conn(c_rob, l3_bot, [c_rob], l4_y)
 
@@ -181,8 +191,6 @@ def _org_svg(styles=None) -> str:
          ['Head of Operations'], fill=FOREST_D)
     mgmt(c_jk,      l2_y, l2_w, l2_h, 'John Krajewski',
          ['Head of International', 'Sales &amp; Marketing'], fill=FOREST_D)
-    mgmt(c_louise,  l2_y, l2_w, l2_h, 'Louise Heller',
-         ['Engineering Program', 'Manager'], fill=FOREST_D)
     team(c_kavi,    l3_y, l3_w, l3_h, 'Sayaka Smith', ['Accounting Manager'])
 
     team(c_ellissa, l3_y, l3_w, l3_h, 'Ellissa Waters',
@@ -194,8 +202,9 @@ def _org_svg(styles=None) -> str:
     team(c_rob,  l3_y, l3_w, l3_h, 'Robert Poulsen',
          ['Business Development', '&amp; Relationships'])
     grey_b(c_vac1, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
-    grey_b(c_vac2, l3_y, l3_w, l3_h, '[Vacant]', ['Territory Sales Manager'])
 
+    mgmt(c_louise_eng, l3_y, l3_w, l3_h, 'Louise Heller',
+         ['Engineering Program', 'Manager'], fill=FOREST_D)
     team(c_andrew, l3_y, l3_w, l3_h, 'Andrew Morton',
          ['Head of Software', 'Development'])
     team(c_ian,   l3_y, l3_w, l3_h, "Dr Ian O'Brien",  ['Research Audiologist'])
