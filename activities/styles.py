@@ -7,8 +7,9 @@ import streamlit as st
 from utils import inject_styles, with_retry, _sheets, _clear_sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
-    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,
-    pull_styles, pull_session, pull_summaries, save_scenario,
+    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab, _ensure_responses_tab,
+    pull_styles, pull_session, pull_summaries, pull_responses,
+    save_scenario, save_response,
     compute_scores, top_two, colour_bar, card_html_large, card_html_small,
 )
 
@@ -174,9 +175,10 @@ def _team_map_svg(profiles, width=700, height=300):
 
 if not st.session_state.get('_styles_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab,    on_retry=_clear_sheets)
-        with_retry(_ensure_session_tab,   on_retry=_clear_sheets)
-        with_retry(_ensure_summaries_tab, on_retry=_clear_sheets)
+        with_retry(_ensure_styles_tab,     on_retry=_clear_sheets)
+        with_retry(_ensure_session_tab,    on_retry=_clear_sheets)
+        with_retry(_ensure_summaries_tab,  on_retry=_clear_sheets)
+        with_retry(_ensure_responses_tab,  on_retry=_clear_sheets)
         st.session_state['_styles_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
@@ -306,13 +308,40 @@ def _scenario_view():
             if svg_html:
                 st.markdown(svg_html, unsafe_allow_html=True)
             st.markdown(
-                f'<div style="background:#F5F5F5;border-radius:6px;padding:14px 16px;margin-top:4px;">'
-                f'<div style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
-                f'text-transform:uppercase;color:#bbb;margin-bottom:6px;">Discuss</div>'
-                f'<div style="font-size:0.88em;color:#444;line-height:1.6;">{sc["discussion"]}</div>'
-                f'</div>',
+                '<div style="margin-top:20px;margin-bottom:10px;font-size:0.68em;font-weight:700;'
+                'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">'
+                'Your thoughts — anonymous</div>',
                 unsafe_allow_html=True,
             )
+            ti_l, ti_r = st.columns(2)
+            for ti_col, pole, sc_colour, pole_label in [
+                (ti_l, 'left',  sc['left_colour'],  sc['left_label']),
+                (ti_r, 'right', sc['right_colour'], sc['right_label']),
+            ]:
+                ch = HEX[sc_colour]
+                with ti_col:
+                    st.markdown(
+                        f'<div style="font-size:0.78em;font-weight:700;color:{ch};margin-bottom:6px;">'
+                        f'{pole_label}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    resp_key = f'resp_{current}_{pole}'
+                    text = st.text_area(
+                        label=f'benefit_{pole}',
+                        label_visibility='collapsed',
+                        placeholder='What is the benefit of having people on this end?',
+                        key=resp_key,
+                        max_chars=300,
+                        height=80,
+                    )
+                    if st.button('Add', key=f'resp_btn_{current}_{pole}', use_container_width=True):
+                        if text.strip():
+                            try:
+                                save_response(current, pole, text.strip())
+                                del st.session_state[resp_key]
+                                st.rerun()
+                            except Exception as _re:
+                                st.error(f'Could not save. ({_re})')
         else:
             st.success('Submitted. Waiting for the colour reveal...')
     else:
@@ -549,13 +578,52 @@ def _presenter_view():
                     unsafe_allow_html=True,
                 )
 
+        responses   = pull_responses(current)
+        left_resps  = [r['text'] for r in responses if r['pole'] == 'left']
+        right_resps = [r['text'] for r in responses if r['pole'] == 'right']
+
         st.markdown(
-            f'<div style="background:#F9F4F9;border-left:5px solid #781E73;'
-            f'border-radius:0 10px 10px 0;padding:22px 28px;margin-top:24px;">'
-            f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
-            f'text-transform:uppercase;color:#bbb;margin-bottom:10px;">Discuss</div>'
-            f'<div style="font-size:1.25em;color:#2a1a2a;line-height:1.65;font-weight:500;">'
-            f'{sc["discussion"]}</div>'
+            '<div style="margin-top:28px;margin-bottom:12px;font-size:0.72em;font-weight:700;'
+            'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">Team responses</div>',
+            unsafe_allow_html=True,
+        )
+        resp_col_l, resp_col_r = st.columns(2)
+        for r_col, pole_label, pole_colour, resps in [
+            (resp_col_l, sc['left_label'],  sc['left_colour'],  left_resps),
+            (resp_col_r, sc['right_label'], sc['right_colour'], right_resps),
+        ]:
+            ch    = HEX[pole_colour]
+            count = len(resps)
+            with r_col:
+                st.markdown(
+                    f'<div style="font-weight:700;color:{ch};font-size:1.05em;margin-bottom:10px;">'
+                    f'{pole_label}'
+                    f'<span style="font-size:0.7em;font-weight:400;color:#bbb;margin-left:8px;">'
+                    f'{count} response{"s" if count != 1 else ""}</span></div>',
+                    unsafe_allow_html=True,
+                )
+                if resps:
+                    st.markdown(
+                        ''.join(
+                            f'<div style="background:white;border:1px solid #EEEEEE;border-radius:8px;'
+                            f'padding:12px 14px;margin-bottom:8px;font-size:0.9em;color:#333;'
+                            f'line-height:1.55;">{t}</div>'
+                            for t in resps
+                        ),
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        '<div style="color:#CCCCCC;font-size:0.88em;font-style:italic;'
+                        'padding:8px 0;">No responses yet</div>',
+                        unsafe_allow_html=True,
+                    )
+
+        st.markdown(
+            f'<div style="margin-top:20px;padding:10px 14px;background:#F9F9F9;border-radius:6px;">'
+            f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
+            f'text-transform:uppercase;color:#CCCCCC;">Facilitator prompt&nbsp;&nbsp;</span>'
+            f'<span style="font-size:0.82em;color:#BBBBBB;">{sc["discussion"]}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )

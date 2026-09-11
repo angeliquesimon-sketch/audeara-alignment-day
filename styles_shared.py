@@ -8,10 +8,11 @@ import pandas as pd
 from datetime import datetime
 from utils import _sheets, _clear_sheets, with_retry
 
-SHEET_ID      = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
-STYLES_TAB    = 'Styles Submissions'
-SESSION_TAB   = 'Styles Session'
-SUMMARIES_TAB = 'Styles Summaries'
+SHEET_ID       = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
+STYLES_TAB     = 'Styles Submissions'
+SESSION_TAB    = 'Styles Session'
+SUMMARIES_TAB  = 'Styles Summaries'
+RESPONSES_TAB  = 'Styles Responses'
 
 HEX = {
     'Red':    '#E84040',
@@ -262,6 +263,58 @@ def set_session(key, value):
         ).execute()
     with_retry(_do, on_retry=_clear_sheets)
     st.cache_data.clear()
+
+def _ensure_responses_tab():
+    svc      = _sheets()
+    meta     = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+    existing = {s['properties']['title'] for s in meta.get('sheets', [])}
+    if RESPONSES_TAB not in existing:
+        svc.spreadsheets().batchUpdate(
+            spreadsheetId=SHEET_ID,
+            body={'requests': [{'addSheet': {'properties': {'title': RESPONSES_TAB}}}]},
+        ).execute()
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"'{RESPONSES_TAB}'!A1:D1",
+            valueInputOption='RAW',
+            body={'values': [['Timestamp', 'Scenario', 'Pole', 'Response']]},
+        ).execute()
+
+
+@st.cache_data(ttl=5, show_spinner=False)
+def pull_responses(scenario_idx):
+    """Returns list of {'pole': 'left'|'right', 'text': str} for the given scenario."""
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"'{RESPONSES_TAB}'!A:D",
+        ).execute().get('values', [])
+        if len(rows) < 2:
+            return []
+        return [
+            {'pole': r[2], 'text': r[3]}
+            for r in rows[1:]
+            if len(r) >= 4 and str(r[1]) == str(scenario_idx) and r[3].strip()
+        ]
+    except Exception:
+        return []
+
+
+def save_response(scenario_idx, pole, text):
+    def _do():
+        _sheets().spreadsheets().values().append(
+            spreadsheetId=SHEET_ID,
+            range=f"'{RESPONSES_TAB}'!A:D",
+            valueInputOption='RAW',
+            insertDataOption='INSERT_ROWS',
+            body={'values': [[
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                scenario_idx, pole, text,
+            ]]},
+        ).execute()
+    with_retry(_do, on_retry=_clear_sheets)
+    pull_responses.clear()
+
 
 # ── Submission data ─────────────────────────────────────────────────────────────
 
