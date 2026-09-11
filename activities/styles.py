@@ -321,12 +321,7 @@ def _scenario_view():
                     st.error(f'Could not save — please try again. ({_e})')
 
     if reveal:
-        st.markdown(
-            '<div style="margin-top:20px;margin-bottom:10px;font-size:0.68em;font-weight:700;'
-            'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">'
-            'Your thoughts — anonymous</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('#### What is the benefit of having people on this end?')
         ti_l, ti_r = st.columns(2)
         for ti_col, pole, sc_colour, pole_label in [
             (ti_l, 'left',  sc['left_colour'],  sc['left_label']),
@@ -585,11 +580,7 @@ def _presenter_view():
         left_resps  = [r['text'] for r in responses if r['pole'] == 'left']
         right_resps = [r['text'] for r in responses if r['pole'] == 'right']
 
-        st.markdown(
-            '<div style="margin-top:28px;margin-bottom:12px;font-size:0.72em;font-weight:700;'
-            'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">Team responses</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('#### Team responses: What is the benefit of having people on this end?')
         resp_col_l, resp_col_r = st.columns(2)
         for r_col, pole_label, pole_colour, resps in [
             (resp_col_l, sc['left_label'],  sc['left_colour'],  left_resps),
