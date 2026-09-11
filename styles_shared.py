@@ -382,7 +382,12 @@ def compute_scores(row):
         c[sc['left_colour']]  += (100 - v)
         c[sc['right_colour']] += v
     total = sum(c.values()) or 1
-    return {k: round(v / total * 100) for k, v in c.items()}
+    raw       = {k: v / total * 100 for k, v in c.items()}
+    floors    = {k: int(v) for k, v in raw.items()}
+    remainder = 100 - sum(floors.values())
+    for k in sorted(raw, key=lambda k: raw[k] - floors[k], reverse=True)[:remainder]:
+        floors[k] += 1
+    return floors
 
 
 def top_two(scores):
