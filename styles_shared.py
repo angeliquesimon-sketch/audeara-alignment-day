@@ -66,7 +66,7 @@ SCENARIOS = [
     dict(
         title='Directness versus diplomacy',
         prompt="You strongly disagree with a colleague's proposed approach. What are you more likely to do?",
-        left_label='Trust that how you say it shapes how well it resolves.',
+        left_label='Trust that <em>how</em> you say it shapes how well it resolves.',
         left_colour='Green',
         right_label='Trust that being direct gets to a better outcome faster.',
         right_colour='Red',
