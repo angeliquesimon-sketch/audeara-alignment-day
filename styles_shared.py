@@ -381,7 +381,8 @@ def compute_scores(row):
         v = int(row.get(f'S{i + 1}', 50))
         c[sc['left_colour']]  += (100 - v)
         c[sc['right_colour']] += v
-    return {k: round(v / 300 * 100) for k, v in c.items()}
+    total = sum(c.values()) or 1
+    return {k: round(v / total * 100) for k, v in c.items()}
 
 
 def top_two(scores):
