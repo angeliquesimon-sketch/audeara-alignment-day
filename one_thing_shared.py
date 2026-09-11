@@ -69,16 +69,16 @@ OPERATIONAL_FUNCTIONS = [
          members='John Krajewski, Robert Poulsen, Misaki Kawashima'),
     dict(name='Marketing',
          defn="Building brand awareness, driving demand, and communicating Audeara's value across all channels — shaping the customer journey from first discovery through to purchase and long-term engagement",
-         members='Angelique Simon, John Krajewski'),
+         members='John Krajewski, Angelique Simon'),
     dict(name='Engineering',
          defn="Designing, building, and maintaining Audeara's hardware, firmware, and software products",
          members="Louise Heller, Andrew Morton, Dr Ian O'Brien, Alex Bartlett, Dylan Whitehouse, Bonar Dickson"),
     dict(name='Operations & Customer Service',
          defn='Managing supply chain, logistics, inventory, and internal processes to keep the business running efficiently, while supporting customers and clinics post-purchase through technical assistance, troubleshooting, and care',
-         members='Rebekah Davidson, Ellissa Waters, Charli Every, Bill Peng'),
+         members='Bill Peng, Rebekah Davidson, Ellissa Waters, Charli Every'),
     dict(name='Finance',
          defn='Managing accounting, financial reporting, and commercial financial decisions including ASX obligations',
-         members='Bill Peng, James Fielding, Sayaka Smith'),
+         members='James Fielding, Bill Peng, Sayaka Smith'),
 ]
 
 GOVERNANCE_FUNCTIONS = [
