@@ -307,52 +307,55 @@ def _scenario_view():
             svg_html = _render_spectrum(current, sc, pull_styles(), started_at)
             if svg_html:
                 st.markdown(svg_html, unsafe_allow_html=True)
-            st.markdown(
-                '<div style="margin-top:20px;margin-bottom:10px;font-size:0.68em;font-weight:700;'
-                'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">'
-                'Your thoughts — anonymous</div>',
-                unsafe_allow_html=True,
-            )
-            ti_l, ti_r = st.columns(2)
-            for ti_col, pole, sc_colour, pole_label in [
-                (ti_l, 'left',  sc['left_colour'],  sc['left_label']),
-                (ti_r, 'right', sc['right_colour'], sc['right_label']),
-            ]:
-                ch = HEX[sc_colour]
-                with ti_col:
-                    st.markdown(
-                        f'<div style="font-size:0.78em;font-weight:700;color:{ch};margin-bottom:6px;">'
-                        f'{pole_label}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    resp_key = f'resp_{current}_{pole}'
-                    text = st.text_area(
-                        label=f'benefit_{pole}',
-                        label_visibility='collapsed',
-                        placeholder='What is the benefit of having people on this end?',
-                        key=resp_key,
-                        max_chars=300,
-                        height=80,
-                    )
-                    if st.button('Add', key=f'resp_btn_{current}_{pole}', use_container_width=True):
-                        if text.strip():
-                            try:
-                                save_response(current, pole, text.strip())
-                                del st.session_state[resp_key]
-                                st.rerun()
-                            except Exception as _re:
-                                st.error(f'Could not save. ({_re})')
         else:
             st.success('Submitted. Waiting for the colour reveal...')
     else:
-        if st.button('Submit', type='primary', use_container_width=True, key=f'submit_s{current}'):
-            try:
-                save_scenario(_name, current, val)
-                st.session_state[submitted_key] = True
-                st.cache_data.clear()
-                st.rerun()
-            except Exception as _e:
-                st.error(f'Could not save — please try again. ({_e})')
+        if not reveal:
+            if st.button('Submit', type='primary', use_container_width=True, key=f'submit_s{current}'):
+                try:
+                    save_scenario(_name, current, val)
+                    st.session_state[submitted_key] = True
+                    st.cache_data.clear()
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f'Could not save — please try again. ({_e})')
+
+    if reveal:
+        st.markdown(
+            '<div style="margin-top:20px;margin-bottom:10px;font-size:0.68em;font-weight:700;'
+            'letter-spacing:0.12em;text-transform:uppercase;color:#bbb;">'
+            'Your thoughts — anonymous</div>',
+            unsafe_allow_html=True,
+        )
+        ti_l, ti_r = st.columns(2)
+        for ti_col, pole, sc_colour, pole_label in [
+            (ti_l, 'left',  sc['left_colour'],  sc['left_label']),
+            (ti_r, 'right', sc['right_colour'], sc['right_label']),
+        ]:
+            ch = HEX[sc_colour]
+            with ti_col:
+                st.markdown(
+                    f'<div style="font-size:0.78em;font-weight:700;color:{ch};margin-bottom:6px;">'
+                    f'{pole_label}</div>',
+                    unsafe_allow_html=True,
+                )
+                resp_key = f'resp_{current}_{pole}'
+                text = st.text_area(
+                    label=f'benefit_{pole}',
+                    label_visibility='collapsed',
+                    placeholder='What is the benefit of having people on this end?',
+                    key=resp_key,
+                    max_chars=300,
+                    height=80,
+                )
+                if st.button('Add', key=f'resp_btn_{current}_{pole}', use_container_width=True):
+                    if text.strip():
+                        try:
+                            save_response(current, pole, text.strip())
+                            del st.session_state[resp_key]
+                            st.rerun()
+                        except Exception as _re:
+                            st.error(f'Could not save. ({_re})')
 
 
 # ── Team cards fragment (auto-refreshes to pick up AI summaries) ─────────────────
