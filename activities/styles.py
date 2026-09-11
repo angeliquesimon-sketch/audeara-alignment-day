@@ -580,7 +580,7 @@ def _presenter_view():
         left_resps  = [r['text'] for r in responses if r['pole'] == 'left']
         right_resps = [r['text'] for r in responses if r['pole'] == 'right']
 
-        st.markdown('#### Team responses: What is the benefit of having people on this end?')
+        st.markdown(f'#### Team responses: {sc.get("response_question", "What is the benefit of having people on this end?")}')
         resp_col_l, resp_col_r = st.columns(2)
         for r_col, pole_label, pole_colour, resps in [
             (resp_col_l, sc['left_label'],  sc['left_colour'],  left_resps),
