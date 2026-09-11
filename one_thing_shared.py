@@ -16,55 +16,43 @@ DEPARTMENTS = [
     'Marketing',
     'Sales',
     'Engineering',
-    'Operations',
-    'Customer Service',
+    'Operations & Customer Service',
     'Finance',
-    'Leadership & Strategy',
-    'Product Owners',
-    'R&D',
 ]
 
 FUNCTION_TIER = {
-    'Marketing':           'operational',
-    'Sales':               'operational',
-    'Engineering':         'operational',
-    'Operations':          'operational',
-    'Customer Service':    'operational',
-    'Finance':             'operational',
-    'Leadership & Strategy': 'governance',
-    'Product Owners':      'governance',
-    'R&D':                 'governance',
+    'Marketing':                    'operational',
+    'Sales':                        'operational',
+    'Engineering':                  'operational',
+    'Operations & Customer Service':'operational',
+    'Finance':                      'operational',
 }
 
 DEPARTMENT_MAP = {
     'Alex Bartlett':    ['Engineering'],
     'Andrew Morton':    ['Engineering'],
-    'Angelique Simon':  ['Marketing', 'Product Owners'],
-    'Bill Peng':        ['Operations', 'Finance', 'Leadership & Strategy', 'Product Owners'],
+    'Angelique Simon':  ['Marketing'],
+    'Bill Peng':        ['Operations & Customer Service', 'Finance'],
     'Bonar Dickson':    ['Engineering'],
-    'Charli Every':     ['Customer Service'],
+    'Charli Every':     ['Operations & Customer Service'],
     'Dylan Whitehouse': ['Engineering'],
-    'Ellissa Waters':   ['Customer Service'],
-    "Ian O'Brien":      ['Engineering', 'R&D'],
-    'James Fielding':   ['Finance', 'Leadership & Strategy', 'Product Owners', 'R&D'],
-    'John Krajewski':   ['Marketing', 'Sales', 'Product Owners'],
+    'Ellissa Waters':   ['Operations & Customer Service'],
+    "Ian O'Brien":      ['Engineering'],
+    'James Fielding':   ['Finance'],
+    'John Krajewski':   ['Marketing', 'Sales'],
     'Louise Heller':    ['Engineering'],
     'Misaki Kawashima': ['Sales'],
-    'Rebekah Davidson': ['Operations', 'Customer Service'],
-    'Robert Poulsen':   ['Sales', 'Product Owners'],
+    'Rebekah Davidson': ['Operations & Customer Service'],
+    'Robert Poulsen':   ['Sales'],
     'Sayaka Smith':     ['Finance'],
 }
 
 DEPARTMENT_HEADS = {
-    'Marketing':           'Angelique Simon',
-    'Sales':               'John Krajewski',
-    'Engineering':         'Louise Heller',
-    'Operations':          'Bill Peng',
-    'Customer Service':    'Rebekah Davidson',
-    'Finance':             'James Fielding',
-    'Leadership & Strategy': 'James Fielding',
-    'Product Owners':      'James Fielding',
-    'R&D':                 "Ian O'Brien",
+    'Marketing':                    'Angelique Simon',
+    'Sales':                        'John Krajewski',
+    'Engineering':                  'Bill Peng',
+    'Operations & Customer Service':'Rebekah Davidson',
+    'Finance':                      'James Fielding',
 }
 
 ONE_THING_STAGES = ['hidden', 'intro', 'departments', 'personal']
@@ -85,28 +73,15 @@ OPERATIONAL_FUNCTIONS = [
     dict(name='Engineering',
          defn="Designing, building, and maintaining Audeara's hardware, firmware, and software products",
          members="Louise Heller, Andrew Morton, Dr Ian O'Brien, Alex Bartlett, Dylan Whitehouse, Bonar Dickson"),
-    dict(name='Operations',
-         defn='Managing supply chain, logistics, inventory, and internal processes to keep the business running efficiently',
-         members='Bill Peng, Rebekah Davidson'),
-    dict(name='Customer Service',
-         defn='Supporting customers and clinics post-purchase through technical assistance, troubleshooting, and care — including the onboarding and ongoing administration of clinics as Audeara stockists',
-         members='Rebekah Davidson, Ellissa Waters, Charli Every'),
+    dict(name='Operations & Customer Service',
+         defn='Managing supply chain, logistics, inventory, and internal processes to keep the business running efficiently, while supporting customers and clinics post-purchase through technical assistance, troubleshooting, and care',
+         members='Rebekah Davidson, Ellissa Waters, Charli Every, Bill Peng'),
     dict(name='Finance',
          defn='Managing accounting, financial reporting, and commercial financial decisions including ASX obligations',
          members='Bill Peng, James Fielding, Sayaka Smith'),
 ]
 
-GOVERNANCE_FUNCTIONS = [
-    dict(name='Leadership & Strategy',
-         defn='Setting company direction, making major decisions, and holding accountability for performance, compliance, and growth',
-         members='Bill Peng, James Fielding'),
-    dict(name='Product Owners',
-         defn='Holding commercial and strategic ownership over specific product lines from launch through lifecycle',
-         members='Bill Peng, James Fielding, John Krajewski, Angelique Simon, Robert Poulsen'),
-    dict(name='R&D',
-         defn="Owning Audeara's scientific and clinical research agenda and setting the direction of the knowledge base that underpins product development, clinical credibility, and market differentiation",
-         members="Dr Ian O'Brien, James Fielding"),
-]
+GOVERNANCE_FUNCTIONS = []
 
 
 def _fn_table_html(label, functions, winners, show_lead=False):
