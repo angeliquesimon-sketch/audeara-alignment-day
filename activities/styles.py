@@ -507,17 +507,6 @@ def _presenter_view():
 
     else:
         # ── Reveal phase ───────────────────────────────────────────────────────────
-        st.markdown(
-            f'<div style="background:#F9F4F9;border-left:5px solid #781E73;'
-            f'border-radius:0 10px 10px 0;padding:22px 28px;margin-bottom:28px;">'
-            f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
-            f'text-transform:uppercase;color:#bbb;margin-bottom:10px;">Discuss</div>'
-            f'<div style="font-size:1.25em;color:#2a1a2a;line-height:1.65;font-weight:500;">'
-            f'{sc["discussion"]}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-
         pole_l, _, pole_r = st.columns([3, 1, 3])
         with pole_l:
             st.markdown(
@@ -559,6 +548,17 @@ def _presenter_view():
                     f'</div>',
                     unsafe_allow_html=True,
                 )
+
+        st.markdown(
+            f'<div style="background:#F9F4F9;border-left:5px solid #781E73;'
+            f'border-radius:0 10px 10px 0;padding:22px 28px;margin-top:24px;">'
+            f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+            f'text-transform:uppercase;color:#bbb;margin-bottom:10px;">Discuss</div>'
+            f'<div style="font-size:1.25em;color:#2a1a2a;line-height:1.65;font-weight:500;">'
+            f'{sc["discussion"]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 
 with tab_submit:
