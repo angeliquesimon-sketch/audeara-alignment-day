@@ -321,7 +321,7 @@ def _scenario_view():
                     st.error(f'Could not save — please try again. ({_e})')
 
     if reveal:
-        st.markdown('#### What is the benefit of having people on this end?')
+        st.markdown(f'#### {sc.get("response_question", "What is the benefit of having people on this end?")}')
         ti_l, ti_r = st.columns(2)
         for ti_col, pole, sc_colour, pole_label in [
             (ti_l, 'left',  sc['left_colour'],  sc['left_label']),

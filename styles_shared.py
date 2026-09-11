@@ -61,6 +61,7 @@ SCENARIOS = [
         right_label='I notice the upside and what this could become',
         right_colour='Yellow',
         discussion='How could someone with the opposite instinct make your response to change stronger?',
+        response_question='How could someone with the opposite instinct make your response to change stronger?',
     ),
     dict(
         title='Directness versus diplomacy',
