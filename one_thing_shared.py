@@ -64,12 +64,12 @@ ONE_THING_STAGE_LABELS = {
 }
 
 OPERATIONAL_FUNCTIONS = [
-    dict(name='Marketing',
-         defn="Building brand awareness, driving demand, and communicating Audeara's value across all channels — shaping the customer journey from first discovery through to purchase and long-term engagement",
-         members='Angelique Simon, John Krajewski'),
     dict(name='Sales',
          defn='Converting commercial opportunities into revenue through wholesale clinic and international distributor channels',
          members='John Krajewski, Robert Poulsen, Misaki Kawashima'),
+    dict(name='Marketing',
+         defn="Building brand awareness, driving demand, and communicating Audeara's value across all channels — shaping the customer journey from first discovery through to purchase and long-term engagement",
+         members='Angelique Simon, John Krajewski'),
     dict(name='Engineering',
          defn="Designing, building, and maintaining Audeara's hardware, firmware, and software products",
          members="Louise Heller, Andrew Morton, Dr Ian O'Brien, Alex Bartlett, Dylan Whitehouse, Bonar Dickson"),
@@ -81,7 +81,17 @@ OPERATIONAL_FUNCTIONS = [
          members='Bill Peng, James Fielding, Sayaka Smith'),
 ]
 
-GOVERNANCE_FUNCTIONS = []
+GOVERNANCE_FUNCTIONS = [
+    dict(name='Leadership & Strategy',
+         defn='Setting company direction, making major decisions, and holding accountability for performance, compliance, and growth',
+         members='Bill Peng, James Fielding'),
+    dict(name='Product Owners',
+         defn='Holding commercial and strategic ownership over specific product lines from launch through lifecycle',
+         members='Bill Peng, James Fielding, John Krajewski, Angelique Simon, Robert Poulsen'),
+    dict(name='R&D',
+         defn="Owning Audeara's scientific and clinical research agenda and setting the direction of the knowledge base that underpins product development, clinical credibility, and market differentiation",
+         members="Dr Ian O'Brien, James Fielding"),
+]
 
 
 def _fn_table_html(label, functions, winners, show_lead=False):

@@ -18,7 +18,7 @@ from strategy_cascade_shared import (
 from scorecard_shared import pull_scorecard_entries, pull_scorecard_proposals
 from one_thing_shared import (
     pull_one_thing_session, pull_one_thing_winners, DEPARTMENTS as OT_DEPARTMENTS,
-    OPERATIONAL_FUNCTIONS, _fn_table_html,
+    OPERATIONAL_FUNCTIONS, GOVERNANCE_FUNCTIONS, _fn_table_html,
 )
 
 inject_styles()
@@ -669,7 +669,8 @@ def _overview():
     # ── Row 1: Function tables with One Thing column ──────────────────────────
 
     st.markdown(
-        _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners, show_lead=True),
+        _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners, show_lead=True) +
+        _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners),
         unsafe_allow_html=True,
     )
 
