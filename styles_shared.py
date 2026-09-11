@@ -55,8 +55,8 @@ SCENARIOS = [
     ),
     dict(
         title='Possibility versus stability',
-        prompt='Leadership announces a significant change in direction. What do you notice first?',
-        left_label='I notice what this disrupts and how it lands for people',
+        prompt='Leadership announces a significant change in direction. Which one do you feel more aligned with?<br><em>Or as James would put it: Leadership announces a required optimisation of priorities to achieve a great outcome.</em>',
+        left_label='I know what this disrupts for people and how they would feel about it',
         left_colour='Green',
         right_label='I notice the upside and what this could become',
         right_colour='Yellow',
