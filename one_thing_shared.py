@@ -87,14 +87,14 @@ GOVERNANCE_FUNCTIONS = [
          members='Bill Peng, James Fielding'),
     dict(name='Product Owners',
          defn='Holding commercial and strategic ownership over specific product lines from launch through lifecycle',
-         members='Bill Peng, James Fielding, John Krajewski, Angelique Simon, Robert Poulsen'),
+         members='Bill Peng, James Fielding, John Krajewski, Robert Poulsen, Angelique Simon'),
     dict(name='R&D',
          defn="Owning Audeara's scientific and clinical research agenda and setting the direction of the knowledge base that underpins product development, clinical credibility, and market differentiation",
          members="Dr Ian O'Brien, James Fielding"),
 ]
 
 
-def _fn_table_html(label, functions, winners, show_lead=False):
+def _fn_table_html(label, functions, winners, show_lead=False, show_one_thing=True):
     TH = (
         'text-align:left;font-size:0.85em;font-weight:700;letter-spacing:1px;'
         f'color:{WINE};padding:8px 12px;'
@@ -114,6 +114,10 @@ def _fn_table_html(label, functions, winners, show_lead=False):
                 f'<td style="font-size:0.9em;color:#555;padding:10px 12px;'
                 f'vertical-align:top;white-space:nowrap;">{lead_name}</td>'
             )
+        ot_cell = (
+            f'<td style="padding:10px 12px;vertical-align:top;">{ot}</td>'
+            if show_one_thing else ''
+        )
         rows += (
             f'<tr style="{border}">'
             f'<td style="font-weight:700;font-size:0.9em;color:{WINE};padding:10px 12px;'
@@ -123,11 +127,19 @@ def _fn_table_html(label, functions, winners, show_lead=False):
             f'{lead_cell}'
             f'<td style="font-size:0.9em;color:#777;padding:10px 12px;'
             f'vertical-align:top;">{fn["members"]}</td>'
-            f'<td style="padding:10px 12px;vertical-align:top;">{ot}</td>'
+            f'{ot_cell}'
             f'</tr>'
         )
     lead_header = f'<th style="{TH}width:13%;">FUNCTION LEAD</th>' if show_lead else ''
-    widths = ('12%', '30%', '18%', '22%') if show_lead else ('13%', '37%', '22%', '28%')
+    ot_header   = f'<th style="{TH}width:{("22%" if show_lead else "28%")};">THE ONE THING</th>' if show_one_thing else ''
+    if show_lead and show_one_thing:
+        widths = ('12%', '30%', '18%')
+    elif show_lead:
+        widths = ('15%', '40%', '20%')
+    elif show_one_thing:
+        widths = ('13%', '37%', '22%')
+    else:
+        widths = ('18%', '52%', '30%')
     return (
         f'<div style="font-size:0.85em;font-weight:700;letter-spacing:2px;color:#888;'
         f'margin-bottom:8px;">{label}</div>'
@@ -138,7 +150,7 @@ def _fn_table_html(label, functions, winners, show_lead=False):
         f'<th style="{TH}width:{widths[1]};">RESPONSIBLE FOR</th>'
         f'{lead_header}'
         f'<th style="{TH}width:{widths[2]};">MEMBERS</th>'
-        f'<th style="{TH}width:{widths[3]};">THE ONE THING</th>'
+        f'{ot_header}'
         f'</tr></thead>'
         f'<tbody>{rows}</tbody>'
         f'</table></div>'

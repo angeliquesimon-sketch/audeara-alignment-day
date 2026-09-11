@@ -670,7 +670,7 @@ def _overview():
 
     st.markdown(
         _fn_table_html('OPERATIONAL FUNCTIONS', OPERATIONAL_FUNCTIONS, ot_winners, show_lead=True) +
-        _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners),
+        _fn_table_html('GOVERNANCE &amp; OWNERSHIP', GOVERNANCE_FUNCTIONS, ot_winners, show_one_thing=False),
         unsafe_allow_html=True,
     )
 
