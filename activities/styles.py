@@ -443,7 +443,7 @@ def _presenter_view():
                 f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;'
                 f'display:flex;align-items:center;justify-content:center;">'
                 + (f'<span style="font-size:0.78em;font-weight:700;color:{TEXT[c]};'
-                   f'opacity:0.9;white-space:nowrap;">{p["scores"][c]}%</span>'
+                   f'opacity:0.9;white-space:nowrap;">{p["scores"][c]:.1f}%</span>'
                    if p['scores'][c] >= 12 else '')
                 + '</div>'
                 for c in ['Red', 'Blue', 'Yellow', 'Green']
@@ -681,7 +681,7 @@ with tab_team:
                     f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;'
                     f'display:flex;align-items:center;justify-content:center;">'
                     + (f'<span style="font-size:0.7em;font-weight:700;color:{TEXT[c]};'
-                       f'opacity:0.9;white-space:nowrap;">{p["scores"][c]}%</span>'
+                       f'opacity:0.9;white-space:nowrap;">{p["scores"][c]:.1f}%</span>'
                        if p['scores'][c] >= 10 else '')
                     + '</div>'
                     for c in ['Red', 'Blue', 'Yellow', 'Green']

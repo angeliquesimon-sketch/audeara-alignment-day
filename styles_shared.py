@@ -382,12 +382,7 @@ def compute_scores(row):
         c[sc['left_colour']]  += (100 - v)
         c[sc['right_colour']] += v
     total = sum(c.values()) or 1
-    raw       = {k: v / total * 100 for k, v in c.items()}
-    floors    = {k: int(v) for k, v in raw.items()}
-    remainder = 100 - sum(floors.values())
-    for k in sorted(raw, key=lambda k: raw[k] - floors[k], reverse=True)[:remainder]:
-        floors[k] += 1
-    return floors
+    return {k: round(v / total * 100, 1) for k, v in c.items()}
 
 
 def top_two(scores):
@@ -416,7 +411,7 @@ def card_html_large(name, scores):
         f'<div style="display:flex;border-radius:4px;overflow:hidden;height:10px;">{colour_bar(scores)}</div>'
         f'<div style="display:flex;justify-content:space-between;margin-top:7px;'
         f'font-size:0.68em;color:{tc};opacity:0.65;">'
-        + ''.join(f'<span>{c}<br>{scores[c]}%</span>' for c in ['Red', 'Blue', 'Yellow', 'Green'])
+        + ''.join(f'<span>{c}<br>{scores[c]:.1f}%</span>' for c in ['Red', 'Blue', 'Yellow', 'Green'])
         + '</div></div>'
     )
 
