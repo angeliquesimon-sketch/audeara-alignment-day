@@ -613,14 +613,6 @@ def _presenter_view():
                         unsafe_allow_html=True,
                     )
 
-        st.markdown(
-            f'<div style="margin-top:20px;padding:10px 14px;background:#F9F9F9;border-radius:6px;">'
-            f'<span style="font-size:0.68em;font-weight:700;letter-spacing:0.1em;'
-            f'text-transform:uppercase;color:#CCCCCC;">Facilitator prompt&nbsp;&nbsp;</span>'
-            f'<span style="font-size:0.82em;color:#BBBBBB;">{sc["discussion"]}</span>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
 
 
 with tab_submit:
