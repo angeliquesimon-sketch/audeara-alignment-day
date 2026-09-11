@@ -518,6 +518,28 @@ def _presenter_view():
             unsafe_allow_html=True,
         )
 
+        pole_l, _, pole_r = st.columns([3, 1, 3])
+        with pole_l:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-left:5px solid {lc};'
+                f'border-radius:0 10px 10px 0;padding:20px 24px;margin-bottom:20px;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:{lc};font-size:1.2em;">{sc["left_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with pole_r:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-right:5px solid {rc};'
+                f'border-radius:10px 0 0 10px;padding:20px 24px;margin-bottom:20px;text-align:right;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:{rc};font-size:1.2em;">{sc["right_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
         svg_html = _render_spectrum(current, sc, df, started_at)
         if svg_html:
             st.markdown(svg_html, unsafe_allow_html=True)
