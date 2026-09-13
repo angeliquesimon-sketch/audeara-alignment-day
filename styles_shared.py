@@ -433,43 +433,41 @@ def save_response(scenario_idx, pole, text):
 # ── Play Nice ────────────────────────────────────────────────────────────────────
 
 def _ensure_play_nice_tabs():
-    svc      = _sheets()
-    meta     = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
-    existing = {s['properties']['title'] for s in meta.get('sheets', [])}
-
-    to_add = []
-    if PLAY_NICE_SESSION_TAB not in existing:
-        to_add.append({'addSheet': {'properties': {'title': PLAY_NICE_SESSION_TAB}}})
-    if PLAY_NICE_RESPONSES_TAB not in existing:
-        to_add.append({'addSheet': {'properties': {'title': PLAY_NICE_RESPONSES_TAB}}})
-    if to_add:
-        svc.spreadsheets().batchUpdate(
-            spreadsheetId=SHEET_ID, body={'requests': to_add}
-        ).execute()
-
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A1:B3",
-    ).execute().get('values', [])
-    if not rows:
-        svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A1:B3",
-            valueInputOption='RAW',
-            body={'values': [
-                ['Key', 'Value'],
-                ['active_situation', '-1'],
-                ['cards_revealed', '0'],
-            ]},
-        ).execute()
-
-    rows = svc.spreadsheets().values().get(
-        spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_RESPONSES_TAB}'!A1:D1",
-    ).execute().get('values', [])
-    if not rows:
-        svc.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_RESPONSES_TAB}'!A1:D1",
-            valueInputOption='RAW',
-            body={'values': [['Timestamp', 'Situation', 'Colour', 'Response']]},
-        ).execute()
+    """Create and seed Play Nice tabs without a metadata read — try/except handles missing tabs."""
+    svc = _sheets()
+    for tab_name, seed_rows in [
+        (PLAY_NICE_SESSION_TAB, [
+            ['Key', 'Value'],
+            ['active_situation', '-1'],
+            ['cards_revealed', '0'],
+        ]),
+        (PLAY_NICE_RESPONSES_TAB, [
+            ['Timestamp', 'Situation', 'Colour', 'Response'],
+        ]),
+    ]:
+        try:
+            rows = svc.spreadsheets().values().get(
+                spreadsheetId=SHEET_ID,
+                range=f"'{tab_name}'!A1:D4",
+            ).execute().get('values', [])
+            if not rows:
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{tab_name}'!A1",
+                    valueInputOption='RAW',
+                    body={'values': seed_rows},
+                ).execute()
+        except Exception:
+            svc.spreadsheets().batchUpdate(
+                spreadsheetId=SHEET_ID,
+                body={'requests': [{'addSheet': {'properties': {'title': tab_name}}}]},
+            ).execute()
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID,
+                range=f"'{tab_name}'!A1",
+                valueInputOption='RAW',
+                body={'values': seed_rows},
+            ).execute()
 
 
 @st.cache_data(ttl=3, show_spinner=False)
