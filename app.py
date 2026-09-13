@@ -52,6 +52,7 @@ pg = st.navigation({
         st.Page('activities/scorecard.py',                      title='FY27 Scorecard'),
     ],
     'Facilitator': [
+        st.Page('activities/styles_present.py',                 title='📺 Present — Styles'),
         st.Page('activities/magazine_facilitate.py',            title='🎛️ Facilitate — Vision'),
         st.Page('activities/styles_facilitate.py',              title='🎛️ Facilitate — Styles'),
         st.Page('activities/one_thing_facilitate.py',           title='🎛️ Facilitate — One Thing'),

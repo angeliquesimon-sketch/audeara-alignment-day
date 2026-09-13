@@ -1,0 +1,461 @@
+"""Presenter display page — Different Styles activity.
+
+Standalone projector-facing view. No password. No tabs. Auto-refreshes every 10s.
+Only open this page on the facilitator's projector screen — not on participant devices.
+"""
+
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+import streamlit as st
+from utils import inject_styles
+from styles_shared import (
+    HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
+    PLAY_NICE_SITUATIONS, PLAY_NICE_CARDS,
+    pull_styles, pull_session, pull_summaries, pull_responses,
+    pull_play_nice_session, pull_play_nice_responses,
+    compute_scores, top_two,
+)
+
+inject_styles()
+
+# ── SVG helpers ───────────────────────────────────────────────────────────────────
+
+def _render_spectrum(current, sc, df, started_at):
+    col = f'S{current + 1}'
+    lc  = HEX[sc['left_colour']]
+    rc  = HEX[sc['right_colour']]
+
+    if df.empty:
+        return None
+    df_shown = df[df['Timestamp'] >= started_at] if started_at else df
+    if df_shown.empty:
+        return None
+
+    people = [(row['Name'], int(row[col])) for _, row in df_shown.iterrows()]
+
+    W, H, LINE_Y, DOT_R = 600, 32, 16, 9
+
+    def _initials(name):
+        parts = name.strip().split()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return parts[0][0].upper() if parts else '?'
+
+    positioned = []
+    for name, val in sorted(people, key=lambda x: x[1]):
+        dot_color = lc if val < 50 else (rc if val > 50 else '#999999')
+        positioned.append({'name': name, 'val': val, 'x': float(val * W / 100), 'color': dot_color})
+
+    MIN_DIST = DOT_R * 2 + 2
+    for _ in range(150):
+        any_overlap = False
+        for i in range(len(positioned)):
+            for j in range(i + 1, len(positioned)):
+                a, b = positioned[i], positioned[j]
+                dx   = b['x'] - a['x']
+                dist = abs(dx)
+                if dist < MIN_DIST:
+                    any_overlap = True
+                    push = (MIN_DIST - dist) / 2 + 0.5
+                    direction = 1 if dx >= 0 else -1
+                    a['x'] -= direction * push
+                    b['x'] += direction * push
+        for p in positioned:
+            p['x'] = max(DOT_R + 1, min(W - DOT_R - 1, p['x']))
+        if not any_overlap:
+            break
+
+    dot_svg = initial_svg = ''
+    for p in positioned:
+        cx = round(p['x'])
+        dot_svg     += f'<circle cx="{cx}" cy="{LINE_Y}" r="{DOT_R}" fill="{p["color"]}" opacity="0.92"/>'
+        initial_svg += (
+            f'<text x="{cx}" y="{LINE_Y}" text-anchor="middle" dominant-baseline="central" '
+            f'font-size="6" font-weight="700" fill="white" font-family="Noto Sans,sans-serif">'
+            f'{_initials(p["name"])}</text>'
+        )
+
+    return (
+        f'<div style="background:#FAFAFA;border-radius:6px;padding:0;margin:0;">'
+        f'<svg viewBox="0 0 {W} {H}" style="width:100%;">'
+        f'<rect x="0" y="{LINE_Y-8}" width="300" height="16" fill="{lc}" opacity="0.07"/>'
+        f'<rect x="300" y="{LINE_Y-8}" width="300" height="16" fill="{rc}" opacity="0.07"/>'
+        f'<line x1="0" y1="{LINE_Y}" x2="{W}" y2="{LINE_Y}" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>'
+        f'<line x1="300" y1="{LINE_Y-9}" x2="300" y2="{LINE_Y+9}" stroke="#E0E0E0" stroke-width="1"/>'
+        f'{dot_svg}{initial_svg}'
+        f'</svg></div>'
+    )
+
+
+def _team_map_svg(profiles, width=700, height=300):
+    hw, hh = width // 2, height // 2
+    DOT_R  = 14
+
+    def _initials(name):
+        parts = name.strip().split()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return parts[0][0].upper() if parts else '?'
+
+    positioned = []
+    for p in profiles:
+        s  = p['scores']
+        xn = max(0.05, min(0.95, (s['Red']    - s['Blue'])  / 200 + 0.5))
+        yn = max(0.05, min(0.95, (s['Yellow'] - s['Green']) / 200 + 0.5))
+        positioned.append({
+            'name': p['name'], 'color': HEX[p['primary']],
+            'cx': xn * width, 'cy': (1 - yn) * height,
+        })
+
+    MIN_DIST = DOT_R * 2 + 2
+    for _ in range(150):
+        any_overlap = False
+        for i in range(len(positioned)):
+            for j in range(i + 1, len(positioned)):
+                a, b = positioned[i], positioned[j]
+                dx, dy = b['cx'] - a['cx'], b['cy'] - a['cy']
+                dist = (dx ** 2 + dy ** 2) ** 0.5
+                if dist < MIN_DIST:
+                    any_overlap = True
+                    if dist == 0:
+                        dx, dy, dist = 1, 0, 1
+                    push = (MIN_DIST - dist) / 2 + 0.5
+                    nx, ny = dx / dist, dy / dist
+                    a['cx'] -= nx * push; a['cy'] -= ny * push
+                    b['cx'] += nx * push; b['cy'] += ny * push
+        for pos in positioned:
+            pos['cx'] = max(DOT_R + 2, min(width  - DOT_R - 2, pos['cx']))
+            pos['cy'] = max(DOT_R + 2, min(height - DOT_R - 2, pos['cy']))
+        if not any_overlap:
+            break
+
+    dot_svg = initial_svg = ''
+    for pos in positioned:
+        cx, cy = round(pos['cx']), round(pos['cy'])
+        dot_svg     += f'<circle cx="{cx}" cy="{cy}" r="{DOT_R}" fill="{pos["color"]}" opacity="0.92"/>'
+        initial_svg += (
+            f'<text x="{cx}" y="{cy}" text-anchor="middle" dominant-baseline="central" '
+            f'font-size="8" font-weight="700" fill="white" font-family="Noto Sans,sans-serif">'
+            f'{_initials(pos["name"])}</text>'
+        )
+
+    return (
+        f'<div style="background:#F9F9F9;border-radius:8px;padding:8px 0;">'
+        f'<svg viewBox="0 0 {width} {height}" style="width:100%;">'
+        f'<rect x="0" y="0" width="{hw}" height="{hh}" fill="#F5A623" opacity="0.05"/>'
+        f'<rect x="{hw}" y="0" width="{hw}" height="{hh}" fill="#E84040" opacity="0.05"/>'
+        f'<rect x="0" y="{hh}" width="{hw}" height="{hh}" fill="#4285C8" opacity="0.05"/>'
+        f'<rect x="{hw}" y="{hh}" width="{hw}" height="{hh}" fill="#3EAA6D" opacity="0.05"/>'
+        f'<line x1="{hw}" y1="0" x2="{hw}" y2="{height}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<line x1="0" y1="{hh}" x2="{width}" y2="{hh}" stroke="#dddddd" stroke-width="1.2"/>'
+        f'<text x="10" y="{hh}" dominant-baseline="middle" font-size="7" fill="#4285C8" font-weight="bold" font-family="Noto Sans,sans-serif">Blue</text>'
+        f'<text x="{width-10}" y="{hh}" text-anchor="end" dominant-baseline="middle" font-size="7" fill="#E84040" font-weight="bold" font-family="Noto Sans,sans-serif">Red</text>'
+        f'<text x="{hw}" y="{height-8}" text-anchor="middle" font-size="7" fill="#3EAA6D" font-weight="bold" font-family="Noto Sans,sans-serif">Green</text>'
+        f'<text x="{hw}" y="16" text-anchor="middle" font-size="7" fill="#F5A623" font-weight="bold" font-family="Noto Sans,sans-serif">Yellow</text>'
+        f'{dot_svg}{initial_svg}'
+        f'</svg></div>'
+    )
+
+
+# ── Presenter fragment (auto-refreshes) ───────────────────────────────────────────
+
+@st.fragment(run_every=10)
+def _presenter():
+    session    = pull_session()
+    current    = int(session.get('current_scenario', -1))
+    reveal     = session.get('reveal_active', '0') == '1'
+    started_at = session.get('scenario_started_at', '')
+    df         = pull_styles()
+    summaries  = pull_summaries()
+
+    # ── Not started ───────────────────────────────────────────────────────────────
+    if current == -1:
+        st.markdown(
+            '<div style="text-align:center;padding:80px 20px 60px;">'
+            '<div style="font-family:\'roc-grotesk\',sans-serif;'
+            'font-feature-settings:\'ss01\' 1,\'ss02\' 1;'
+            'font-size:2.2em;font-weight:700;color:#DDDDDD;margin-bottom:18px;">'
+            'Different Styles, Shared Direction</div>'
+            '<div style="font-size:1.05em;color:#BBBBBB;">Waiting for the facilitator to start…</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    # ── Activity complete ──────────────────────────────────────────────────────────
+    if current >= len(SCENARIOS):
+        profiles = []
+        if not df.empty:
+            for _, row in df.iterrows():
+                sc_score = compute_scores(row)
+                pri, sec = top_two(sc_score)
+                profiles.append({'name': row['Name'], 'scores': sc_score, 'primary': pri, 'secondary': sec})
+
+        pn_session     = pull_play_nice_session()
+        pn_idx         = int(pn_session.get('active_situation', -1))
+        pn_cards_shown = pn_session.get('cards_revealed', '0') == '1'
+
+        if pn_idx >= 0:
+            situation = PLAY_NICE_SITUATIONS[pn_idx]
+            responses = pull_play_nice_responses(pn_idx)
+            n_resp    = len(responses)
+
+            st.markdown(
+                '<div style="font-size:0.72em;font-weight:700;letter-spacing:0.15em;'
+                'text-transform:uppercase;color:#bbb;margin-bottom:14px;">Play Nice</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;'
+                f'font-feature-settings:\'ss01\' 1,\'ss02\' 1;'
+                f'font-size:2em;font-weight:700;color:#111;line-height:1.2;margin-bottom:14px;">'
+                f'{situation["title"]}</div>'
+                f'<div style="font-size:1.05em;color:#555;line-height:1.7;margin-bottom:28px;">'
+                f'{situation["prompt"]}</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<div style="font-size:0.72em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:16px;">'
+                f'{n_resp} response{"s" if n_resp != 1 else ""}</div>',
+                unsafe_allow_html=True,
+            )
+
+            for colour in ['Red', 'Blue', 'Yellow', 'Green']:
+                colour_resps = [r['text'] for r in responses if r['colour'] == colour]
+                if colour_resps:
+                    ch = HEX[colour]
+                    st.markdown(
+                        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+                        f'<div style="width:12px;height:12px;border-radius:50%;background:{ch};flex-shrink:0;"></div>'
+                        f'<div style="font-weight:700;color:{ch};font-size:0.95em;">{colour}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    for resp in colour_resps:
+                        st.markdown(
+                            f'<div style="background:white;border:1px solid #EEE;border-radius:8px;'
+                            f'padding:12px 14px;margin-bottom:8px;margin-left:20px;'
+                            f'font-size:0.9em;color:#333;line-height:1.55;">{resp}</div>',
+                            unsafe_allow_html=True,
+                        )
+
+            if not responses:
+                st.markdown(
+                    '<div style="color:#CCC;font-size:0.9em;font-style:italic;">'
+                    'No responses yet — waiting for the team.</div>',
+                    unsafe_allow_html=True,
+                )
+
+            if pn_cards_shown:
+                st.markdown('')
+                st.divider()
+                st.markdown('#### How to work with each colour')
+                cards_data = PLAY_NICE_CARDS[pn_idx]
+                col_a, col_b = st.columns(2)
+                for i, colour in enumerate(['Red', 'Blue', 'Yellow', 'Green']):
+                    ch_c = HEX[colour]
+                    with (col_a if i % 2 == 0 else col_b):
+                        st.markdown(
+                            f'<div style="border-left:5px solid {ch_c};background:{ch_c}18;'
+                            f'border-radius:0 10px 10px 0;padding:18px 22px;margin-bottom:16px;">'
+                            f'<div style="font-weight:700;color:{ch_c};font-size:1em;margin-bottom:8px;">'
+                            f'Working with a {colour}</div>'
+                            f'<div style="font-size:0.88em;color:#444;line-height:1.7;">'
+                            f'{cards_data[colour]}</div>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+            return
+
+        # Default complete view: team map + colour bars + summaries
+        if not profiles:
+            st.info('Activity complete. No results yet.')
+            return
+
+        st.markdown('#### Team map')
+        st.markdown(_team_map_svg(profiles, width=900, height=380), unsafe_allow_html=True)
+        st.markdown('')
+
+        for p in sorted(profiles, key=lambda x: (x['primary'], x['secondary'])):
+            bar = ''.join(
+                f'<div style="flex:{p["scores"][c]};background:{HEX[c]};min-width:2px;'
+                f'display:flex;align-items:center;justify-content:center;">'
+                + (f'<span style="font-size:0.78em;font-weight:700;color:{TEXT[c]};'
+                   f'opacity:0.9;white-space:nowrap;">{p["scores"][c]:.1f}%</span>'
+                   if p['scores'][c] >= 12 else '')
+                + '</div>'
+                for c in ['Red', 'Blue', 'Yellow', 'Green']
+            )
+            pc_b = HEX[p['primary']]
+            tc_b = TEXT[p['primary']]
+            st.markdown(
+                f'<div style="display:flex;align-items:center;margin:6px 0;gap:14px;">'
+                f'<div style="width:150px;font-size:0.95em;color:#444;text-align:right;flex-shrink:0;">'
+                f'{p["name"]}</div>'
+                f'<div style="display:flex;border-radius:4px;overflow:hidden;height:28px;flex:1;">{bar}</div>'
+                f'<div style="flex-shrink:0;background:{pc_b};color:{tc_b};font-size:0.78em;'
+                f'font-weight:700;padding:5px 14px;border-radius:20px;white-space:nowrap;">'
+                f'{p["primary"]} / {p["secondary"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            if p['name'] in summaries:
+                st.markdown(
+                    f'<div style="display:flex;gap:14px;margin:-3px 0 10px;">'
+                    f'<div style="width:150px;flex-shrink:0;"></div>'
+                    f'<div style="flex:1;font-size:0.86em;color:#555;line-height:1.6;'
+                    f'padding:8px 12px;background:#F7F7F7;border-radius:4px;">'
+                    f'{summaries[p["name"]]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+        return
+
+    # ── Active scenario ────────────────────────────────────────────────────────────
+    sc = SCENARIOS[current]
+    if not df.empty and started_at:
+        df_shown = df[df['Timestamp'] >= started_at]
+    else:
+        df_shown = df
+    n_responded = len(df_shown) if not df.empty else 0
+
+    lc = HEX[sc['left_colour']]
+    rc = HEX[sc['right_colour']]
+
+    if not reveal:
+        # ── Submission phase ───────────────────────────────────────────────────────
+        st.markdown(
+            f'<div style="padding:32px 0 24px;">'
+            f'<div style="font-size:0.72em;font-weight:700;letter-spacing:0.15em;'
+            f'text-transform:uppercase;color:#bbb;margin-bottom:12px;">'
+            f'Scenario {current + 1} of {len(SCENARIOS)}</div>'
+            f'<div style="font-family:\'roc-grotesk\',sans-serif;'
+            f'font-feature-settings:\'ss01\' 1,\'ss02\' 1;'
+            f'font-size:2em;font-weight:700;color:#111;line-height:1.25;margin-bottom:16px;">'
+            f'{sc["title"]}</div>'
+            f'<div style="font-size:1.1em;color:#555;line-height:1.7;">{sc["prompt"]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        col_l, col_mid, col_r = st.columns([3, 1, 3])
+        with col_l:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-left:5px solid #333;'
+                f'border-radius:0 10px 10px 0;padding:20px 24px;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:#111;font-size:1.2em;">{sc["left_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with col_r:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-right:5px solid #333;'
+                f'border-radius:10px 0 0 10px;padding:20px 24px;text-align:right;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:#111;font-size:1.2em;">{sc["right_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            f'<div style="text-align:center;padding:40px 0 16px;">'
+            f'<div style="font-size:4.5em;font-weight:700;color:#111;line-height:1;">'
+            f'{n_responded}</div>'
+            f'<div style="font-size:1em;color:#999;margin-top:8px;">'
+            f'of {len(TEAM)} responded</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    else:
+        # ── Reveal phase ───────────────────────────────────────────────────────────
+        pole_l, _, pole_r = st.columns([3, 1, 3])
+        with pole_l:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-left:5px solid {lc};'
+                f'border-radius:0 10px 10px 0;padding:20px 24px;margin-bottom:20px;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:{lc};font-size:1.2em;">{sc["left_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with pole_r:
+            st.markdown(
+                f'<div style="background:#F5F5F5;border-right:5px solid {rc};'
+                f'border-radius:10px 0 0 10px;padding:20px 24px;margin-bottom:20px;text-align:right;">'
+                f'<div style="font-size:0.7em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#aaa;margin-bottom:8px;">This end</div>'
+                f'<div style="font-weight:700;color:{rc};font-size:1.2em;">{sc["right_label"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        svg_html = _render_spectrum(current, sc, df, started_at)
+        if svg_html:
+            st.markdown(svg_html, unsafe_allow_html=True)
+        st.markdown('')
+
+        col_l, col_r = st.columns(2)
+        for col, colour in [(col_l, sc['left_colour']), (col_r, sc['right_colour'])]:
+            ch   = HEX[colour]
+            desc = COLOUR_DESCRIPTORS[colour]
+            with col:
+                st.markdown(
+                    f'<div style="border-left:5px solid {ch};background:{ch}18;'
+                    f'border-radius:0 10px 10px 0;padding:18px 22px;">'
+                    f'<div style="font-weight:700;color:{ch};font-size:1.15em;margin-bottom:8px;">'
+                    f'{colour}</div>'
+                    f'<div style="font-size:0.92em;color:#444;line-height:1.65;">{desc}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+        responses   = pull_responses(current)
+        left_resps  = [r['text'] for r in responses if r['pole'] == 'left']
+        right_resps = [r['text'] for r in responses if r['pole'] == 'right']
+
+        st.markdown(f'#### Team responses: {sc.get("response_question", "What is the benefit of having people on this end?")}')
+        resp_col_l, resp_col_r = st.columns(2)
+        for r_col, pole_label, pole_colour, resps in [
+            (resp_col_l, sc['left_label'],  sc['left_colour'],  left_resps),
+            (resp_col_r, sc['right_label'], sc['right_colour'], right_resps),
+        ]:
+            ch    = HEX[pole_colour]
+            count = len(resps)
+            with r_col:
+                st.markdown(
+                    f'<div style="font-weight:700;color:{ch};font-size:1.05em;margin-bottom:10px;">'
+                    f'{pole_label}'
+                    f'<span style="font-size:0.7em;font-weight:400;color:#bbb;margin-left:8px;">'
+                    f'{count} response{"s" if count != 1 else ""}</span></div>',
+                    unsafe_allow_html=True,
+                )
+                if resps:
+                    st.markdown(
+                        ''.join(
+                            f'<div style="background:white;border:1px solid #EEEEEE;border-radius:8px;'
+                            f'padding:12px 14px;margin-bottom:8px;font-size:0.9em;color:#333;'
+                            f'line-height:1.55;">{t}</div>'
+                            for t in resps
+                        ),
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        '<div style="color:#CCCCCC;font-size:0.88em;font-style:italic;'
+                        'padding:8px 0;">No responses yet</div>',
+                        unsafe_allow_html=True,
+                    )
+
+
+# ── Page ─────────────────────────────────────────────────────────────────────────
+
+st.markdown('### Different Styles, Shared Direction')
+st.caption('Presenter view · Auto-refreshes every 10 seconds')
+_presenter()
