@@ -7,9 +7,10 @@ import streamlit as st
 from datetime import datetime
 from utils import inject_styles, with_retry, _sheets, _clear_sheets, PURPLE, TEAL
 from styles_shared import (
-    TEAM, SCENARIOS, HEX, TEXT,
-    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,
+    TEAM, SCENARIOS, HEX, TEXT, PLAY_NICE_SITUATIONS,
+    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab, _ensure_play_nice_tabs,
     pull_styles, pull_session, pull_summaries, set_session,
+    pull_play_nice_session, set_play_nice_session,
     save_summary, generate_summary,
     compute_scores, top_two, colour_bar, card_html_small,
 )
@@ -124,9 +125,10 @@ if st.button('🔒 Lock', key='styles_fac_lock'):
 
 if not st.session_state.get('_styles_fac_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab,    on_retry=_clear_sheets)
-        with_retry(_ensure_session_tab,   on_retry=_clear_sheets)
-        with_retry(_ensure_summaries_tab, on_retry=_clear_sheets)
+        with_retry(_ensure_styles_tab,      on_retry=_clear_sheets)
+        with_retry(_ensure_session_tab,     on_retry=_clear_sheets)
+        with_retry(_ensure_summaries_tab,   on_retry=_clear_sheets)
+        with_retry(_ensure_play_nice_tabs,  on_retry=_clear_sheets)
         st.session_state['_styles_fac_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue. ({_e})')
@@ -378,3 +380,63 @@ if current >= n_scen:
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+
+# ── Play Nice ──────────────────────────────────────────────────────────────────────
+
+if current >= n_scen:
+    st.divider()
+    st.markdown('### 🤝 Play Nice')
+    st.markdown(
+        'Run a colour-tagged reflection on one of three real workplace situations. '
+        'Pick a situation, let the team respond anonymously, then reveal the resolution cards.'
+    )
+
+    pn_session  = pull_play_nice_session()
+    pn_idx      = int(pn_session.get('active_situation', -1))
+    pn_revealed = pn_session.get('cards_revealed', '0') == '1'
+
+    # Status
+    if pn_idx == -1:
+        pn_status = 'Not started'
+        pn_sb, pn_st = '#F0F0F0', '#666'
+    else:
+        sit_title = PLAY_NICE_SITUATIONS[pn_idx]['title']
+        pn_status = f'Active: {sit_title}' + (' — Cards revealed' if pn_revealed else '')
+        pn_sb, pn_st = (TEAL, '#fff') if pn_revealed else (PURPLE, '#fff')
+
+    st.markdown(
+        f'<div style="background:{pn_sb};color:{pn_st};font-weight:700;'
+        f'padding:10px 16px;border-radius:8px;margin-bottom:16px;">'
+        f'{pn_status}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Situation selector
+    btn_cols = st.columns(3)
+    for i, sit in enumerate(PLAY_NICE_SITUATIONS):
+        label = f'{"▶ " if pn_idx == i else ""}Situation {i + 1}: {sit["title"]}'
+        with btn_cols[i]:
+            if st.button(label, key=f'pn_start_{i}', use_container_width=True,
+                         type='primary' if pn_idx == i else 'secondary'):
+                set_play_nice_session('active_situation', i)
+                set_play_nice_session('cards_revealed', '0')
+                st.rerun()
+
+    # Reveal / hide cards
+    if pn_idx >= 0:
+        st.markdown('')
+        rev_cols = st.columns([1, 1, 2])
+        with rev_cols[0]:
+            if not pn_revealed:
+                if st.button('Reveal resolution cards', type='primary', use_container_width=True):
+                    set_play_nice_session('cards_revealed', '1')
+                    st.rerun()
+            else:
+                if st.button('Hide resolution cards', use_container_width=True):
+                    set_play_nice_session('cards_revealed', '0')
+                    st.rerun()
+        with rev_cols[1]:
+            if st.button('End Play Nice', use_container_width=True):
+                set_play_nice_session('active_situation', -1)
+                set_play_nice_session('cards_revealed', '0')
+                st.rerun()

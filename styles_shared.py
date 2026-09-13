@@ -12,7 +12,120 @@ SHEET_ID       = '1Py7OFDrGKHvbHv9-MBgS4Nqv_D_EdwjO-29OOgIPHVI'
 STYLES_TAB     = 'Styles Submissions'
 SESSION_TAB    = 'Styles Session'
 SUMMARIES_TAB  = 'Styles Summaries'
-RESPONSES_TAB  = 'Styles Responses'
+RESPONSES_TAB           = 'Styles Responses'
+PLAY_NICE_SESSION_TAB   = 'Play Nice Session'
+PLAY_NICE_RESPONSES_TAB = 'Play Nice Responses'
+
+PLAY_NICE_SITUATIONS = [
+    dict(
+        title='Getting alignment',
+        prompt="You're trying to get alignment on a decision that not everyone agrees on. "
+               "What would you need from the other person to feel like it was resolved well?",
+    ),
+    dict(
+        title='Working style clash',
+        prompt="Someone's working style is clashing with yours and it's affecting how you get "
+               "things done. What would you need from the other person to feel like it was resolved well?",
+    ),
+    dict(
+        title='After a disagreement',
+        prompt="You need to bring someone back on board after a disagreement. "
+               "What would you need from the other person to feel like it was resolved well?",
+    ),
+]
+
+PLAY_NICE_CARDS = {
+    0: {
+        'Red': (
+            "Lead with the outcome, not the process. Reds align around results, so frame the "
+            "decision in terms of what it achieves rather than how you got there. Be direct about "
+            "where you agree and where you don't. Don't bring too many options. If you need them "
+            "to move off their position, give them a reason that matters to them — speed, impact, "
+            "or a better result. They respond to logic paired with momentum."
+        ),
+        'Blue': (
+            "Don't try to rush them to a conclusion. Blues need to feel they've had time to think "
+            "the problem through before they can commit. Share your reasoning in advance so the "
+            "conversation can focus on the decision rather than the information. Ask what concerns "
+            "they still have and take those seriously. A Blue who feels heard on the substance will "
+            "align. A Blue who feels pushed past their questions will hold out."
+        ),
+        'Yellow': (
+            "Bring energy to it. Yellows align when they feel excited about where things are going, "
+            "not when they're being managed toward a predetermined answer. Frame the decision as an "
+            "opportunity. Let them contribute an idea, even a small one, so they feel ownership of "
+            "the outcome. If they feel the conclusion was partly theirs, they'll champion it."
+        ),
+        'Green': (
+            "Create safety before asking for agreement. Greens won't voice their reservations in a "
+            "group, so if you push for a public commitment too early you'll get a yes that isn't "
+            "real. Check in privately. Ask how they feel about it, not just what they think. Show "
+            "that their concerns have been considered. Once they feel the relationship is intact and "
+            "the people around them are okay, they'll align genuinely."
+        ),
+    },
+    1: {
+        'Red': (
+            "Be direct and specific. Reds don't respond well to general feedback or long preambles. "
+            "Name the behaviour, name the impact, and propose a concrete change. Keep it short. "
+            "Avoid framing it as personal criticism. The most effective approach is to treat it as "
+            "a practical problem to solve together: \"This is what's happening, here's what I need, "
+            "how do we fix it?\" They'll respect the directness and move quickly."
+        ),
+        'Blue': (
+            "Blue won't respond well to an emotional or vague complaint. Prepare for the "
+            "conversation: be specific about what the clash looks like, why it's creating a problem, "
+            "and what a better working arrangement would involve. Give them time to respond — they'll "
+            "want to think before they answer. Avoid pressure for an immediate resolution. The more "
+            "structured and reasoned your approach, the more effective it will be."
+        ),
+        'Yellow': (
+            "Keep it warm. Yellows are sensitive to criticism and can internalise it as personal "
+            "rejection. Focus on the situation, not the person. Use humour if the relationship "
+            "allows it. Frame what you need as a way of helping things flow better for both of you, "
+            "not as a complaint. Give them a role in designing the solution — they'll commit to a "
+            "change they helped create."
+        ),
+        'Green': (
+            "Be gentle and specific. Greens will absorb a clash silently rather than raise it, so "
+            "even getting to this conversation is progress. Choose a calm, private moment. Reassure "
+            "them that the relationship is fine and that you're raising it because you want things "
+            "to work well. Avoid any language that sounds like blame. Ask what's been feeling hard "
+            "for them too — there's often something on their side they haven't said."
+        ),
+    },
+    2: {
+        'Red': (
+            "Address the substance, not just the temperature. Reds may appear to have moved on but "
+            "the underlying issue often hasn't been resolved. Go to them directly. Keep it brief and "
+            "practical: name what happened, say what you'd do differently, and ask if there's "
+            "anything they need going forward. Don't over-process the emotional dimension. Resolution "
+            "for a Red means the issue is closed and you're both moving forward."
+        ),
+        'Blue': (
+            "Give them time, then create a structured moment to revisit it. Blues will have replayed "
+            "the disagreement carefully and will want to understand what went wrong before they can "
+            "move on. Don't try to resolve it in passing. Set aside time, let them work through "
+            "their thinking, and engage with the substance of what they raise. A Blue who feels the "
+            "issue has been properly examined will reconnect fully. One who feels it was brushed "
+            "past will stay guarded."
+        ),
+        'Yellow': (
+            "Start with the relationship, not the issue. Yellows take disagreements personally and "
+            "need to feel things are okay between you before they can engage with the substance. A "
+            "warm, genuine reach-out — even a brief one — opens the door. Don't wait for them to "
+            "come to you. Once they feel safe they'll reconnect quickly. Keep the follow-up light "
+            "on analysis and warm on acknowledgement."
+        ),
+        'Green': (
+            "Go to them. Greens won't raise it and won't come to you, but they'll be sitting with "
+            "it. Choose a quiet, private moment. Keep your tone calm and unhurried. Ask how they're "
+            "feeling before you explain your own position. Show that you value the relationship "
+            "independent of the outcome of the disagreement. Greens reconnect through feeling seen "
+            "and valued as a person, not through reaching logical closure on the argument."
+        ),
+    },
+}
 
 HEX = {
     'Red':    '#E84040',
@@ -315,6 +428,115 @@ def save_response(scenario_idx, pole, text):
         ).execute()
     with_retry(_do, on_retry=_clear_sheets)
     pull_responses.clear()
+
+
+# ── Play Nice ────────────────────────────────────────────────────────────────────
+
+def _ensure_play_nice_tabs():
+    svc      = _sheets()
+    meta     = svc.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+    existing = {s['properties']['title'] for s in meta.get('sheets', [])}
+
+    to_add = []
+    if PLAY_NICE_SESSION_TAB not in existing:
+        to_add.append({'addSheet': {'properties': {'title': PLAY_NICE_SESSION_TAB}}})
+    if PLAY_NICE_RESPONSES_TAB not in existing:
+        to_add.append({'addSheet': {'properties': {'title': PLAY_NICE_RESPONSES_TAB}}})
+    if to_add:
+        svc.spreadsheets().batchUpdate(
+            spreadsheetId=SHEET_ID, body={'requests': to_add}
+        ).execute()
+
+    rows = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A1:B3",
+    ).execute().get('values', [])
+    if not rows:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A1:B3",
+            valueInputOption='RAW',
+            body={'values': [
+                ['Key', 'Value'],
+                ['active_situation', '-1'],
+                ['cards_revealed', '0'],
+            ]},
+        ).execute()
+
+    rows = svc.spreadsheets().values().get(
+        spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_RESPONSES_TAB}'!A1:D1",
+    ).execute().get('values', [])
+    if not rows:
+        svc.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_RESPONSES_TAB}'!A1:D1",
+            valueInputOption='RAW',
+            body={'values': [['Timestamp', 'Situation', 'Colour', 'Response']]},
+        ).execute()
+
+
+@st.cache_data(ttl=3, show_spinner=False)
+def pull_play_nice_session():
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A:B",
+        ).execute().get('values', [])
+        return {r[0]: r[1] for r in rows[1:] if len(r) >= 2}
+    except Exception:
+        return {}
+
+
+def set_play_nice_session(key, value):
+    def _do():
+        svc  = _sheets()
+        rows = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A:B",
+        ).execute().get('values', [])
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 1 and row[0] == key:
+                svc.spreadsheets().values().update(
+                    spreadsheetId=SHEET_ID,
+                    range=f"'{PLAY_NICE_SESSION_TAB}'!B{i}",
+                    valueInputOption='RAW', body={'values': [[str(value)]]},
+                ).execute()
+                return
+        svc.spreadsheets().values().append(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_SESSION_TAB}'!A:B",
+            valueInputOption='RAW', insertDataOption='INSERT_ROWS',
+            body={'values': [[key, str(value)]]},
+        ).execute()
+    with_retry(_do, on_retry=_clear_sheets)
+    pull_play_nice_session.clear()
+
+
+@st.cache_data(ttl=5, show_spinner=False)
+def pull_play_nice_responses(situation_idx):
+    try:
+        rows = _sheets().spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range=f"'{PLAY_NICE_RESPONSES_TAB}'!A:D",
+        ).execute().get('values', [])
+        if len(rows) < 2:
+            return []
+        return [
+            {'colour': r[2], 'text': r[3]}
+            for r in rows[1:]
+            if len(r) >= 4 and str(r[1]) == str(situation_idx) and r[3].strip()
+        ]
+    except Exception:
+        return []
+
+
+def save_play_nice_response(situation_idx, colour, text):
+    def _do():
+        _sheets().spreadsheets().values().append(
+            spreadsheetId=SHEET_ID,
+            range=f"'{PLAY_NICE_RESPONSES_TAB}'!A:D",
+            valueInputOption='RAW',
+            insertDataOption='INSERT_ROWS',
+            body={'values': [[
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                situation_idx, colour, text,
+            ]]},
+        ).execute()
+    with_retry(_do, on_retry=_clear_sheets)
+    pull_play_nice_responses.clear()
 
 
 # ── Submission data ─────────────────────────────────────────────────────────────

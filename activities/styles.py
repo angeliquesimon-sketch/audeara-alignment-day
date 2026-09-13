@@ -7,9 +7,13 @@ import streamlit as st
 from utils import inject_styles, with_retry, _sheets, _clear_sheets
 from styles_shared import (
     HEX, TEXT, TEAM, SCENARIOS, COLOUR_DESCRIPTORS,
-    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab, _ensure_responses_tab,
+    PLAY_NICE_SITUATIONS, PLAY_NICE_CARDS,
+    _ensure_styles_tab, _ensure_session_tab, _ensure_summaries_tab,
+    _ensure_responses_tab, _ensure_play_nice_tabs,
     pull_styles, pull_session, pull_summaries, pull_responses,
-    save_scenario, save_response,
+    pull_play_nice_session, pull_play_nice_responses,
+    save_scenario, save_response, save_play_nice_response,
+    set_play_nice_session,
     compute_scores, top_two, colour_bar, card_html_large, card_html_small,
 )
 
@@ -175,10 +179,11 @@ def _team_map_svg(profiles, width=700, height=300):
 
 if not st.session_state.get('_styles_tab_ensured'):
     try:
-        with_retry(_ensure_styles_tab,     on_retry=_clear_sheets)
-        with_retry(_ensure_session_tab,    on_retry=_clear_sheets)
-        with_retry(_ensure_summaries_tab,  on_retry=_clear_sheets)
-        with_retry(_ensure_responses_tab,  on_retry=_clear_sheets)
+        with_retry(_ensure_styles_tab,       on_retry=_clear_sheets)
+        with_retry(_ensure_session_tab,      on_retry=_clear_sheets)
+        with_retry(_ensure_summaries_tab,    on_retry=_clear_sheets)
+        with_retry(_ensure_responses_tab,    on_retry=_clear_sheets)
+        with_retry(_ensure_play_nice_tabs,   on_retry=_clear_sheets)
         st.session_state['_styles_tab_ensured'] = True
     except Exception as _e:
         st.warning(f'Sheet setup issue — some features may not save correctly. ({_e})')
@@ -203,7 +208,9 @@ st.markdown(
 )
 st.markdown('')
 
-tab_submit, tab_team, tab_present = st.tabs(['🧭 Submit your results', '🎨 Team map', '📺 Presenter'])
+tab_submit, tab_team, tab_present, tab_play = st.tabs([
+    '🧭 Submit your results', '🎨 Team map', '📺 Presenter', '🤝 Play Nice',
+])
 
 # ── Submit tab ──────────────────────────────────────────────────────────────────
 
@@ -430,6 +437,87 @@ def _presenter_view():
                 pri, sec = top_two(sc_score)
                 profiles.append({'name': row['Name'], 'scores': sc_score, 'primary': pri, 'secondary': sec})
 
+        # Play Nice takes over the presenter screen when a situation is active
+        pn_session    = pull_play_nice_session()
+        pn_idx        = int(pn_session.get('active_situation', -1))
+        pn_cards_shown = pn_session.get('cards_revealed', '0') == '1'
+
+        if pn_idx >= 0:
+            situation  = PLAY_NICE_SITUATIONS[pn_idx]
+            responses  = pull_play_nice_responses(pn_idx)
+            n_resp     = len(responses)
+
+            st.markdown(
+                f'<div style="font-size:0.72em;font-weight:700;letter-spacing:0.15em;'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:14px;">Play Nice</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<div style="font-family:\'roc-grotesk\',sans-serif;'
+                f'font-feature-settings:\'ss01\' 1,\'ss02\' 1;'
+                f'font-size:2em;font-weight:700;color:#111;line-height:1.2;margin-bottom:14px;">'
+                f'{situation["title"]}</div>'
+                f'<div style="font-size:1.05em;color:#555;line-height:1.7;margin-bottom:28px;">'
+                f'{situation["prompt"]}</div>',
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                f'<div style="font-size:0.72em;font-weight:700;letter-spacing:0.12em;'
+                f'text-transform:uppercase;color:#bbb;margin-bottom:16px;">'
+                f'{n_resp} response{"s" if n_resp != 1 else ""}</div>',
+                unsafe_allow_html=True,
+            )
+
+            for colour in ['Red', 'Blue', 'Yellow', 'Green']:
+                colour_resps = [r['text'] for r in responses if r['colour'] == colour]
+                if colour_resps:
+                    ch = HEX[colour]
+                    st.markdown(
+                        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+                        f'<div style="width:12px;height:12px;border-radius:50%;'
+                        f'background:{ch};flex-shrink:0;"></div>'
+                        f'<div style="font-weight:700;color:{ch};font-size:0.95em;">{colour}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    for resp in colour_resps:
+                        st.markdown(
+                            f'<div style="background:white;border:1px solid #EEE;border-radius:8px;'
+                            f'padding:12px 14px;margin-bottom:8px;margin-left:20px;'
+                            f'font-size:0.9em;color:#333;line-height:1.55;">{resp}</div>',
+                            unsafe_allow_html=True,
+                        )
+
+            if not responses:
+                st.markdown(
+                    '<div style="color:#CCC;font-size:0.9em;font-style:italic;">'
+                    'No responses yet — waiting for the team.</div>',
+                    unsafe_allow_html=True,
+                )
+
+            if pn_cards_shown:
+                st.markdown('')
+                st.divider()
+                st.markdown('#### How to work with each colour')
+                cards_data = PLAY_NICE_CARDS[pn_idx]
+                col_a, col_b = st.columns(2)
+                for i, colour in enumerate(['Red', 'Blue', 'Yellow', 'Green']):
+                    ch_c = HEX[colour]
+                    with (col_a if i % 2 == 0 else col_b):
+                        st.markdown(
+                            f'<div style="border-left:5px solid {ch_c};background:{ch_c}18;'
+                            f'border-radius:0 10px 10px 0;padding:18px 22px;margin-bottom:16px;">'
+                            f'<div style="font-weight:700;color:{ch_c};font-size:1em;margin-bottom:8px;">'
+                            f'Working with a {colour}</div>'
+                            f'<div style="font-size:0.88em;color:#444;line-height:1.7;">'
+                            f'{cards_data[colour]}</div>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+            return
+
+        # Default complete view: team map + colour bars + summaries
         if not profiles:
             st.info('Activity complete. No results yet.')
             return
@@ -615,6 +703,99 @@ def _presenter_view():
 
 
 
+@st.fragment(run_every=5)
+def _play_nice_participant():
+    main_session = pull_session()
+    if int(main_session.get('current_scenario', -1)) < len(SCENARIOS):
+        st.markdown(
+            '<div style="text-align:center;padding:60px 20px;">'
+            '<div style="font-size:1.8em;color:#DDD;margin-bottom:12px;">🤝</div>'
+            '<div style="color:#BBB;">This opens once the main activity is complete.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    _name = st.session_state.get('styles_guided_name', 'Select your name...')
+    if not _name or _name == 'Select your name...':
+        st.info('Select your name on the Submit tab first.')
+        return
+
+    df = pull_styles()
+    if df.empty or _name not in df['Name'].values:
+        st.info('Complete the main activity first — your results are needed to take part.')
+        return
+
+    row          = df[df['Name'] == _name].iloc[0]
+    scores       = compute_scores(row)
+    primary, _   = top_two(scores)
+    ch           = HEX[primary]
+    tc           = TEXT[primary]
+
+    pn_session     = pull_play_nice_session()
+    pn_idx         = int(pn_session.get('active_situation', -1))
+    cards_revealed = pn_session.get('cards_revealed', '0') == '1'
+
+    if pn_idx == -1:
+        st.markdown(
+            '<div style="text-align:center;padding:60px 20px;">'
+            '<div style="font-size:1.8em;color:#DDD;margin-bottom:12px;">🤝</div>'
+            '<div style="color:#BBB;">Waiting for the facilitator to start Play Nice.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    situation = PLAY_NICE_SITUATIONS[pn_idx]
+
+    st.markdown(
+        f'<div style="display:inline-block;background:{ch};color:{tc};'
+        f'font-weight:700;font-size:0.82em;padding:5px 14px;border-radius:20px;'
+        f'margin-bottom:18px;">You are {primary}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f'#### {situation["title"]}')
+    st.markdown(f'_{situation["prompt"]}_')
+    st.markdown('')
+
+    resp_key = f'pn_resp_{pn_idx}'
+    text = st.text_area(
+        label='Your response',
+        label_visibility='collapsed',
+        placeholder='What would you need from the other person to feel like it was resolved well?',
+        key=resp_key,
+        max_chars=400,
+        height=110,
+    )
+    if st.button('Add', key=f'pn_btn_{pn_idx}', use_container_width=True):
+        if text.strip():
+            try:
+                save_play_nice_response(pn_idx, primary, text.strip())
+                if resp_key in st.session_state:
+                    del st.session_state[resp_key]
+                st.rerun()
+            except Exception as _e:
+                st.error(f'Could not save. ({_e})')
+
+    if cards_revealed:
+        st.markdown('')
+        st.divider()
+        st.markdown('#### How to work with each colour')
+        cards = PLAY_NICE_CARDS[pn_idx]
+        for colour in ['Red', 'Blue', 'Yellow', 'Green']:
+            ch_c = HEX[colour]
+            st.markdown(
+                f'<div style="border-left:4px solid {ch_c};background:{ch_c}14;'
+                f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:12px;">'
+                f'<div style="font-weight:700;color:{ch_c};margin-bottom:6px;">'
+                f'Working with a {colour}</div>'
+                f'<div style="font-size:0.88em;color:#444;line-height:1.65;">'
+                f'{cards[colour]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+
 with tab_submit:
     st.selectbox('Your name', ['Select your name...'] + TEAM, key='styles_guided_name')
     name = st.session_state.get('styles_guided_name', 'Select your name...')
@@ -745,3 +926,8 @@ with tab_team:
 
 with tab_present:
     _presenter_view()
+
+# ── Play Nice tab ─────────────────────────────────────────────────────────────────
+
+with tab_play:
+    _play_nice_participant()
